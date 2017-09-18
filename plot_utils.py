@@ -198,3 +198,47 @@ class Polarsubplot(object):
 
         return x1 + x2
 
+
+
+def equalAreaGrid(dr = 2, K = 0, M0 = 8, N = 20):
+    """ 
+    mlat, mlt, mltres = equalAreaGrid(dr = 2, K = 0, M0 = 8, N = 20)
+
+    mlat and mlt are the coordinates of the equatorward west ("lower left") corner
+    of an equal area grid. mltres is the longitudinal width
+
+
+    dr is the latitudinal resolution
+    K gives the starting latitude r0 (grid not valid above this) from r0/dr = (2K + 1)/2 => K = (2r0/dr - 1)/2
+    M0 is the number of sectors in the first circle
+    N is the number of bins (lower boundary = r0 + dr*N)
+
+    """
+
+    r0 = dr * (2*K + 1)/2.
+
+    assert M0 % (K + 1) == 0 # this must be fulfilled
+
+    grid = {}
+
+    M = M0
+    grid[90 - r0 - dr] = np.linspace(0, 24 - 24./M, M) # these are the lower limits in MLT
+
+    for i in range(1, N):
+
+        M = M *  (1 + 1./(K + i + 1.)) # this is the partion for i + 1
+
+        grid[90 - (r0 + i*dr) - dr] = np.linspace(0, 24 - 24./M, M) # these are the lower limits in MLT
+
+    mlats = []
+    mlts = []
+    mltres = []
+    for key in sorted(grid.keys()):
+        mltres_ = sorted(grid[key])[1] - sorted(grid[key])[0]
+        for mlt in sorted(grid[key]):
+            mlats.append(key)
+            mlts.append(mlt)
+            mltres.append(mltres_)
+
+    return np.array(mlats), np.array(mlts), np.array(mltres)
+
