@@ -1,12 +1,6 @@
 from __future__ import division
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import griddata
-from matplotlib import rc
-
-
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
 
 
 class Polarsubplot(object):
@@ -84,7 +78,7 @@ class Polarsubplot(object):
         for lat in latgrid:
             self.ax.plot(lat*np.cos(angles), lat*np.sin(angles), 'k--', **kwargs)
 
-    def writeMLTlabels(self, mlat = self.minlat, degrees = False, **kwargs):
+    def writeMLTlabels(self, mlat = 60, degrees = False, **kwargs):
         """ write MLT labels at given latitude (default self.minlat) 
             if degrees is true, the longitude will be written instead of hour (with 0 at midnight)
         """

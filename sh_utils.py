@@ -5,6 +5,7 @@
                     real expansion of a poloidal (internal + external) and toroidal expansion 
     get_legendre -- calculate associated legendre functions - with option for Schmidt semi-normalization
 """
+from __future__ import division
 import numpy as np
 d2r = np.pi/180
 
@@ -127,7 +128,7 @@ def nterms(NT = 0, MT = 0, NVi = 0, MVi = 0, NVe = 0, MVe = 0):
 
 
 
-def get_legendre(nmax, mmax, theta, schmidtnormalize = True, negative_m = False, minlat = 0, keys = None):
+def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
     """ calculate associated Legendre functions 
 
         nmax             -- maximum total wavenumber
@@ -173,7 +174,6 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, negative_m = False,
             dP[n, m] = np.zeros_like(theta, dtype = np.float64)
 
     P[0, 0] = np.ones_like(theta, dtype = np.float64)
-    P[0, 0][np.abs(90 - theta) < minlat] = 0
     for n in range(1, nmax +1):
         for m in range(0, min([n + 1, mmax + 1])):
             # do the legendre polynomials and derivatives
@@ -206,12 +206,6 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, negative_m = False,
             for m in range(0, min([n + 1, mmax + 1])):
                 P[n, m]  *= S[n, m]
                 dP[n, m] *= S[n, m]
-
-    if negative_m:
-        for n  in range(1, nmax + 1):
-            for m in range(0, min([n + 1, mmax + 1])):
-                P[n, -m]  = -1.**(-m) * factorial(n-m)/factorial(n+m) *  P[n, m]
-                dP[n, -m] = -1.**(-m) * factorial(n-m)/factorial(n+m) * dP[n, m]
 
 
     if keys is None:

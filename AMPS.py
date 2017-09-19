@@ -1,27 +1,131 @@
+""" Python interface for the Average Magnetic field and Polar current System (AMPS) model
+
+This module can be used to 
+1) Calculate and plot average magnetic field and current parameters 
+   on a grid. This is done through the AMPS class. The parameters 
+   that are available for calculation/plotting are:
+    - field aligned current (scalar)
+    - equivalent current function (scalar)
+    - divergence-free part of horizontal current (vector)
+    - curl-free part of horizontal current (vector)
+    - total horizontal current (vector)
+    - eastward or northward ground perturbation 
+      corresponding to equivalent current (scalars)
+||||||||  2) Calculate the model magnetic field in space, along a trajetory, 
+||todo||     provided a time series of external parameters. This is done through
+||||||||     the get_magnetic_field(...) function. The magnetic field will be provided in geographic coordinates
+||||||||  3) Calculate the model magnetic field in space, along a trajetory, 
+||todo||     provided a time series of external parameters. This is done through
+||||||||     the get_ground_perturbation(...) function. 
+
+
+
+MIT License
+
+Copyright (c) 2017 Karl M. Laundal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-from plot_utils import grids, polarsubplot
+from plot_utils import equalAreaGrid, Polarsubplot
 from sh_utils import get_legendre, SHkeys
+from model_utils import get_model_vectors
+from matplotlib import rc
 
-MU0   = 4*pi*1e-7 # Permeability constant
+
+rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+rc('text', usetex=True)
+
+MU0   = 4*np.pi*1e-7 # Permeability constant
 REFRE = 6371.2 # Reference radius used in geomagnetic modeling
 
 
 class AMPS(object):
-    def __init__(self, tor_c, tor_s, iota_c, iota_s, minlat = 60, maxlat = 90.-.01, height = 110., dr = 2, M0 = 4, resolution = 100, global_map = False):
-        """ initialize the model with SH coefficients in the form of pandas dataseries, 
-            indexed by (n, m)
+    """Calculate and plot maps of the model Average Magnetic field and Polar current System (AMPS)
 
-            tor_c and tor_s are the toroidal coefficients for the cos and sin terms, respectively
-            iota_c and iota_s are the poloidal coefficients for the cos and sin terms, respectively
+
+
+    Attributes:
+        tor_c      -- vector of cos term coefficents in the toroidal field expansion
+        tor_s      -- vector of sin term coefficents in the toroidal field expansion
+        pol_c      -- vector of cos term coefficents in the poloidal field expansion
+        pol_s      -- vector of sin term coefficents in the poloidal field expansion
+        keys_P     -- list of spherical harmonic wave number pairs (n,m) corresponding to elements of pol_c and pol_s 
+        keys_T     -- list of spherical harmonic wave number pairs (n,m) corresponding to elements of tor_c and tor_s 
+        vectorgrid -- grid used to calculate and plot vector fields
+        scalargrid -- grid used to calculate and plot scalar fields
+                       
+                       The grid formats are as follows (see also example below):
+                       (np.hstack((mlat_north, mlat_south)), np.hstack((mlt_north, mlt_south)))
+                       
+                       The grids can be changed directly, but member function calculate_matrices() 
+                       must then be called for the change to take effect. Also the grid format
+                       described above should be used.
+
+
+    Example usage:
+        m = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
+        
+        # make summary plot:
+        m.plot_currents()
+        
+        # extract map of field-aligned currents in north and south:
+        Jun, Jus = m.get_upward_current_function()
+
+        # Jus.flatten() will be evaluated at the following coordinates:
+        mlat, mlt = np.split(m.scalargrid[0], 2)[1], np.split(m.scalargrid[1], 2)[1]
+
+        # extract map of total height-integrated horizontal currents:
+        j_eastward_north, j_eastward_south, j_northward_north, j_northward_south = m.get_total_current()
+
+        # j_eastward_north will be a flat array evalulated at the following coordinates:
+        mlat, mlt = np.split(m.vectorgrid[0], 2)[0], np.split(m.vectorgrid[1], 2)[0]
+
+        # update model vectors (tor_c, tor_s, etc.) without recalculating the other matrices:
+        m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+
+    """
+
+    def __init__(self, v, By, Bz, tilt, F107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100):
+        """ __init__ function for AMPS model class
+
+            Args:
+                v          -- solar wind velocity in km/s (scalar/float)
+                By         -- IMF GSM y component in nT (scalar/float)
+                Bz         -- IMF GSM z component in nT (scalar/float)
+                tilt       -- dipole tilt angle in degrees (scalar/float)
+                F107       -- F10.7 index in s.f.u. (scalar/float)
+                
+                minlat     -- optional: low latitude boundary of grids  (default 60)
+                maxlat     -- optional: high latitude boundary of grids (default 89.99)
+                height     -- optional: altitude of the ionospheric currents (default 110 km)
+                dr         -- optional: latitudinal spacing between equal area grid points (default 2 degrees)
+                M0         -- optional: number of grid points in the most poleward circle of equal area grid points (default 4)
+                resolution -- optional: resolution in both directions of the scalar field grids (default 100)
         """
-        self.height = height
 
-        self.tor_c = tor_c.dropna().values.flatten()[:, np.newaxis]
-        self.tor_s = tor_s.dropna().values.flatten()[:, np.newaxis]
-        self.pol_c = iota_c.dropna().values.flatten()[:, np.newaxis]
-        self.pol_s = iota_s.dropna().values.flatten()[:, np.newaxis]
+        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, F107)
+
+        self.height = height
 
         self.dr = dr
         self.M0 = M0
@@ -32,42 +136,59 @@ class AMPS(object):
         self.minlat = minlat
         self.maxlat = maxlat
 
-        self.global_map = global_map
-
-        self.keys_P = [c for c in iota_c.dropna().index]
-        self.keys_T = [c for c in tor_c.dropna().index]
+        self.keys_P = [c for c in self.pol_keys]
+        self.keys_T = [c for c in self.tor_keys]
         self.m_P = np.array(self.keys_P).T[1][np.newaxis, :]
         self.m_T = np.array(self.keys_T).T[1][np.newaxis, :]
         self.n_P = np.array(self.keys_P).T[0][np.newaxis, :]
         self.n_T = np.array(self.keys_T).T[0][np.newaxis, :]
 
-        self.pol_s[self.m_P.flatten() == 0] = 0
-        self.tor_s[self.m_T.flatten() == 0] = 0
-
 
         # find highest degree and order:
-        self.N, self.M = np.max( np.hstack((np.array([c for c in tor_c.index]).T, np.array([c for c in tor_c.index]).T)), axis = 1)
+        self.N, self.M = np.max( np.hstack((np.array([c for c in self.tor_keys]).T, np.array([c for c in self.tor_keys]).T)), axis = 1)
 
         self.vectorgrid = self.vectorgrid()
         self.scalargrid = self.scalargrid(resolution = resolution)
         self.calculate_matrices()
 
-    def update_model(self, tor_c, tor_s, iota_c, iota_s):
-        """ update the model vector without doing the rest of the calculations """
-        self.tor_c = tor_c.dropna().values.flatten()[:, np.newaxis]
-        self.tor_s = tor_s.dropna().values.flatten()[:, np.newaxis]
-        self.pol_c = iota_c.dropna().values.flatten()[:, np.newaxis]
-        self.pol_s = iota_s.dropna().values.flatten()[:, np.newaxis]
+    def update_model(self, v, By, Bz, tilt, F107):
+        """update the model vectors without updating all the other matrices
+
+           Note:
+               If model currents shall be calculated on the same grid for a range of 
+               external conditions, it is faster to do this:
+                   m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
+                   # ... current calculations ...
+                   m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+                   # ... new current calcuations ...
+               than to make a new object:
+                   m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)
+                   # ... new current calculations ...
+
+                Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
+                by allowing the inputs to be arrays. That is not yet implemented. 
+
+
+           Args:
+               v    -- solar wind velocity in km/s (scalar/float)
+               By   -- IMF GSM y component in nT (scalar/float)
+               Bz   -- IMF GSM z component in nT (scalar/float)
+               tilt -- dipole tilt angle in degrees (scalar/float)
+               F107 -- F10.7 index in s.f.u. (scalar/float)
+
+        """
+        
+        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, F107)
 
 
 
     def vectorgrid(self, **kwargs):
-        """ make grid for plotting vectors - using the equal_area_grid function in pyrkeland.plotting.grids
+        """ make grid for plotting vectors - using an equal area grid scheme for this
 
-            kwargs are passed to equal_area_grid
+            kwargs are passed to equalAreaGrid
         """
 
-        grid = grids.equalAreaGrid(dr = self.dr, M0 = self.M0, returnarrays = True, **kwargs)
+        grid = equalAreaGrid(dr = self.dr, M0 = self.M0, **kwargs)
         mlt  = grid[1] + grid[2]/2. # shift to the center points of the bins
         mlat = grid[0] + (grid[0][1] - grid[0][0])/2  # shift to the center points of the bins
 
@@ -84,10 +205,7 @@ class AMPS(object):
     def scalargrid(self, resolution = 100):
         """ make grid for calculations of scalar fields """
 
-        if self.global_map:
-            mlat, mlt = map(np.ravel, np.meshgrid(np.linspace(-self.maxlat, self.maxlat, resolution), np.linspace(-179.9, 179.9, resolution)))
-        else:
-            mlat, mlt = map(np.ravel, np.meshgrid(np.linspace(self.minlat , self.maxlat, resolution), np.linspace(-179.9, 179.9, resolution)))
+        mlat, mlt = map(np.ravel, np.meshgrid(np.linspace(self.minlat , self.maxlat, resolution), np.linspace(-179.9, 179.9, resolution)))
         mlat = np.hstack((mlat, -mlat)) # add southern hemisphere points
         mlt  = np.hstack((mlt ,   mlt)) * 12/180 # add points for southern hemisphere and scale to mlt
         self.scalar_resolution = resolution
@@ -145,8 +263,8 @@ class AMPS(object):
             returns tuple with values for north and south
         """
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 1)
-        P = REFRE * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.iota_c ) 
-                     + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.iota_s ) )
+        P = REFRE * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
+                     + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) )
 
         _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
         return map( _reshape, np.split(P, 2)) # north, south 
@@ -361,8 +479,8 @@ class AMPS(object):
         axes = [plt.subplot2grid((101, 4), (50*(i//4), i % 4), colspan = 1, rowspan = 50) for i in range(8)]
 
 
-        # get polarsubplot objects:
-        paxes = map(lambda x: polarsubplot.Polarsubplot(x, minlat = self.minlat, linestyle = ':', color = 'grey'), axes)
+        # get Polarsubplot objects:
+        paxes = map(lambda x: Polarsubplot(x, minlat = self.minlat, linestyle = ':', color = 'grey'), axes)
 
         # FAC
         Jun, Jus = self.get_upward_current_function()
@@ -387,8 +505,8 @@ class AMPS(object):
         paxes[5].contour(mlats, mlts, alphas, levels = np.r_[alphas.min():alphas.max():30], colors = 'black', linewidths = .5)
 
         en, es, nn, ns = self.get_curl_free_current()
-        paxes[1].plotpins(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
-        paxes[5].plotpins(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[1].featherplot(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[5].featherplot(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
 
         paxes[1].write(self.minlat-5, 12, r'$\alpha$ and $\mathbf{j}_{cf} = \nabla\alpha$, where $\nabla^2\alpha = - J_u$' , ha = 'center', va = 'bottom', size = 18)
 
@@ -398,14 +516,14 @@ class AMPS(object):
         paxes[6].contour(mlats, mlts, Psis, levels = np.r_[Psis.min():Psis.max():30], colors = 'black', linewidths = .5)
 
         en, es, nn, ns = self.get_divergence_free_current()
-        paxes[2].plotpins(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
-        paxes[6].plotpins(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[2].featherplot(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[6].featherplot(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
         paxes[2].write(self.minlat-5, 12, r'$\Psi$ and $\mathbf{j}_{df} = \mathbf{k}\times\nabla\Psi$' , ha = 'center', va = 'bottom', size = 18)
 
         # Total horizontal
         en, es, nn, ns = self.get_total_current()
-        paxes[3].plotpins(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
-        paxes[7].plotpins(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[3].featherplot(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[7].featherplot(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
 
         paxes[3].write(self.minlat-5, 12, r'$\mathbf{j} = \mathbf{j}_{df} + \mathbf{j}_{cf}$' , ha = 'center', va = 'bottom', size = 18)
 
@@ -413,10 +531,8 @@ class AMPS(object):
         # colorbar
         cbar = plt.subplot2grid((101, 4), (100, 0))
         cbar.contourf(np.vstack((faclevels, faclevels)), np.vstack((np.zeros_like(faclevels), np.ones_like(faclevels))), np.vstack((faclevels, faclevels)), levels = faclevels, cmap = plt.cm.bwr)
-        cbar.set_yticks([0, 1])
-        cbar.set_yticklabels(['', ''])
+        cbar.set_yticks([])
         cbar.set_xlabel('downward    $\hspace{3cm}\mu$A/m$^2\hspace{3cm}$      upward', size = 18)
-
 
         plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)
         plt.show()
