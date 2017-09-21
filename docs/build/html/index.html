@@ -84,7 +84,7 @@
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># extract map of field-aligned currents in north and south:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Jun</span><span class="p">,</span> <span class="n">Jus</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_upward_current_function</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Jun</span><span class="p">,</span> <span class="n">Jus</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_upward_current</span><span class="p">()</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Jus.flatten() will be evaluated at the following coords:</span>
@@ -170,35 +170,126 @@ described above should be used.</p>
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_AE_indices">
 <code class="descname">get_AE_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_AE_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_AE_indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculate model AE indices, AL and AU by calculating the (QD) northward component on a uniform grid, and
-returning the minima (AL) and maxima (AU) in both hemispheres</p>
-<p>return: AL_n, AL_s, AU_n, AU_s</p>
+<dd><p>Calculate model synthetic auroral electrojet (AE) indices: AL and AU. The unit is nT</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Here, AL and AU are defined as the lower/upper envelope curves for the northward component
+of the ground magnetic field perturbation that is equivalent with the equivalent current,
+evaluated on <cite>scalargrid</cite>. Thus all the caveats for the <cite>get_ground_perturbation()</cite> function
+applies to these calculations as well. An additional caveat is that we have in principle
+perfect coverage with the model, while the true AE indices are derived using a small set of
+magnetometers in the auroral zone. The model values are also based on QD northward component,
+instead of the &#8220;H component&#8221;, which is used in the official measured AL index. It is possible
+to calculate model AE indices that are more directly comparable to the measured indices.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>AL_n</strong> (<em>float</em>) &#8211; Model AL index in the northerm hemisphere</li>
+<li><strong>AL_s</strong> (<em>float</em>) &#8211; Model AL index in the southern hemisphere</li>
+<li><strong>AU_n</strong> (<em>float</em>) &#8211; Model AU index in the northerm hemisphere</li>
+<li><strong>AU_s</strong> (<em>float</em>) &#8211; Model AU index in the southern hemisphere</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_curl_free_current">
 <code class="descname">get_curl_free_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_curl_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_curl_free_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>get curl-free current vectors from toroidal scalar</p>
-<p>unit is mA/m</p>
+<dd><p>Calculate the curl-free part of the horizontal current, in units of mA/m.
+The calculations refer to the height chosen upon initialization of the AMPS
+object (default 110 km).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>jcf_eastward_n</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the curl-free current in the northern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jcf_eastward_s</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the curl-free current in the southern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jcf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the curl-free current in the northern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jcf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the curl-free current in the southern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyAMPS.AMPS.get_divergence_free_current" title="pyAMPS.AMPS.get_divergence_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_divergence_free_current()</span></code></a></dt>
+<dd>Calculate divergence-free part of the horizontal current</dd>
+<dt><a class="reference internal" href="#pyAMPS.AMPS.get_total_current" title="pyAMPS.AMPS.get_total_current"><code class="xref py py-meth docutils literal"><span class="pre">get_total_current()</span></code></a></dt>
+<dd>Calculate total horizontal current</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_curl_free_current_potential">
 <code class="descname">get_curl_free_current_potential</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_curl_free_current_potential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_curl_free_current_potential" title="Permalink to this definition">¶</a></dt>
-<dd><p>get the curl-free current scalar potential from toroidal scalar</p>
-<p>returns tuple with values for north and south</p>
-<p>in kA</p>
+<dd><p>Calculate the curl-free current potential (unit is kA). The curl-free
+current potential is a scalar alpha which relates to the curl-free part
+of the horizontal current by J_{cf} = grad(alpha). The calculations
+refer to the height chosen upon initialization of the AMPS object (default
+110 km).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>alpha_n</strong> (<em>numpy.array</em>) &#8211; Curl-free current potential in the northern hemisphere.
+Shape: (self.resolution, self.resolution)</li>
+<li><strong>alpha_s</strong> (<em>numpy.array</em>) &#8211; Curl-free current potential in the southern hemisphere.
+Shape: (self.resolution, self.resolution)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_divergence_free_current">
 <code class="descname">get_divergence_free_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_divergence_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_divergence_free_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>get divergence-free current vectors on vector grid</p>
-<p>This is calculated as k cross grad(equivalent current function)</p>
-<p>Return values are east_n, east_s, north_n, north_s, corresponding to the
-east and north vector components in the northern and southern hemispheres</p>
-<p>Calculated at REFRE + height</p>
-<p>unit in mA/m</p>
+<dd><p>Calculate the divergence-free part of the horizontal current, in units of mA/m.
+The calculations refer to the height chosen upon initialization of the AMPS
+object (default 110 km).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>jdf_eastward_n</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the divergence-free current in the northern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jdf_eastward_s</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the divergence-free current in the southern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jdf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the divergence-free current in the northern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jdf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the divergence-free current in the southern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyAMPS.AMPS.get_curl_free_current" title="pyAMPS.AMPS.get_curl_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_curl_free_current()</span></code></a></dt>
+<dd>Calculate curl-free part of the current</dd>
+<dt><a class="reference internal" href="#pyAMPS.AMPS.get_total_current" title="pyAMPS.AMPS.get_total_current"><code class="xref py py-meth docutils literal"><span class="pre">get_total_current()</span></code></a></dt>
+<dd>Calculate total horizontal current</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -216,7 +307,7 @@ the height chosen upon initialization of the AMPS object (default 110 km).</p>
 equivalent with observed ground magnetic field perturbations. The present <cite>equivalent current</cite>
 is derived from measurements above the ionosphere, and thus it contains signal both from
 ionospheric currents below low Earth orbit, and from subsurface induced currents.
-See Laundal et al. (2016) <a class="reference external" href="https://doi.org/10.1186/s40623-016-0518-x">https://doi.org/10.1186/s40623-016-0518-x</a> where this current is called
+See Laundal et al. (2016) <a class="footnote-reference" href="#id2" id="id1">[1]</a> where this current is called
 <cite>Psi</cite> for more detail.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -231,6 +322,15 @@ Shape: (self.resolution, self.resolution)</li>
 </ul>
 </td>
 </tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>K. M. Laundal, C. C. Finlay, and N. Olsen, &#8220;Sunlight effects on the 3D polar current
+system determined from low Earth orbit measurements&#8221; Earth, Planets and Space, 2016,
+<a class="reference external" href="https://doi.org/10.1186/s40623-016-0518-x">https://doi.org/10.1186/s40623-016-0518-x</a></td></tr>
 </tbody>
 </table>
 </dd></dl>
@@ -259,18 +359,84 @@ Shape: (self.resolution, self.resolution)</li>
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_ground_perturbation">
 <code class="descname">get_ground_perturbation</code><span class="sig-paren">(</span><em>mlat</em>, <em>mlt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_ground_perturbation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_ground_perturbation" title="Permalink to this definition">¶</a></dt>
-<dd><p>return ground perturbation at mlat, mlt</p>
-<p>return values are east, north, with same shape as mlat and mlt
-The assumption is that the equivalent current function corresponds to an
-external magnetic potential as in Chapman and Bartels (and Laundal et al. 2016)</p>
-<p>(to calculate long time series of ground perturbations, there are faster ways than this function)</p>
+<dd><p>Calculate magnetic field perturbations on ground, in units of nT, that corresponds
+to the equivalent current function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mlat</strong> (<em>np.array</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; magnetic latitude of the output. The array shape will not be preserved, and
+the results will be returned as a 1-dimensional array</li>
+<li><strong>mlt</strong> (<em>np.array</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; magnetic local time of the output. The array shape will not be preserved, and
+the results will be returned as a 1-dimensional array</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>These calculations are made by assuming that the equivalent current function calculated
+with the AMPS model correspond to the equivalent current function of an external
+magnetic potential, as described by Chapman &amp; Bartels 1940 <a class="footnote-reference" href="#id5" id="id3">[2]</a>. Induced components are
+thus ignored. The height of the current function also becomes important when propagating
+the model values to the ground.</p>
+<p>Also note that the output parameters will be QD components, and that they can be converted
+to geographic by use of QD base vectors <a class="footnote-reference" href="#id6" id="id4">[3]</a></p>
+<p class="last">This function is not optimized for calculating long time series of model ground
+magnetic field perturbations, although it is possible to use for that.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>dB_east</strong> (<em>np.array</em>) &#8211; Eastward component of the magnetic field disturbance on ground</li>
+<li><strong>dB_north</strong> (<em>np.array</em>) &#8211; Northward component of the magnetic field disurubance on ground</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><ol class="first last upperalpha simple" start="19">
+<li>Chapman &amp; J. Bartels &#8220;Geomagnetism Vol 2&#8221; Oxford University Press 1940</li>
+</ol>
+</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>A. D. Richmond, &#8220;Ionospheric Electrodynamics Using Magnetic Apex Coordinates&#8221;,
+Journal of geomagnetism and geoelectricity Vol. 47, 1995, <a class="reference external" href="http://doi.org/10.5636/jgg.47.191">http://doi.org/10.5636/jgg.47.191</a></td></tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="pyAMPS.AMPS.get_integrated_bc">
-<code class="descname">get_integrated_bc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_integrated_bc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_integrated_bc" title="Permalink to this definition">¶</a></dt>
-<dd><p>integrate birkeland current poleward of minlat
-return (in MA), J_up_north, J_down_north, J_up_south, J_down_south</p>
+<dt id="pyAMPS.AMPS.get_integrated_upward_current">
+<code class="descname">get_integrated_upward_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_integrated_upward_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_integrated_upward_current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the integrated upward and downward current, poleward of <cite>minlat</cite>,
+in units of MA.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>J_up_n</strong> (<em>float</em>) &#8211; Total upward current in the northern hemisphere</li>
+<li><strong>J_down_n</strong> (<em>float</em>) &#8211; Total downward current in the northern hemisphere</li>
+<li><strong>J_up_s</strong> (<em>float</em>) &#8211; Total upward current in the southern hemisphere</li>
+<li><strong>J_down_s</strong> (<em>float</em>) &#8211; Total downward current in the southern hemisphere</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -316,23 +482,84 @@ Shape: (self.resolution, self.resolution)</li>
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_total_current">
 <code class="descname">get_total_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_total_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_total_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>get total current vectors by summing curl-free and divergence-free parts</p>
-<p>return sum of curl free and divergence free currents</p>
-<p>unit in mA/m</p>
+<dd><p>Calculate the total horizontal current, in units of mA/m. This is calculated as
+the sum of the curl-free and divergence-free parts. The calculations refer to
+the height chosen upon initialization of the AMPS object (default 110 km).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>j_eastward_n</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the  current in the northern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>j_eastward_s</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the  current in the southern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>j_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the current in the northern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>j_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the current in the southern hemisphere
+evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#pyAMPS.AMPS.get_divergence_free_current" title="pyAMPS.AMPS.get_divergence_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_divergence_free_current()</span></code></a></dt>
+<dd>Calculate divergence-free part of the horizontal current</dd>
+<dt><a class="reference internal" href="#pyAMPS.AMPS.get_curl_free_current" title="pyAMPS.AMPS.get_curl_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_curl_free_current()</span></code></a></dt>
+<dd>Calculate curl-free part of the horizontal current</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="method">
-<dt id="pyAMPS.AMPS.get_upward_current_function">
-<code class="descname">get_upward_current_function</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_upward_current_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_upward_current_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calcalculate upward current function from toroidal scalar, in uA/m^2</p>
-<blockquote>
-<div>returns tuple with values for north and south</div></blockquote>
+<dt id="pyAMPS.AMPS.get_upward_current">
+<code class="descname">get_upward_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_upward_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_upward_current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the upward current (unit is microAmps per square meter). The
+calculations refer to the height chosen upon initialization of the
+AMPS object (default 110 km).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>Ju_n</strong> (<em>numpy.array</em>) &#8211; Upward current in the northern hemisphere.
+Shape: (self.resolution, self.resolution)</li>
+<li><strong>Ju_s</strong> (<em>numpy.array</em>) &#8211; Upward current in the southern hemisphere.
+Shape: (self.resolution, self.resolution)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.plot_currents">
-<code class="descname">plot_currents</code><span class="sig-paren">(</span><em>VECTOR_SCALE=200</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.plot_currents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.plot_currents" title="Permalink to this definition">¶</a></dt>
-<dd><p>plot all the current fields</p>
+<code class="descname">plot_currents</code><span class="sig-paren">(</span><em>vector_scale=200</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.plot_currents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.plot_currents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a summary plot of the current fields</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vector_scale</strong> (<em>optional</em>) &#8211; Current vector lengths will be shown relative to a template. This parameter determines
+the magnitude of that template, in mA/m. Default is 200 mA/m</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># initialize by supplying a set of external conditions:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">AMPS</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="c1"># solar wind velocity in km/s</span>
+<span class="go">             -4, # IMF By in nT</span>
+<span class="go">             -3, # IMF Bz in nT</span>
+<span class="go">             20, # dipole tilt angle in degrees</span>
+<span class="go">             150) # F10.7 index in s.f.u.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># make summary plot:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">plot_currents</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">

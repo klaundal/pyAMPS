@@ -146,7 +146,7 @@
 <span class="sd">        &gt;&gt;&gt; m.plot_currents()</span>
 <span class="sd">        </span>
 <span class="sd">        &gt;&gt;&gt; # extract map of field-aligned currents in north and south:</span>
-<span class="sd">        &gt;&gt;&gt; Jun, Jus = m.get_upward_current_function()</span>
+<span class="sd">        &gt;&gt;&gt; Jun, Jus = m.get_upward_current()</span>
 
 <span class="sd">        &gt;&gt;&gt; # Jus.flatten() will be evaluated at the following coords:</span>
 <span class="sd">        &gt;&gt;&gt; mlat = np.split(m.scalargrid[0], 2)[1]</span>
@@ -400,7 +400,7 @@
 <span class="sd">        equivalent with observed ground magnetic field perturbations. The present `equivalent current` </span>
 <span class="sd">        is derived from measurements above the ionosphere, and thus it contains signal both from </span>
 <span class="sd">        ionospheric currents below low Earth orbit, and from subsurface induced currents. </span>
-<span class="sd">        See Laundal et al. (2016) https://doi.org/10.1186/s40623-016-0518-x where this current is called</span>
+<span class="sd">        See Laundal et al. (2016) [1]_ where this current is called</span>
 <span class="sd">        `Psi` for more detail.</span>
 
 
@@ -412,6 +412,12 @@
 <span class="sd">        Psi_s : numpy.array</span>
 <span class="sd">            Equivalent current function in the southern hemisphere.</span>
 <span class="sd">            Shape: (self.resolution, self.resolution)</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [1] K. M. Laundal, C. C. Finlay, and N. Olsen, &quot;Sunlight effects on the 3D polar current </span>
+<span class="sd">           system determined from low Earth orbit measurements&quot; Earth, Planets and Space, 2016,</span>
+<span class="sd">           https://doi.org/10.1186/s40623-016-0518-x</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">rtor</span> <span class="o">=</span> <span class="p">(</span><span class="n">REFRE</span> <span class="o">/</span> <span class="p">(</span><span class="n">REFRE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">))</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_P</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_P</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_P</span>
@@ -443,11 +449,21 @@
         <span class="n">_reshape</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scalar_resolution</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scalar_resolution</span><span class="p">))</span>
         <span class="k">return</span> <span class="nb">map</span><span class="p">(</span> <span class="n">_reshape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">Ju</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="c1"># north, south </span></div>
 
-<div class="viewcode-block" id="AMPS.get_upward_current_function"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_upward_current_function">[docs]</a>    <span class="k">def</span> <span class="nf">get_upward_current_function</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">        Calcalculate upward current function from toroidal scalar, in uA/m^2</span>
+<div class="viewcode-block" id="AMPS.get_upward_current"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_upward_current">[docs]</a>    <span class="k">def</span> <span class="nf">get_upward_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the upward current (unit is microAmps per square meter). The </span>
+<span class="sd">        calculations refer to the height chosen upon initialization of the </span>
+<span class="sd">        AMPS object (default 110 km).</span>
 
-<span class="sd">            returns tuple with values for north and south</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Ju_n : numpy.array</span>
+<span class="sd">            Upward current in the northern hemisphere.</span>
+<span class="sd">            Shape: (self.resolution, self.resolution)</span>
+<span class="sd">        Ju_s : numpy.array</span>
+<span class="sd">            Upward current in the southern hemisphere.</span>
+<span class="sd">            Shape: (self.resolution, self.resolution)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="n">Ju</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e-6</span><span class="o">/</span><span class="p">(</span><span class="n">MU0</span> <span class="o">*</span> <span class="p">(</span><span class="n">REFRE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="p">(</span>   <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_T</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_T</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_P_scalar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_cosmphi_scalar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_c</span><span class="p">)</span> 
@@ -458,11 +474,22 @@
 
 
 <div class="viewcode-block" id="AMPS.get_curl_free_current_potential"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_curl_free_current_potential">[docs]</a>    <span class="k">def</span> <span class="nf">get_curl_free_current_potential</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; get the curl-free current scalar potential from toroidal scalar             </span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate the curl-free current potential (unit is kA). The curl-free</span>
+<span class="sd">        current potential is a scalar alpha which relates to the curl-free part</span>
+<span class="sd">        of the horizontal current by J_{cf} = grad(alpha). The calculations </span>
+<span class="sd">        refer to the height chosen upon initialization of the AMPS object (default </span>
+<span class="sd">        110 km).</span>
 
-<span class="sd">            returns tuple with values for north and south</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        alpha_n : numpy.array</span>
+<span class="sd">            Curl-free current potential in the northern hemisphere.</span>
+<span class="sd">            Shape: (self.resolution, self.resolution)</span>
+<span class="sd">        alpha_s : numpy.array</span>
+<span class="sd">            Curl-free current potential in the southern hemisphere.</span>
+<span class="sd">            Shape: (self.resolution, self.resolution)</span>
 
-<span class="sd">            in kA</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="n">REFRE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="o">/</span> <span class="n">MU0</span> <span class="o">*</span> <span class="p">(</span>   <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tor_P_scalar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_cosmphi_scalar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_c</span><span class="p">)</span> 
                                                 <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tor_P_scalar</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_sinmphi_scalar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_s</span><span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="mf">1e-9</span>
@@ -472,19 +499,32 @@
 
 
 
-
 <div class="viewcode-block" id="AMPS.get_divergence_free_current"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_divergence_free_current">[docs]</a>    <span class="k">def</span> <span class="nf">get_divergence_free_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; get divergence-free current vectors on vector grid </span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate the divergence-free part of the horizontal current, in units of mA/m.</span>
+<span class="sd">        The calculations refer to the height chosen upon initialization of the AMPS </span>
+<span class="sd">        object (default 110 km).</span>
 
 
-<span class="sd">            This is calculated as k cross grad(equivalent current function)</span>
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        jdf_eastward_n : numpy.array, float</span>
+<span class="sd">            eastward componet of the divergence-free current in the northern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        jdf_eastward_s : numpy.array, float</span>
+<span class="sd">            eastward componet of the divergence-free current in the southern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        jdf_northward_n : numpy.array, float</span>
+<span class="sd">            northward componet of the divergence-free current in the northern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        jdf_northward_n : numpy.array, float</span>
+<span class="sd">            northward componet of the divergence-free current in the southern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
 
-<span class="sd">            Return values are east_n, east_s, north_n, north_s, corresponding to the </span>
-<span class="sd">            east and north vector components in the northern and southern hemispheres </span>
-
-<span class="sd">            Calculated at REFRE + height</span>
-
-<span class="sd">            unit in mA/m</span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_curl_free_current : Calculate curl-free part of the current</span>
+<span class="sd">        get_total_current : Calculate total horizontal current</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         
@@ -503,11 +543,33 @@
 
 
 <div class="viewcode-block" id="AMPS.get_curl_free_current"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_curl_free_current">[docs]</a>    <span class="k">def</span> <span class="nf">get_curl_free_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; get curl-free current vectors from toroidal scalar</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate the curl-free part of the horizontal current, in units of mA/m.</span>
+<span class="sd">        The calculations refer to the height chosen upon initialization of the AMPS </span>
+<span class="sd">        object (default 110 km).</span>
 
-<span class="sd">            unit is mA/m</span>
 
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        jcf_eastward_n : numpy.array, float</span>
+<span class="sd">            eastward componet of the curl-free current in the northern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        jcf_eastward_s : numpy.array, float</span>
+<span class="sd">            eastward componet of the curl-free current in the southern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        jcf_northward_n : numpy.array, float</span>
+<span class="sd">            northward componet of the curl-free current in the northern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        jcf_northward_n : numpy.array, float</span>
+<span class="sd">            northward componet of the curl-free current in the southern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_divergence_free_current : Calculate divergence-free part of the horizontal current</span>
+<span class="sd">        get_total_current : Calculate total horizontal current</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">rtor</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.e-6</span><span class="o">/</span><span class="n">MU0</span>
 
         <span class="n">east</span> <span class="o">=</span> <span class="n">rtor</span> <span class="o">*</span> <span class="p">(</span>    <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tor_P_vector</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_T</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_cosmphi_vector</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tor_s</span> <span class="p">)</span>
@@ -524,21 +586,53 @@
 
 
 <div class="viewcode-block" id="AMPS.get_total_current"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_total_current">[docs]</a>    <span class="k">def</span> <span class="nf">get_total_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; get total current vectors by summing curl-free and divergence-free parts </span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate the total horizontal current, in units of mA/m. This is calculated as </span>
+<span class="sd">        the sum of the curl-free and divergence-free parts. The calculations refer to </span>
+<span class="sd">        the height chosen upon initialization of the AMPS object (default 110 km).</span>
 
-<span class="sd">            return sum of curl free and divergence free currents</span>
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        j_eastward_n : numpy.array, float</span>
+<span class="sd">            eastward componet of the  current in the northern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        j_eastward_s : numpy.array, float</span>
+<span class="sd">            eastward componet of the  current in the southern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        j_northward_n : numpy.array, float</span>
+<span class="sd">            northward componet of the current in the northern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
+<span class="sd">        j_northward_n : numpy.array, float</span>
+<span class="sd">            northward componet of the current in the southern hemisphere</span>
+<span class="sd">            evalulated at the coordinates given by the `vectorgrid` attribute</span>
 
-<span class="sd">            unit in mA/m</span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        get_divergence_free_current : Calculate divergence-free part of the horizontal current</span>
+<span class="sd">        get_curl_free_current : Calculate curl-free part of the horizontal current</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_curl_free_current</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_divergence_free_current</span><span class="p">())]</span></div>
 
-<div class="viewcode-block" id="AMPS.get_integrated_bc"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_integrated_bc">[docs]</a>    <span class="k">def</span> <span class="nf">get_integrated_bc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; integrate birkeland current poleward of minlat</span>
-<span class="sd">            return (in MA), J_up_north, J_down_north, J_up_south, J_down_south</span>
+
+<div class="viewcode-block" id="AMPS.get_integrated_upward_current"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_integrated_upward_current">[docs]</a>    <span class="k">def</span> <span class="nf">get_integrated_upward_current</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate the integrated upward and downward current, poleward of `minlat`,</span>
+<span class="sd">        in units of MA.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        J_up_n : float</span>
+<span class="sd">            Total upward current in the northern hemisphere</span>
+<span class="sd">        J_down_n : float</span>
+<span class="sd">            Total downward current in the northern hemisphere</span>
+<span class="sd">        J_up_s : float</span>
+<span class="sd">            Total upward current in the southern hemisphere</span>
+<span class="sd">        J_down_s : float</span>
+<span class="sd">            Total downward current in the southern hemisphere</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">jun</span><span class="p">,</span> <span class="n">jus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_upward_current_function</span><span class="p">()</span>
+        <span class="n">jun</span><span class="p">,</span> <span class="n">jus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_upward_current</span><span class="p">()</span>
         <span class="n">jun</span><span class="p">,</span> <span class="n">jus</span> <span class="o">=</span> <span class="n">jun</span> <span class="o">*</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">jus</span> <span class="o">*</span> <span class="mf">1e-6</span> <span class="c1"># convert to A/m^2</span>
 
         <span class="c1"># get surface area element in each cell:</span>
@@ -556,14 +650,50 @@
         <span class="c1">#      J_up_north            J_down_north          J_up_south            J_down_south</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">J_n</span><span class="p">[</span><span class="n">J_n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">J_n</span><span class="p">[</span><span class="n">J_n</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">J_s</span><span class="p">[</span><span class="n">J_s</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">J_s</span><span class="p">[</span><span class="n">J_s</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">])</span></div>
 
+
 <div class="viewcode-block" id="AMPS.get_ground_perturbation"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_ground_perturbation">[docs]</a>    <span class="k">def</span> <span class="nf">get_ground_perturbation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mlat</span><span class="p">,</span> <span class="n">mlt</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; return ground perturbation at mlat, mlt</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate magnetic field perturbations on ground, in units of nT, that corresponds </span>
+<span class="sd">        to the equivalent current function.</span>
 
-<span class="sd">            return values are east, north, with same shape as mlat and mlt</span>
-<span class="sd">            The assumption is that the equivalent current function corresponds to an </span>
-<span class="sd">            external magnetic potential as in Chapman and Bartels (and Laundal et al. 2016)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mlat : np.array, float</span>
+<span class="sd">            magnetic latitude of the output. The array shape will not be preserved, and </span>
+<span class="sd">            the results will be returned as a 1-dimensional array</span>
+<span class="sd">        mlt : np.array, float</span>
+<span class="sd">            magnetic local time of the output. The array shape will not be preserved, and </span>
+<span class="sd">            the results will be returned as a 1-dimensional array</span>
 
-<span class="sd">            (to calculate long time series of ground perturbations, there are faster ways than this function)</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        These calculations are made by assuming that the equivalent current function calculated</span>
+<span class="sd">        with the AMPS model correspond to the equivalent current function of an external </span>
+<span class="sd">        magnetic potential, as described by Chapman &amp; Bartels 1940 [2]_. Induced components are </span>
+<span class="sd">        thus ignored. The height of the current function also becomes important when propagating</span>
+<span class="sd">        the model values to the ground. </span>
+
+<span class="sd">        Also note that the output parameters will be QD components, and that they can be converted</span>
+<span class="sd">        to geographic by use of QD base vectors [3]_</span>
+
+<span class="sd">        This function is not optimized for calculating long time series of model ground</span>
+<span class="sd">        magnetic field perturbations, although it is possible to use for that.</span>
+
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        dB_east : np.array</span>
+<span class="sd">            Eastward component of the magnetic field disturbance on ground</span>
+<span class="sd">        dB_north : np.array</span>
+<span class="sd">            Northward component of the magnetic field disurubance on ground</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        .. [2] S. Chapman &amp; J. Bartels &quot;Geomagnetism Vol 2&quot; Oxford University Press 1940</span>
+<span class="sd">        </span>
+<span class="sd">        .. [3] A. D. Richmond, &quot;Ionospheric Electrodynamics Using Magnetic Apex Coordinates&quot;, </span>
+<span class="sd">           Journal of geomagnetism and geoelectricity Vol. 47, 1995, http://doi.org/10.5636/jgg.47.191</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">mlt</span>  <span class="o">=</span> <span class="n">mlt</span><span class="o">.</span> <span class="n">flatten</span><span class="p">()[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
@@ -580,6 +710,7 @@
         <span class="n">cosmphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">mlt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
         <span class="n">sinmphi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">mlt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
 
+        <span class="c1"># G matrix for north component</span>
         <span class="n">G_cn</span>   <span class="o">=</span>  <span class="o">-</span> <span class="n">rr</span> <span class="o">**</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">/</span><span class="n">n</span> <span class="o">*</span> <span class="n">dP</span>
         <span class="n">Gn</span>     <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span> <span class="n">G_cn</span> <span class="o">*</span> <span class="n">cosmphi</span><span class="p">,</span> <span class="n">G_cn</span> <span class="o">*</span> <span class="n">sinmphi</span><span class="p">))</span>
         
@@ -593,10 +724,30 @@
 
 
 <div class="viewcode-block" id="AMPS.get_AE_indices"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.get_AE_indices">[docs]</a>    <span class="k">def</span> <span class="nf">get_AE_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; calculate model AE indices, AL and AU by calculating the (QD) northward component on a uniform grid, and</span>
-<span class="sd">            returning the minima (AL) and maxima (AU) in both hemispheres</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Calculate model synthetic auroral electrojet (AE) indices: AL and AU. The unit is nT</span>
 
-<span class="sd">            return: AL_n, AL_s, AU_n, AU_s</span>
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        Here, AL and AU are defined as the lower/upper envelope curves for the northward component</span>
+<span class="sd">        of the ground magnetic field perturbation that is equivalent with the equivalent current,</span>
+<span class="sd">        evaluated on `scalargrid`. Thus all the caveats for the `get_ground_perturbation()` function</span>
+<span class="sd">        applies to these calculations as well. An additional caveat is that we have in principle</span>
+<span class="sd">        perfect coverage with the model, while the true AE indices are derived using a small set of</span>
+<span class="sd">        magnetometers in the auroral zone. The model values are also based on QD northward component,</span>
+<span class="sd">        instead of the &quot;H component&quot;, which is used in the official measured AL index. It is possible</span>
+<span class="sd">        to calculate model AE indices that are more directly comparable to the measured indices.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        AL_n : float</span>
+<span class="sd">            Model AL index in the northerm hemisphere</span>
+<span class="sd">        AL_s : float</span>
+<span class="sd">            Model AL index in the southern hemisphere</span>
+<span class="sd">        AU_n : float</span>
+<span class="sd">            Model AU index in the northerm hemisphere</span>
+<span class="sd">        AU_s : float</span>
+<span class="sd">            Model AU index in the southern hemisphere</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">rr</span>   <span class="o">=</span> <span class="p">(</span><span class="n">REFRE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="o">/</span> <span class="n">REFRE</span> <span class="c1"># ratio of current radius to earth radius</span>
@@ -615,8 +766,27 @@
 
 
 
-<div class="viewcode-block" id="AMPS.plot_currents"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.plot_currents">[docs]</a>    <span class="k">def</span> <span class="nf">plot_currents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">VECTOR_SCALE</span> <span class="o">=</span> <span class="mi">200</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; plot all the current fields </span>
+<div class="viewcode-block" id="AMPS.plot_currents"><a class="viewcode-back" href="../../index.html#pyAMPS.AMPS.plot_currents">[docs]</a>    <span class="k">def</span> <span class="nf">plot_currents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector_scale</span> <span class="o">=</span> <span class="mi">200</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">        Create a summary plot of the current fields</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        vector_scale : optional</span>
+<span class="sd">            Current vector lengths will be shown relative to a template. This parameter determines</span>
+<span class="sd">            the magnitude of that template, in mA/m. Default is 200 mA/m</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">            &gt;&gt;&gt; # initialize by supplying a set of external conditions:</span>
+<span class="sd">            &gt;&gt;&gt; m = AMPS(300, # solar wind velocity in km/s </span>
+<span class="sd">                         -4, # IMF By in nT</span>
+<span class="sd">                         -3, # IMF Bz in nT</span>
+<span class="sd">                         20, # dipole tilt angle in degrees</span>
+<span class="sd">                         150) # F10.7 index in s.f.u.</span>
+<span class="sd">            &gt;&gt;&gt; # make summary plot:</span>
+<span class="sd">            &gt;&gt;&gt; m.plot_currents()</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">mlats</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scalargrid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">scalar_resolution</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scalar_resolution</span><span class="p">))</span>
@@ -632,7 +802,7 @@
         <span class="n">paxes</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Polarsubplot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">minlat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minlat</span><span class="p">,</span> <span class="n">linestyle</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;grey&#39;</span><span class="p">),</span> <span class="n">axes</span><span class="p">)</span>
 
         <span class="c1"># FAC</span>
-        <span class="n">Jun</span><span class="p">,</span> <span class="n">Jus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_upward_current_function</span><span class="p">()</span>
+        <span class="n">Jun</span><span class="p">,</span> <span class="n">Jus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_upward_current</span><span class="p">()</span>
         <span class="n">faclevels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-.</span><span class="mi">55</span><span class="p">,</span> <span class="o">.</span><span class="mi">55</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
         <span class="n">paxes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">mlats</span><span class="p">,</span> <span class="n">mlts</span><span class="p">,</span> <span class="n">Jun</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">faclevels</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">bwr_r</span><span class="p">,</span> <span class="n">extend</span> <span class="o">=</span> <span class="s1">&#39;both&#39;</span><span class="p">)</span>
         <span class="n">paxes</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">mlats</span><span class="p">,</span> <span class="n">mlts</span><span class="p">,</span> <span class="n">Jus</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">faclevels</span><span class="p">,</span> <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">bwr_r</span><span class="p">,</span> <span class="n">extend</span> <span class="o">=</span> <span class="s1">&#39;both&#39;</span><span class="p">)</span>
@@ -654,8 +824,8 @@
         <span class="n">paxes</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">mlats</span><span class="p">,</span> <span class="n">mlts</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">alphas</span><span class="o">.</span><span class="n">min</span><span class="p">():</span><span class="n">alphas</span><span class="o">.</span><span class="n">max</span><span class="p">():</span><span class="mi">30</span><span class="p">],</span> <span class="n">colors</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">linewidths</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
 
         <span class="n">en</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">nn</span><span class="p">,</span> <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_curl_free_current</span><span class="p">()</span>
-        <span class="n">paxes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="n">nn</span> <span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">VECTOR_SCALE</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
-        <span class="n">paxes</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="o">-</span><span class="n">ns</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">VECTOR_SCALE</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
+        <span class="n">paxes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="n">nn</span> <span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">vector_scale</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
+        <span class="n">paxes</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="o">-</span><span class="n">ns</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">vector_scale</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
 
         <span class="n">paxes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minlat</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\alpha$ and $\mathbf</span><span class="si">{j}</span><span class="s1">_</span><span class="si">{cf}</span><span class="s1"> = \nabla\alpha$, where $\nabla^2\alpha = - J_u$&#39;</span> <span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span> <span class="o">=</span> <span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">18</span><span class="p">)</span>
 
@@ -665,14 +835,14 @@
         <span class="n">paxes</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">mlats</span><span class="p">,</span> <span class="n">mlts</span><span class="p">,</span> <span class="n">Psis</span><span class="p">,</span> <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">Psis</span><span class="o">.</span><span class="n">min</span><span class="p">():</span><span class="n">Psis</span><span class="o">.</span><span class="n">max</span><span class="p">():</span><span class="mi">30</span><span class="p">],</span> <span class="n">colors</span> <span class="o">=</span> <span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">linewidths</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
 
         <span class="n">en</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">nn</span><span class="p">,</span> <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_divergence_free_current</span><span class="p">()</span>
-        <span class="n">paxes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="n">nn</span> <span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">VECTOR_SCALE</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
-        <span class="n">paxes</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="o">-</span><span class="n">ns</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">VECTOR_SCALE</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
+        <span class="n">paxes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="n">nn</span> <span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">vector_scale</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
+        <span class="n">paxes</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="o">-</span><span class="n">ns</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">vector_scale</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
         <span class="n">paxes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minlat</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\Psi$ and $\mathbf</span><span class="si">{j}</span><span class="s1">_</span><span class="si">{df}</span><span class="s1"> = \mathbf</span><span class="si">{k}</span><span class="s1">\times\nabla\Psi$&#39;</span> <span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span> <span class="o">=</span> <span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">18</span><span class="p">)</span>
 
         <span class="c1"># Total horizontal</span>
         <span class="n">en</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">nn</span><span class="p">,</span> <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_total_current</span><span class="p">()</span>
-        <span class="n">paxes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="n">nn</span> <span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">VECTOR_SCALE</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
-        <span class="n">paxes</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="o">-</span><span class="n">ns</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">VECTOR_SCALE</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
+        <span class="n">paxes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="n">nn</span> <span class="p">,</span> <span class="n">en</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">vector_scale</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
+        <span class="n">paxes</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">featherplot</span><span class="p">(</span><span class="n">mlatv</span><span class="p">,</span> <span class="n">mltv</span><span class="p">,</span> <span class="o">-</span><span class="n">ns</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">SCALE</span> <span class="o">=</span> <span class="n">vector_scale</span><span class="p">,</span> <span class="n">markersize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;mA/m&#39;</span><span class="p">)</span>
 
         <span class="n">paxes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minlat</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$\mathbf</span><span class="si">{j}</span><span class="s1"> = \mathbf</span><span class="si">{j}</span><span class="s1">_</span><span class="si">{df}</span><span class="s1"> + \mathbf</span><span class="si">{j}</span><span class="s1">_</span><span class="si">{cf}</span><span class="s1">$&#39;</span> <span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span> <span class="o">=</span> <span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">18</span><span class="p">)</span>
 

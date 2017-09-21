@@ -101,7 +101,7 @@ class AMPS(object):
         >>> m.plot_currents()
         
         >>> # extract map of field-aligned currents in north and south:
-        >>> Jun, Jus = m.get_upward_current_function()
+        >>> Jun, Jus = m.get_upward_current()
 
         >>> # Jus.flatten() will be evaluated at the following coords:
         >>> mlat = np.split(m.scalargrid[0], 2)[1]
@@ -355,7 +355,7 @@ class AMPS(object):
         equivalent with observed ground magnetic field perturbations. The present `equivalent current` 
         is derived from measurements above the ionosphere, and thus it contains signal both from 
         ionospheric currents below low Earth orbit, and from subsurface induced currents. 
-        See Laundal et al. (2016) https://doi.org/10.1186/s40623-016-0518-x where this current is called
+        See Laundal et al. (2016) [1]_ where this current is called
         `Psi` for more detail.
 
 
@@ -367,6 +367,12 @@ class AMPS(object):
         Psi_s : numpy.array
             Equivalent current function in the southern hemisphere.
             Shape: (self.resolution, self.resolution)
+
+        References
+        ----------
+        .. [1] K. M. Laundal, C. C. Finlay, and N. Olsen, "Sunlight effects on the 3D polar current 
+           system determined from low Earth orbit measurements" Earth, Planets and Space, 2016,
+           https://doi.org/10.1186/s40623-016-0518-x
         """
 
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 1.) * (2.*self.n_P + 1.)/self.n_P
@@ -398,11 +404,21 @@ class AMPS(object):
         _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
         return map( _reshape, np.split(Ju, 2)) # north, south 
 
-    def get_upward_current_function(self):
-        """ 
-        Calcalculate upward current function from toroidal scalar, in uA/m^2
+    def get_upward_current(self):
+        """
+        Calculate the upward current (unit is microAmps per square meter). The 
+        calculations refer to the height chosen upon initialization of the 
+        AMPS object (default 110 km).
 
-            returns tuple with values for north and south
+
+        Returns
+        -------
+        Ju_n : numpy.array
+            Upward current in the northern hemisphere.
+            Shape: (self.resolution, self.resolution)
+        Ju_s : numpy.array
+            Upward current in the southern hemisphere.
+            Shape: (self.resolution, self.resolution)
         """
         
         Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
@@ -413,11 +429,22 @@ class AMPS(object):
 
 
     def get_curl_free_current_potential(self):
-        """ get the curl-free current scalar potential from toroidal scalar             
+        """ 
+        Calculate the curl-free current potential (unit is kA). The curl-free
+        current potential is a scalar alpha which relates to the curl-free part
+        of the horizontal current by J_{cf} = grad(alpha). The calculations 
+        refer to the height chosen upon initialization of the AMPS object (default 
+        110 km).
 
-            returns tuple with values for north and south
+        Returns
+        -------
+        alpha_n : numpy.array
+            Curl-free current potential in the northern hemisphere.
+            Shape: (self.resolution, self.resolution)
+        alpha_s : numpy.array
+            Curl-free current potential in the southern hemisphere.
+            Shape: (self.resolution, self.resolution)
 
-            in kA
         """
         alpha = (REFRE + self.height) / MU0 * (   np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
                                                 + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
@@ -427,19 +454,32 @@ class AMPS(object):
 
 
 
-
     def get_divergence_free_current(self):
-        """ get divergence-free current vectors on vector grid 
+        """ 
+        Calculate the divergence-free part of the horizontal current, in units of mA/m.
+        The calculations refer to the height chosen upon initialization of the AMPS 
+        object (default 110 km).
 
 
-            This is calculated as k cross grad(equivalent current function)
+        Return
+        ------
+        jdf_eastward_n : numpy.array, float
+            eastward componet of the divergence-free current in the northern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        jdf_eastward_s : numpy.array, float
+            eastward componet of the divergence-free current in the southern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        jdf_northward_n : numpy.array, float
+            northward componet of the divergence-free current in the northern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        jdf_northward_n : numpy.array, float
+            northward componet of the divergence-free current in the southern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
 
-            Return values are east_n, east_s, north_n, north_s, corresponding to the 
-            east and north vector components in the northern and southern hemispheres 
-
-            Calculated at REFRE + height
-
-            unit in mA/m
+        See Also
+        --------
+        get_curl_free_current : Calculate curl-free part of the current
+        get_total_current : Calculate total horizontal current
 
         """
         
@@ -458,11 +498,33 @@ class AMPS(object):
 
 
     def get_curl_free_current(self):
-        """ get curl-free current vectors from toroidal scalar
+        """ 
+        Calculate the curl-free part of the horizontal current, in units of mA/m.
+        The calculations refer to the height chosen upon initialization of the AMPS 
+        object (default 110 km).
 
-            unit is mA/m
 
+        Return
+        ------
+        jcf_eastward_n : numpy.array, float
+            eastward componet of the curl-free current in the northern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        jcf_eastward_s : numpy.array, float
+            eastward componet of the curl-free current in the southern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        jcf_northward_n : numpy.array, float
+            northward componet of the curl-free current in the northern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        jcf_northward_n : numpy.array, float
+            northward componet of the curl-free current in the southern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+
+        See Also
+        --------
+        get_divergence_free_current : Calculate divergence-free part of the horizontal current
+        get_total_current : Calculate total horizontal current
         """
+
         rtor = -1.e-6/MU0
 
         east = rtor * (    np.dot(self.tor_P_vector * self.m_T * self.tor_cosmphi_vector, self.tor_s )
@@ -479,21 +541,53 @@ class AMPS(object):
 
 
     def get_total_current(self):
-        """ get total current vectors by summing curl-free and divergence-free parts 
+        """ 
+        Calculate the total horizontal current, in units of mA/m. This is calculated as 
+        the sum of the curl-free and divergence-free parts. The calculations refer to 
+        the height chosen upon initialization of the AMPS object (default 110 km).
 
-            return sum of curl free and divergence free currents
+        Return
+        ------
+        j_eastward_n : numpy.array, float
+            eastward componet of the  current in the northern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        j_eastward_s : numpy.array, float
+            eastward componet of the  current in the southern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        j_northward_n : numpy.array, float
+            northward componet of the current in the northern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
+        j_northward_n : numpy.array, float
+            northward componet of the current in the southern hemisphere
+            evalulated at the coordinates given by the `vectorgrid` attribute
 
-            unit in mA/m
+        See Also
+        --------
+        get_divergence_free_current : Calculate divergence-free part of the horizontal current
+        get_curl_free_current : Calculate curl-free part of the horizontal current
         """
         
         return [x + y for x, y in zip(self.get_curl_free_current(), self.get_divergence_free_current())]
 
-    def get_integrated_bc(self):
-        """ integrate birkeland current poleward of minlat
-            return (in MA), J_up_north, J_down_north, J_up_south, J_down_south
+
+    def get_integrated_upward_current(self):
+        """ 
+        Calculate the integrated upward and downward current, poleward of `minlat`,
+        in units of MA.
+
+        Return
+        ------
+        J_up_n : float
+            Total upward current in the northern hemisphere
+        J_down_n : float
+            Total downward current in the northern hemisphere
+        J_up_s : float
+            Total upward current in the southern hemisphere
+        J_down_s : float
+            Total downward current in the southern hemisphere
         """
 
-        jun, jus = self.get_upward_current_function()
+        jun, jus = self.get_upward_current()
         jun, jus = jun * 1e-6, jus * 1e-6 # convert to A/m^2
 
         # get surface area element in each cell:
@@ -511,14 +605,50 @@ class AMPS(object):
         #      J_up_north            J_down_north          J_up_south            J_down_south
         return np.sum(J_n[J_n > 0]), np.sum(J_n[J_n < 0]), np.sum(J_s[J_s > 0]), np.sum(J_s[J_s < 0])
 
+
     def get_ground_perturbation(self, mlat, mlt):
-        """ return ground perturbation at mlat, mlt
+        """ 
+        Calculate magnetic field perturbations on ground, in units of nT, that corresponds 
+        to the equivalent current function.
 
-            return values are east, north, with same shape as mlat and mlt
-            The assumption is that the equivalent current function corresponds to an 
-            external magnetic potential as in Chapman and Bartels (and Laundal et al. 2016)
+        Parameters
+        ----------
+        mlat : np.array, float
+            magnetic latitude of the output. The array shape will not be preserved, and 
+            the results will be returned as a 1-dimensional array
+        mlt : np.array, float
+            magnetic local time of the output. The array shape will not be preserved, and 
+            the results will be returned as a 1-dimensional array
 
-            (to calculate long time series of ground perturbations, there are faster ways than this function)
+        Note
+        ----
+        These calculations are made by assuming that the equivalent current function calculated
+        with the AMPS model correspond to the equivalent current function of an external 
+        magnetic potential, as described by Chapman & Bartels 1940 [2]_. Induced components are 
+        thus ignored. The height of the current function also becomes important when propagating
+        the model values to the ground. 
+
+        Also note that the output parameters will be QD components, and that they can be converted
+        to geographic by use of QD base vectors [3]_
+
+        This function is not optimized for calculating long time series of model ground
+        magnetic field perturbations, although it is possible to use for that.
+
+
+        Return
+        ------
+        dB_east : np.array
+            Eastward component of the magnetic field disturbance on ground
+        dB_north : np.array
+            Northward component of the magnetic field disurubance on ground
+
+        References
+        ----------
+        .. [2] S. Chapman & J. Bartels "Geomagnetism Vol 2" Oxford University Press 1940
+        
+        .. [3] A. D. Richmond, "Ionospheric Electrodynamics Using Magnetic Apex Coordinates", 
+           Journal of geomagnetism and geoelectricity Vol. 47, 1995, http://doi.org/10.5636/jgg.47.191
+
         """
 
         mlt  = mlt. flatten()[:, np.newaxis]
@@ -535,6 +665,7 @@ class AMPS(object):
         cosmphi = np.cos(m * mlt * np.pi/12)
         sinmphi = np.sin(m * mlt * np.pi/12)
 
+        # G matrix for north component
         G_cn   =  - rr ** (2 * n + 1) * (n + 1.)/n * dP
         Gn     =  np.hstack(( G_cn * cosmphi, G_cn * sinmphi))
         
@@ -548,10 +679,30 @@ class AMPS(object):
 
 
     def get_AE_indices(self):
-        """ calculate model AE indices, AL and AU by calculating the (QD) northward component on a uniform grid, and
-            returning the minima (AL) and maxima (AU) in both hemispheres
+        """ 
+        Calculate model synthetic auroral electrojet (AE) indices: AL and AU. The unit is nT
 
-            return: AL_n, AL_s, AU_n, AU_s
+        Note
+        ----
+        Here, AL and AU are defined as the lower/upper envelope curves for the northward component
+        of the ground magnetic field perturbation that is equivalent with the equivalent current,
+        evaluated on `scalargrid`. Thus all the caveats for the `get_ground_perturbation()` function
+        applies to these calculations as well. An additional caveat is that we have in principle
+        perfect coverage with the model, while the true AE indices are derived using a small set of
+        magnetometers in the auroral zone. The model values are also based on QD northward component,
+        instead of the "H component", which is used in the official measured AL index. It is possible
+        to calculate model AE indices that are more directly comparable to the measured indices.
+
+        Returns
+        -------
+        AL_n : float
+            Model AL index in the northerm hemisphere
+        AL_s : float
+            Model AL index in the southern hemisphere
+        AU_n : float
+            Model AU index in the northerm hemisphere
+        AU_s : float
+            Model AU index in the southern hemisphere
         """
 
         rr   = (REFRE + self.height) / REFRE # ratio of current radius to earth radius
@@ -570,8 +721,27 @@ class AMPS(object):
 
 
 
-    def plot_currents(self, VECTOR_SCALE = 200):
-        """ plot all the current fields 
+    def plot_currents(self, vector_scale = 200):
+        """ 
+        Create a summary plot of the current fields
+
+        Parameters
+        ----------
+        vector_scale : optional
+            Current vector lengths will be shown relative to a template. This parameter determines
+            the magnitude of that template, in mA/m. Default is 200 mA/m
+
+        Examples
+        --------
+            >>> # initialize by supplying a set of external conditions:
+            >>> m = AMPS(300, # solar wind velocity in km/s 
+                         -4, # IMF By in nT
+                         -3, # IMF Bz in nT
+                         20, # dipole tilt angle in degrees
+                         150) # F10.7 index in s.f.u.
+            >>> # make summary plot:
+            >>> m.plot_currents()
+
         """
 
         mlats = np.split(self.scalargrid[0], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
@@ -587,7 +757,7 @@ class AMPS(object):
         paxes = map(lambda x: Polarsubplot(x, minlat = self.minlat, linestyle = ':', color = 'grey'), axes)
 
         # FAC
-        Jun, Jus = self.get_upward_current_function()
+        Jun, Jus = self.get_upward_current()
         faclevels = np.linspace(-.55, .55, 12)
         paxes[0].contourf(mlats, mlts, Jun, levels = faclevels, cmap = plt.cm.bwr_r, extend = 'both')
         paxes[4].contourf(mlats, mlts, Jus, levels = faclevels, cmap = plt.cm.bwr_r, extend = 'both')
@@ -609,8 +779,8 @@ class AMPS(object):
         paxes[5].contour(mlats, mlts, alphas, levels = np.r_[alphas.min():alphas.max():30], colors = 'black', linewidths = .5)
 
         en, es, nn, ns = self.get_curl_free_current()
-        paxes[1].featherplot(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
-        paxes[5].featherplot(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[1].featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
+        paxes[5].featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
 
         paxes[1].write(self.minlat-5, 12, r'$\alpha$ and $\mathbf{j}_{cf} = \nabla\alpha$, where $\nabla^2\alpha = - J_u$' , ha = 'center', va = 'bottom', size = 18)
 
@@ -620,14 +790,14 @@ class AMPS(object):
         paxes[6].contour(mlats, mlts, Psis, levels = np.r_[Psis.min():Psis.max():30], colors = 'black', linewidths = .5)
 
         en, es, nn, ns = self.get_divergence_free_current()
-        paxes[2].featherplot(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
-        paxes[6].featherplot(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[2].featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
+        paxes[6].featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
         paxes[2].write(self.minlat-5, 12, r'$\Psi$ and $\mathbf{j}_{df} = \mathbf{k}\times\nabla\Psi$' , ha = 'center', va = 'bottom', size = 18)
 
         # Total horizontal
         en, es, nn, ns = self.get_total_current()
-        paxes[3].featherplot(mlatv, mltv, nn , en, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
-        paxes[7].featherplot(mlatv, mltv, -ns, es, SCALE = VECTOR_SCALE, markersize = 2, unit = 'mA/m')
+        paxes[3].featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
+        paxes[7].featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
 
         paxes[3].write(self.minlat-5, 12, r'$\mathbf{j} = \mathbf{j}_{df} + \mathbf{j}_{cf}$' , ha = 'center', va = 'bottom', size = 18)
 
