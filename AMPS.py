@@ -60,67 +60,97 @@ REFRE = 6371.2 # Reference radius used in geomagnetic modeling
 
 
 class AMPS(object):
-    """Calculate and plot maps of the model Average Magnetic field and Polar current System (AMPS)
+    """
+    Calculate and plot maps of the model Average Magnetic field and Polar current System (AMPS)
+
+    Parameters
+    ---------
+    v : float
+        solar wind velocity in km/s
+    By : float
+        IMF GSM y component in nT
+    Bz : float
+        IMF GSM z component in nT
+    tilt : float
+        dipole tilt angle in degrees
+    F107 : float
+        F10.7 index in s.f.u.
+    minlat : float, optional
+        low latitude boundary of grids  (default 60)
+    maxlat : float, optional
+        low latitude boundary of grids  (default 89.99)
+    height : float, optional
+        altitude of the ionospheric currents (default 110 km)
+    dr : int, optional
+        latitudinal spacing between equal area grid points (default 2 degrees)
+    M0 : int, optional
+        number of grid points in the most poleward circle of equal area grid points (default 4)
+    resolution: int, optional
+        resolution in both directions of the scalar field grids (default 100)
 
 
-
-    Attributes:
-        tor_c      -- vector of cos term coefficents in the toroidal field expansion
-        tor_s      -- vector of sin term coefficents in the toroidal field expansion
-        pol_c      -- vector of cos term coefficents in the poloidal field expansion
-        pol_s      -- vector of sin term coefficents in the poloidal field expansion
-        keys_P     -- list of spherical harmonic wave number pairs (n,m) corresponding to elements of pol_c and pol_s 
-        keys_T     -- list of spherical harmonic wave number pairs (n,m) corresponding to elements of tor_c and tor_s 
-        vectorgrid -- grid used to calculate and plot vector fields
-        scalargrid -- grid used to calculate and plot scalar fields
-                       
-                       The grid formats are as follows (see also example below):
-                       (np.hstack((mlat_north, mlat_south)), np.hstack((mlt_north, mlt_south)))
-                       
-                       The grids can be changed directly, but member function calculate_matrices() 
-                       must then be called for the change to take effect. Also the grid format
-                       described above should be used.
-
-
-    Example usage:
-        m = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
+    Examples
+    --------
+        >>> # initialize by supplying a set of external conditions:
+        >>> m = AMPS(solar_wind_velocity_in_km_per_s, 
+                     IMF_By_in_nT, IMF_Bz_in_nT, 
+                     dipole_tilt_in_deg, 
+                     F107_index)
         
-        # make summary plot:
-        m.plot_currents()
+        >>> # make summary plot:
+        >>> m.plot_currents()
         
-        # extract map of field-aligned currents in north and south:
-        Jun, Jus = m.get_upward_current_function()
+        >>> # extract map of field-aligned currents in north and south:
+        >>> Jun, Jus = m.get_upward_current_function()
 
-        # Jus.flatten() will be evaluated at the following coordinates:
-        mlat, mlt = np.split(m.scalargrid[0], 2)[1], np.split(m.scalargrid[1], 2)[1]
+        >>> # Jus.flatten() will be evaluated at the following coords:
+        >>> mlat = np.split(m.scalargrid[0], 2)[1]
+        >>> mlt  = np.split(m.scalargrid[1], 2)[1]
 
-        # extract map of total height-integrated horizontal currents:
-        j_eastward_north, j_eastward_south, j_northward_north, j_northward_south = m.get_total_current()
+        >>> # get map of total height-integrated horizontal currents:
+        >>> je_n, je_s, jn_n, jn_s = m.get_total_current()
 
-        # j_eastward_north will be a flat array evalulated at the following coordinates:
-        mlat, mlt = np.split(m.vectorgrid[0], 2)[0], np.split(m.vectorgrid[1], 2)[0]
+        >>> # je_n, the eastward current in northern hemisphere, will
+        >>> # be evaluated at the following coords:
+        >>> mlat = np.split(m.vectorgrid[0], 2)[0]
+        >>> mlt  = np.split(m.vectorgrid[1], 2)[0]
 
-        # update model vectors (tor_c, tor_s, etc.) without recalculating the other matrices:
-        m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+        >>> # update model vectors (tor_c, tor_s, etc.) without 
+        >>> # recalculating the other matrices:
+        >>> m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+
+    Attributes
+    ----------
+    tor_c : np.array
+        vector of cos term coefficents in the toroidal field expansion
+    tor_s : np.array
+        vector of sin term coefficents in the toroidal field expansion
+    pol_c : np.array
+        vector of cos term coefficents in the poloidal field expansion
+    pol_s : np.array
+        vector of sin term coefficents in the poloidal field expansion
+    keys_P : list
+        list of spherical harmonic wave number pairs (n,m) corresponding to elements of pol_c and pol_s 
+    keys_T : list
+        list of spherical harmonic wave number pairs (n,m) corresponding to elements of tor_c and tor_s 
+    vectorgrid : tuple
+        grid used to calculate and plot vector fields
+    scalargrid : tuple
+        grid used to calculate and plot scalar fields
+                   
+        The grid formats are as follows (see also example below):
+        (np.hstack((mlat_north, mlat_south)), np.hstack((mlt_north, mlt_south)))
+        
+        The grids can be changed directly, but member function calculate_matrices() 
+        must then be called for the change to take effect. Also the grid format
+        described above should be used.
 
     """
 
-    def __init__(self, v, By, Bz, tilt, F107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100):
-        """ __init__ function for AMPS model class
 
-            Args:
-                v          -- solar wind velocity in km/s (scalar/float)
-                By         -- IMF GSM y component in nT (scalar/float)
-                Bz         -- IMF GSM z component in nT (scalar/float)
-                tilt       -- dipole tilt angle in degrees (scalar/float)
-                F107       -- F10.7 index in s.f.u. (scalar/float)
-                
-                minlat     -- optional: low latitude boundary of grids  (default 60)
-                maxlat     -- optional: high latitude boundary of grids (default 89.99)
-                height     -- optional: altitude of the ionospheric currents (default 110 km)
-                dr         -- optional: latitudinal spacing between equal area grid points (default 2 degrees)
-                M0         -- optional: number of grid points in the most poleward circle of equal area grid points (default 4)
-                resolution -- optional: resolution in both directions of the scalar field grids (default 100)
+
+    def __init__(self, v, By, Bz, tilt, F107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100):
+        """ __init__ function for class AMPS
         """
 
         self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, F107)
@@ -147,34 +177,45 @@ class AMPS(object):
         # find highest degree and order:
         self.N, self.M = np.max( np.hstack((np.array([c for c in self.tor_keys]).T, np.array([c for c in self.tor_keys]).T)), axis = 1)
 
-        self.vectorgrid = self.vectorgrid()
-        self.scalargrid = self.scalargrid(resolution = resolution)
+        self.vectorgrid = self._get_vectorgrid()
+        self.scalargrid = self._get_scalargrid(resolution = resolution)
         self.calculate_matrices()
 
     def update_model(self, v, By, Bz, tilt, F107):
-        """update the model vectors without updating all the other matrices
+        """
+        Update the model vectors without updating all the other matrices. This leads to better
+        performance than just making a new AMPS object.
 
-           Note:
-               If model currents shall be calculated on the same grid for a range of 
-               external conditions, it is faster to do this:
-                   m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
-                   # ... current calculations ...
-                   m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
-                   # ... new current calcuations ...
-               than to make a new object:
-                   m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)
-                   # ... new current calculations ...
+        Parameters
+        ----------
+        v : float
+            solar wind velocity in km/s
+        By : float
+            IMF GSM y component in nT
+        Bz : float
+            IMF GSM z component in nT
+        tilt : float
+            dipole tilt angle in degrees
+        F107 : float
+            F10.7 index in s.f.u.
 
-                Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
-                by allowing the inputs to be arrays. That is not yet implemented. 
-
-
-           Args:
-               v    -- solar wind velocity in km/s (scalar/float)
-               By   -- IMF GSM y component in nT (scalar/float)
-               Bz   -- IMF GSM z component in nT (scalar/float)
-               tilt -- dipole tilt angle in degrees (scalar/float)
-               F107 -- F10.7 index in s.f.u. (scalar/float)
+        Examples
+        --------
+        If model currents shall be calculated on the same grid for a range of 
+        external conditions, it is faster to do this:
+        
+            >>> m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
+            >>> # ... current calculations ...
+            >>> m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+            >>> # ... new current calcuations ...
+        
+        than to make a new object:
+        
+            >>> m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)
+            >>> # ... new current calculations ...
+        
+        Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
+        by allowing the inputs to be arrays. That is not yet implemented.
 
         """
         
@@ -182,10 +223,11 @@ class AMPS(object):
 
 
 
-    def vectorgrid(self, **kwargs):
-        """ make grid for plotting vectors - using an equal area grid scheme for this
+    def _get_vectorgrid(self, **kwargs):
+        """ 
+        Make grid for plotting vectors
 
-            kwargs are passed to equalAreaGrid
+        kwargs are passed to equalAreaGrid(...)
         """
 
         grid = equalAreaGrid(dr = self.dr, M0 = self.M0, **kwargs)
@@ -202,8 +244,15 @@ class AMPS(object):
         return mlat[:, np.newaxis], mlt[:, np.newaxis] # reshape to column vectors and return
 
 
-    def scalargrid(self, resolution = 100):
-        """ make grid for calculations of scalar fields """
+    def _get_scalargrid(self, resolution = 100):
+        """ 
+        Make grid for calculations of scalar fields 
+
+        Parameters
+        ----------
+        resolution : int, optional
+            resolution in both directions of the scalar field grids (default 100)
+        """
 
         mlat, mlt = map(np.ravel, np.meshgrid(np.linspace(self.minlat , self.maxlat, resolution), np.linspace(-179.9, 179.9, resolution)))
         mlat = np.hstack((mlat, -mlat)) # add southern hemisphere points
@@ -213,7 +262,11 @@ class AMPS(object):
         return mlat[:, np.newaxis], mlt[:, np.newaxis] + 12 # reshape to column vectors and return
 
     def calculate_matrices(self):
-        """ calculated the matrices that are needed to calculate currents and potentials """
+        """ 
+        Calculate the matrices that are needed to calculate currents and potentials 
+
+        Call this function if and only if the grid has been changed manually
+        """
 
         mlt2r = np.pi/12
 
@@ -244,10 +297,18 @@ class AMPS(object):
 
 
 
-    def get_toroidal_potential(self):
-        """ calculate toroidal potential on the scalar grid 
+    def get_toroidal_scalar(self):
+        """ 
+        Calculate the toroidal scalar values (unit is nT). 
 
-            returns tuple with values for north and south
+        Returns
+        -------
+        T_n : numpy.array
+            Toroidal scalar in the northern hemisphere.
+            Shape: (self.resolution, self.resolution)
+        T_s : numpy.array
+            Toroidal scalar in the southern hemisphere.
+            Shape: (self.resolution, self.resolution)
         """
 
         T = (  np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c)
@@ -257,11 +318,20 @@ class AMPS(object):
         return map( _reshape, np.split(T, 2)) # north, south 
 
 
-    def get_poloidal_potential(self):
-        """ calculate poloidal potential on the scalar grid
+    def get_poloidal_scalar(self):
+        """ 
+        Calculate the poloidal scalar potential values (unit is microTm).
 
-            returns tuple with values for north and south
+        Returns
+        -------
+        V_n : numpy.array
+            Poloidal scalar potential in the northern hemisphere.
+            Shape: (self.resolution, self.resolution)
+        V_s : numpy.array
+            Poloidal scalar potential in the southern hemisphere.
+            Shape: (self.resolution, self.resolution)
         """
+
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 1)
         P = REFRE * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
                      + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) )
@@ -271,9 +341,32 @@ class AMPS(object):
 
 
     def get_equivalent_current_function(self):
-        """ calculate equivalent current function from the poloidal potential -  unit kA
+        """
+        Calculate the equivalent current function (unit is kA). Isocontours of the
+        equivalent current function indicates the alignment of the divergence-free
+        part of the horizontal current. Its direction is given by the cross product between
+        a vertical vector and the gradient of the equivalent current function. 
+        A fixed amount of current flows between isocontours. The calculations refer to 
+        the height chosen upon initialization of the AMPS object (default 110 km).
 
-            returns tuple with values for north and south
+        Note
+        ----
+        Normally, the term `equivalent current` signifies a horizontal current in space which is 
+        equivalent with observed ground magnetic field perturbations. The present `equivalent current` 
+        is derived from measurements above the ionosphere, and thus it contains signal both from 
+        ionospheric currents below low Earth orbit, and from subsurface induced currents. 
+        See Laundal et al. (2016) https://doi.org/10.1186/s40623-016-0518-x where this current is called
+        `Psi` for more detail.
+
+
+        Returns
+        -------
+        Psi_n : numpy.array
+            Equivalent current function in the northern hemisphere.
+            Shape: (self.resolution, self.resolution)
+        Psi_s : numpy.array
+            Equivalent current function in the southern hemisphere.
+            Shape: (self.resolution, self.resolution)
         """
 
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 1.) * (2.*self.n_P + 1.)/self.n_P
@@ -284,9 +377,18 @@ class AMPS(object):
         return map( _reshape, np.split(Psi, 2)) # north, south 
 
     def get_equivalent_current_laplacian(self):
-        """ calculate del^2(psi)
+        """ 
+        Calculate the Laplacian of the equivalent current function. In some circumstances, this
+        quantity is similar to the upward current.
 
-            returns tuple with values for north and south
+        Returns
+        -------
+        d2P_n : numpy.array
+            Laplacian of the equivalent current function in the northern hemisphere.
+            Shape: (self.resolution, self.resolution)
+        d2P_s : numpy.array
+            Laplacian of the equivalent current function in the southern hemisphere.
+            Shape: (self.resolution, self.resolution)
         """
         
         rtor = (REFRE/(REFRE + self.height))**(self.n_P + 2)
@@ -297,7 +399,8 @@ class AMPS(object):
         return map( _reshape, np.split(Ju, 2)) # north, south 
 
     def get_upward_current_function(self):
-        """ calculate upward current function from toroidal  potential, in uA/m^2
+        """ 
+        Calcalculate upward current function from toroidal scalar, in uA/m^2
 
             returns tuple with values for north and south
         """
@@ -310,7 +413,7 @@ class AMPS(object):
 
 
     def get_curl_free_current_potential(self):
-        """ get the curl-free current scalar potential from toroidal potential             
+        """ get the curl-free current scalar potential from toroidal scalar             
 
             returns tuple with values for north and south
 
@@ -321,6 +424,7 @@ class AMPS(object):
 
         _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
         return map( _reshape, np.split(alpha, 2)) # north, south 
+
 
 
 
@@ -354,7 +458,7 @@ class AMPS(object):
 
 
     def get_curl_free_current(self):
-        """ get curl-free current vectors from toroidal potential
+        """ get curl-free current vectors from toroidal scalar
 
             unit is mA/m
 
@@ -536,3 +640,4 @@ class AMPS(object):
 
         plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)
         plt.show()
+
