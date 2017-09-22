@@ -58,6 +58,8 @@ rc('text', usetex=True)
 MU0   = 4*np.pi*1e-7 # Permeability constant
 REFRE = 6371.2 # Reference radius used in geomagnetic modeling
 
+DEFAULT = object()
+
 
 class AMPS(object):
     """
@@ -91,33 +93,33 @@ class AMPS(object):
 
     Examples
     --------
-        >>> # initialize by supplying a set of external conditions:
-        >>> m = AMPS(solar_wind_velocity_in_km_per_s, 
-                     IMF_By_in_nT, IMF_Bz_in_nT, 
-                     dipole_tilt_in_deg, 
-                     F107_index)
+    >>> # initialize by supplying a set of external conditions:
+    >>> m = AMPS(solar_wind_velocity_in_km_per_s, 
+                 IMF_By_in_nT, IMF_Bz_in_nT, 
+                 dipole_tilt_in_deg, 
+                 F107_index)
+    
+    >>> # make summary plot:
+    >>> m.plot_currents()
         
-        >>> # make summary plot:
-        >>> m.plot_currents()
-        
-        >>> # extract map of field-aligned currents in north and south:
-        >>> Jun, Jus = m.get_upward_current()
+    >>> # extract map of field-aligned currents in north and south:
+    >>> Jun, Jus = m.get_upward_current()
 
-        >>> # Jus.flatten() will be evaluated at the following coords:
-        >>> mlat = np.split(m.scalargrid[0], 2)[1]
-        >>> mlt  = np.split(m.scalargrid[1], 2)[1]
+    >>> # Jus.flatten() will be evaluated at the following coords:
+    >>> mlat = np.split(m.scalargrid[0], 2)[1]
+    >>> mlt  = np.split(m.scalargrid[1], 2)[1]
 
-        >>> # get map of total height-integrated horizontal currents:
-        >>> je_n, je_s, jn_n, jn_s = m.get_total_current()
+    >>> # get map of total height-integrated horizontal currents:
+    >>> je_n, je_s, jn_n, jn_s = m.get_total_current()
 
-        >>> # je_n, the eastward current in northern hemisphere, will
-        >>> # be evaluated at the following coords:
-        >>> mlat = np.split(m.vectorgrid[0], 2)[0]
-        >>> mlt  = np.split(m.vectorgrid[1], 2)[0]
+    >>> # je_n, the eastward current in northern hemisphere, will
+    >>> # be evaluated at the following coords:
+    >>> mlat = np.split(m.vectorgrid[0], 2)[0]
+    >>> mlt  = np.split(m.vectorgrid[1], 2)[0]
 
-        >>> # update model vectors (tor_c, tor_s, etc.) without 
-        >>> # recalculating the other matrices:
-        >>> m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+    >>> # update model vectors (tor_c, tor_s, etc.) without 
+    >>> # recalculating the other matrices:
+    >>> m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
 
     Attributes
     ----------
@@ -204,15 +206,15 @@ class AMPS(object):
         If model currents shall be calculated on the same grid for a range of 
         external conditions, it is faster to do this:
         
-            >>> m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
-            >>> # ... current calculations ...
-            >>> m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
-            >>> # ... new current calcuations ...
+        >>> m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
+        >>> # ... current calculations ...
+        >>> m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+        >>> # ... new current calcuations ...
         
         than to make a new object:
         
-            >>> m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)
-            >>> # ... new current calculations ...
+        >>> m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)
+        >>> # ... new current calculations ...
         
         Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
         by allowing the inputs to be arrays. That is not yet implemented.
@@ -454,27 +456,28 @@ class AMPS(object):
 
 
 
-    def get_divergence_free_current(self):
+    def get_divergence_free_current(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the divergence-free part of the horizontal current, in units of mA/m.
         The calculations refer to the height chosen upon initialization of the AMPS 
         object (default 110 km).
 
+        Parameters
+        ----------
+        mlat : numpy.array, optional
+            array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
+            not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+        mlt : numpy.array, optional
+            array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
+            not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+
 
         Return
         ------
-        jdf_eastward_n : numpy.array, float
-            eastward componet of the divergence-free current in the northern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        jdf_eastward_s : numpy.array, float
-            eastward componet of the divergence-free current in the southern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        jdf_northward_n : numpy.array, float
-            northward componet of the divergence-free current in the northern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        jdf_northward_n : numpy.array, float
-            northward componet of the divergence-free current in the southern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
+        jdf_eastward : numpy.array, float
+            eastward component of the divergence-free current evalulated at the coordinates given by the `vectorgrid` attribute
+        jdf_northward : numpy.array, float
+            northward component of the divergence-free current evalulated at the coordinates given by the `vectorgrid` attribute
 
         See Also
         --------
@@ -485,39 +488,57 @@ class AMPS(object):
         
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 2.) * (2.*self.n_P + 1.)/self.n_P /MU0 * 1e-6
 
-        east  =    (  np.dot(rtor * self.pol_dP_vector * self.pol_cosmphi_vector, self.pol_c) 
-                    + np.dot(rtor * self.pol_dP_vector * self.pol_sinmphi_vector, self.pol_s) )
-
-        north =  - (  np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_cosmphi_vector, self.pol_s)
-                    - np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_sinmphi_vector, self.pol_c) ) / self.coslambda_vector
-
-        e_n, e_s = map(np.ravel, np.split(east, 2))
-        n_n, n_s = map(np.ravel, np.split(north, 2))
-
-        return e_n, e_s, n_n, n_s
+        if mlat is DEFAULT or mlt is DEFAULT:
+            east  =    (  np.dot(rtor * self.pol_dP_vector * self.pol_cosmphi_vector, self.pol_c) 
+                        + np.dot(rtor * self.pol_dP_vector * self.pol_sinmphi_vector, self.pol_s) )
+    
+            north =  - (  np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_cosmphi_vector, self.pol_s)
+                        - np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_sinmphi_vector, self.pol_c) ) / self.coslambda_vector
 
 
-    def get_curl_free_current(self):
+        else: # calculate at custom mlat, mlt
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[:, np.newaxis]
+
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
+            dP = -np.array([dP[ key] for key in self.keys_P]).T.squeeze()
+            cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
+            coslambda = np.cos(           mlat * np.pi/180)
+
+            east  = (  np.dot(rtor * dP            * cosmphi, self.pol_c) \
+                     + np.dot(rtor * dP            * sinmphi, self.pol_s) )
+            north = (- np.dot(rtor *  P * self.m_P * cosmphi, self.pol_s) \
+                     + np.dot(rtor *  P * self.m_P * sinmphi, self.pol_c) ) / coslambda
+
+        return east.flatten(), north.flatten()
+
+
+
+    def get_curl_free_current(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the curl-free part of the horizontal current, in units of mA/m.
         The calculations refer to the height chosen upon initialization of the AMPS 
         object (default 110 km).
 
 
+        Parameters
+        ----------
+        mlat : numpy.array, optional
+            array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
+            not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+        mlt : numpy.array, optional
+            array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
+            not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+
+
         Return
         ------
-        jcf_eastward_n : numpy.array, float
-            eastward componet of the curl-free current in the northern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        jcf_eastward_s : numpy.array, float
-            eastward componet of the curl-free current in the southern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        jcf_northward_n : numpy.array, float
-            northward componet of the curl-free current in the northern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        jcf_northward_n : numpy.array, float
-            northward componet of the curl-free current in the southern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
+        jcf_eastward : numpy.array, float
+            eastward component of the curl-free current evalulated at the coordinates given by the `vectorgrid` attribute
+        jcf_northward : numpy.array, float
+            northward component of the curl-free current evalulated at the coordinates given by the `vectorgrid` attribute
 
         See Also
         --------
@@ -527,39 +548,56 @@ class AMPS(object):
 
         rtor = -1.e-6/MU0
 
-        east = rtor * (    np.dot(self.tor_P_vector * self.m_T * self.tor_cosmphi_vector, self.tor_s )
-                         - np.dot(self.tor_P_vector * self.m_T * self.tor_sinmphi_vector, self.tor_c )) / self.coslambda_vector
+        if mlat is DEFAULT or mlt is DEFAULT:
+            east = rtor * (    np.dot(self.tor_P_vector * self.m_T * self.tor_cosmphi_vector, self.tor_s )
+                             - np.dot(self.tor_P_vector * self.m_T * self.tor_sinmphi_vector, self.tor_c )) / self.coslambda_vector
+    
+            north = rtor * (   np.dot(self.tor_dP_vector * self.tor_cosmphi_vector, self.tor_c)
+                             + np.dot(self.tor_dP_vector * self.tor_sinmphi_vector, self.tor_s))
 
-        north = rtor * (   np.dot(self.tor_dP_vector * self.tor_cosmphi_vector, self.tor_c)
-                         + np.dot(self.tor_dP_vector * self.tor_sinmphi_vector, self.tor_s))
+        else: # calculate at custom mlat, mlt
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[ :, np.newaxis]
+
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+            dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
+            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+            coslambda = np.cos(           mlat * np.pi/180)
+
+            east  = (  np.dot(rtor *  P * self.m_T * cosmphi, self.tor_s) \
+                     - np.dot(rtor *  P * self.m_T * sinmphi, self.tor_c) ) / coslambda
+            north = (  np.dot(rtor * dP            * cosmphi, self.tor_c) \
+                     + np.dot(rtor * dP            * sinmphi, self.tor_s) ) 
 
 
-        e_n, e_s = map(np.ravel, np.split(east , 2))
-        n_n, n_s = map(np.ravel, np.split(north, 2))
-
-        return e_n, e_s, n_n, n_s
+        return east.flatten(), north.flatten()
 
 
-    def get_total_current(self):
+    def get_total_current(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the total horizontal current, in units of mA/m. This is calculated as 
         the sum of the curl-free and divergence-free parts. The calculations refer to 
         the height chosen upon initialization of the AMPS object (default 110 km).
 
+        Parameters
+        ----------
+        mlat : numpy.array, optional
+            array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
+            not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+        mlt : numpy.array, optional
+            array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
+            not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+
+
         Return
         ------
-        j_eastward_n : numpy.array, float
-            eastward componet of the  current in the northern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        j_eastward_s : numpy.array, float
-            eastward componet of the  current in the southern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        j_northward_n : numpy.array, float
-            northward componet of the current in the northern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
-        j_northward_n : numpy.array, float
-            northward componet of the current in the southern hemisphere
-            evalulated at the coordinates given by the `vectorgrid` attribute
+        j_eastward : numpy.array, float
+            eastward component of the horizontal current evalulated at the coordinates given by the `vectorgrid` attribute
+        j_northward : numpy.array, float
+            northward component of the horizontal current evalulated at the coordinates given by the `vectorgrid` attribute
+
 
         See Also
         --------
@@ -567,7 +605,8 @@ class AMPS(object):
         get_curl_free_current : Calculate curl-free part of the horizontal current
         """
         
-        return [x + y for x, y in zip(self.get_curl_free_current(), self.get_divergence_free_current())]
+        return [x + y for x, y in zip(self.get_curl_free_current(      mlat = mlat, mlt = mlt), 
+                                      self.get_divergence_free_current(mlat = mlat, mlt = mlt))]
 
 
     def get_integrated_upward_current(self):
@@ -733,14 +772,14 @@ class AMPS(object):
 
         Examples
         --------
-            >>> # initialize by supplying a set of external conditions:
-            >>> m = AMPS(300, # solar wind velocity in km/s 
-                         -4, # IMF By in nT
-                         -3, # IMF Bz in nT
-                         20, # dipole tilt angle in degrees
-                         150) # F10.7 index in s.f.u.
-            >>> # make summary plot:
-            >>> m.plot_currents()
+        >>> # initialize by supplying a set of external conditions:
+        >>> m = AMPS(300, # solar wind velocity in km/s 
+                     -4, # IMF By in nT
+                     -3, # IMF Bz in nT
+                     20, # dipole tilt angle in degrees
+                     150) # F10.7 index in s.f.u.
+        >>> # make summary plot:
+        >>> m.plot_currents()
 
         """
 

@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+import os
+
+coeff_fn = os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_coefficients.csv'
 
 def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
     """ tor_c, tor_s, pol_c, pol_s = get_model_vectors(v, By, Bz, tilt, F107)
@@ -11,7 +14,7 @@ def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
     """
 
     # read coefficient file and store in pandas DataFrame:
-    coeffs = pd.read_csv('coefficients/model_coefficients.csv', index_col=('n','m'))
+    coeffs = pd.read_csv(coeff_fn, index_col=('n','m'))
 
     ca = np.arctan2(By, Bz)
     epsilon = v**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 * epsilon_multiplier # Newell coupling           

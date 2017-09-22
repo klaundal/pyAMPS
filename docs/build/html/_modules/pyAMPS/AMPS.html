@@ -136,33 +136,33 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">        &gt;&gt;&gt; # initialize by supplying a set of external conditions:</span>
-<span class="sd">        &gt;&gt;&gt; m = AMPS(solar_wind_velocity_in_km_per_s, </span>
-<span class="sd">                     IMF_By_in_nT, IMF_Bz_in_nT, </span>
-<span class="sd">                     dipole_tilt_in_deg, </span>
-<span class="sd">                     F107_index)</span>
+<span class="sd">    &gt;&gt;&gt; # initialize by supplying a set of external conditions:</span>
+<span class="sd">    &gt;&gt;&gt; m = AMPS(solar_wind_velocity_in_km_per_s, </span>
+<span class="sd">                 IMF_By_in_nT, IMF_Bz_in_nT, </span>
+<span class="sd">                 dipole_tilt_in_deg, </span>
+<span class="sd">                 F107_index)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; # make summary plot:</span>
+<span class="sd">    &gt;&gt;&gt; m.plot_currents()</span>
 <span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; # make summary plot:</span>
-<span class="sd">        &gt;&gt;&gt; m.plot_currents()</span>
-<span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; # extract map of field-aligned currents in north and south:</span>
-<span class="sd">        &gt;&gt;&gt; Jun, Jus = m.get_upward_current()</span>
+<span class="sd">    &gt;&gt;&gt; # extract map of field-aligned currents in north and south:</span>
+<span class="sd">    &gt;&gt;&gt; Jun, Jus = m.get_upward_current()</span>
 
-<span class="sd">        &gt;&gt;&gt; # Jus.flatten() will be evaluated at the following coords:</span>
-<span class="sd">        &gt;&gt;&gt; mlat = np.split(m.scalargrid[0], 2)[1]</span>
-<span class="sd">        &gt;&gt;&gt; mlt  = np.split(m.scalargrid[1], 2)[1]</span>
+<span class="sd">    &gt;&gt;&gt; # Jus.flatten() will be evaluated at the following coords:</span>
+<span class="sd">    &gt;&gt;&gt; mlat = np.split(m.scalargrid[0], 2)[1]</span>
+<span class="sd">    &gt;&gt;&gt; mlt  = np.split(m.scalargrid[1], 2)[1]</span>
 
-<span class="sd">        &gt;&gt;&gt; # get map of total height-integrated horizontal currents:</span>
-<span class="sd">        &gt;&gt;&gt; je_n, je_s, jn_n, jn_s = m.get_total_current()</span>
+<span class="sd">    &gt;&gt;&gt; # get map of total height-integrated horizontal currents:</span>
+<span class="sd">    &gt;&gt;&gt; je_n, je_s, jn_n, jn_s = m.get_total_current()</span>
 
-<span class="sd">        &gt;&gt;&gt; # je_n, the eastward current in northern hemisphere, will</span>
-<span class="sd">        &gt;&gt;&gt; # be evaluated at the following coords:</span>
-<span class="sd">        &gt;&gt;&gt; mlat = np.split(m.vectorgrid[0], 2)[0]</span>
-<span class="sd">        &gt;&gt;&gt; mlt  = np.split(m.vectorgrid[1], 2)[0]</span>
+<span class="sd">    &gt;&gt;&gt; # je_n, the eastward current in northern hemisphere, will</span>
+<span class="sd">    &gt;&gt;&gt; # be evaluated at the following coords:</span>
+<span class="sd">    &gt;&gt;&gt; mlat = np.split(m.vectorgrid[0], 2)[0]</span>
+<span class="sd">    &gt;&gt;&gt; mlt  = np.split(m.vectorgrid[1], 2)[0]</span>
 
-<span class="sd">        &gt;&gt;&gt; # update model vectors (tor_c, tor_s, etc.) without </span>
-<span class="sd">        &gt;&gt;&gt; # recalculating the other matrices:</span>
-<span class="sd">        &gt;&gt;&gt; m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)</span>
+<span class="sd">    &gt;&gt;&gt; # update model vectors (tor_c, tor_s, etc.) without </span>
+<span class="sd">    &gt;&gt;&gt; # recalculating the other matrices:</span>
+<span class="sd">    &gt;&gt;&gt; m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -249,15 +249,15 @@
 <span class="sd">        If model currents shall be calculated on the same grid for a range of </span>
 <span class="sd">        external conditions, it is faster to do this:</span>
 <span class="sd">        </span>
-<span class="sd">            &gt;&gt;&gt; m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)</span>
-<span class="sd">            &gt;&gt;&gt; # ... current calculations ...</span>
-<span class="sd">            &gt;&gt;&gt; m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)</span>
-<span class="sd">            &gt;&gt;&gt; # ... new current calcuations ...</span>
+<span class="sd">        &gt;&gt;&gt; m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)</span>
+<span class="sd">        &gt;&gt;&gt; # ... current calculations ...</span>
+<span class="sd">        &gt;&gt;&gt; m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)</span>
+<span class="sd">        &gt;&gt;&gt; # ... new current calcuations ...</span>
 <span class="sd">        </span>
 <span class="sd">        than to make a new object:</span>
 <span class="sd">        </span>
-<span class="sd">            &gt;&gt;&gt; m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)</span>
-<span class="sd">            &gt;&gt;&gt; # ... new current calculations ...</span>
+<span class="sd">        &gt;&gt;&gt; m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)</span>
+<span class="sd">        &gt;&gt;&gt; # ... new current calculations ...</span>
 <span class="sd">        </span>
 <span class="sd">        Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly</span>
 <span class="sd">        by allowing the inputs to be arrays. That is not yet implemented.</span>
@@ -778,14 +778,14 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">            &gt;&gt;&gt; # initialize by supplying a set of external conditions:</span>
-<span class="sd">            &gt;&gt;&gt; m = AMPS(300, # solar wind velocity in km/s </span>
-<span class="sd">                         -4, # IMF By in nT</span>
-<span class="sd">                         -3, # IMF Bz in nT</span>
-<span class="sd">                         20, # dipole tilt angle in degrees</span>
-<span class="sd">                         150) # F10.7 index in s.f.u.</span>
-<span class="sd">            &gt;&gt;&gt; # make summary plot:</span>
-<span class="sd">            &gt;&gt;&gt; m.plot_currents()</span>
+<span class="sd">        &gt;&gt;&gt; # initialize by supplying a set of external conditions:</span>
+<span class="sd">        &gt;&gt;&gt; m = AMPS(300, # solar wind velocity in km/s </span>
+<span class="sd">                     -4, # IMF By in nT</span>
+<span class="sd">                     -3, # IMF Bz in nT</span>
+<span class="sd">                     20, # dipole tilt angle in degrees</span>
+<span class="sd">                     150) # F10.7 index in s.f.u.</span>
+<span class="sd">        &gt;&gt;&gt; # make summary plot:</span>
+<span class="sd">        &gt;&gt;&gt; m.plot_currents()</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
