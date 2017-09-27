@@ -436,7 +436,7 @@ class AMPS(object):
         current potential is a scalar alpha which relates to the curl-free part
         of the horizontal current by J_{cf} = grad(alpha). The calculations 
         refer to the height chosen upon initialization of the AMPS object (default 
-        110 km).
+        110 km). 
 
         Returns
         -------
@@ -448,8 +448,8 @@ class AMPS(object):
             Shape: (self.resolution, self.resolution)
 
         """
-        alpha = (REFRE + self.height) / MU0 * (   np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
-                                                + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
+        alpha = -(REFRE + self.height) / MU0 * (   np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
+                                                 + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
 
         _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
         return map( _reshape, np.split(alpha, 2)) # north, south 
@@ -692,7 +692,7 @@ class AMPS(object):
 
         mlt  = mlt. flatten()[:, np.newaxis]
         mlat = mlat.flatten()[:, np.newaxis]
-        rr   = (REFRE + self.height) / REFRE # ratio of current radius to earth radius
+        rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
 
         m = self.m_P
         n = self.n_P
@@ -744,7 +744,7 @@ class AMPS(object):
             Model AU index in the southern hemisphere
         """
 
-        rr   = (REFRE + self.height) / REFRE # ratio of current radius to earth radius
+        rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
         m = self.m_P
         n = self.n_P
 
@@ -783,69 +783,58 @@ class AMPS(object):
 
         """
 
+        # get the grids:
         mlats = np.split(self.scalargrid[0], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
         mlts  = np.split(self.scalargrid[1], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
         mlatv = np.split(self.vectorgrid[0], 2)[0]
         mltv  = np.split(self.vectorgrid[1], 2)[0]
 
-        fig = plt.figure(figsize = (24, 12), facecolor = 'white')
-        axes = [plt.subplot2grid((101, 4), (50*(i//4), i % 4), colspan = 1, rowspan = 50) for i in range(8)]
+        # set up figure and polar coordinate plots:
+        fig = plt.figure(figsize = (15, 7))
+        pax_n = Polarsubplot(plt.subplot2grid((1, 15), (0,  0), colspan = 7), minlat = self.minlat, linestyle = ':', linewidth = .3, color = 'lightgrey')
+        pax_s = Polarsubplot(plt.subplot2grid((1, 15), (0,  7), colspan = 7), minlat = self.minlat, linestyle = ':', linewidth = .3, color = 'lightgrey')
+        pax_c = plt.subplot2grid((1, 150), (0, 149), colspan = 1)
+        
+        # labels
+        pax_n.writeMLTlabels(mlat = self.minlat, size = 16)
+        pax_s.writeMLTlabels(mlat = self.minlat, size = 16)
+        pax_n.write(self.minlat, 3,    str(self.minlat) + r'$^\circ$' , ha = 'left', va = 'top', size = 18)
+        pax_s.write(self.minlat, 3,    r'$-$' + str(self.minlat) + '$^\circ$', ha = 'left', va = 'top', size = 18)
+        pax_n.write(self.minlat-5, 12, r'North' , ha = 'center', va = 'center', size = 18)
+        pax_s.write(self.minlat-5, 12, r'South' , ha = 'center', va = 'center', size = 18)
 
-
-        # get Polarsubplot objects:
-        paxes = map(lambda x: Polarsubplot(x, minlat = self.minlat, linestyle = ':', color = 'grey'), axes)
-
-        # FAC
+        # calculate and plot FAC
         Jun, Jus = self.get_upward_current()
-        faclevels = np.linspace(-.55, .55, 12)
-        paxes[0].contourf(mlats, mlts, Jun, levels = faclevels, cmap = plt.cm.bwr_r, extend = 'both')
-        paxes[4].contourf(mlats, mlts, Jus, levels = faclevels, cmap = plt.cm.bwr_r, extend = 'both')
-
-        paxes[0].writeMLTlabels(mlat = self.minlat, size = 16)
-        paxes[4].writeMLTlabels(mlat = self.minlat, size = 16)
-        paxes[0].write(self.minlat, 3,    str(self.minlat) + r'$^\circ$' , ha = 'left', va = 'top', size = 18)
-        paxes[4].write(self.minlat, 3,    r'$-$' + str(self.minlat) + '$^\circ$', ha = 'left', va = 'top', size = 18)
-        paxes[0].write(self.minlat-5, 18, r'North' , ha = 'right', va = 'center', rotation = 90, size = 18)
-        paxes[4].write(self.minlat-5, 18, r'South' , ha = 'right', va = 'center', rotation = 90, size = 18)
-        paxes[0].write(self.minlat-5, 12, r'$J_u$ [$\mu$A/m$^2$]' , ha = 'center', va = 'bottom', size = 18)
-
-
-        # Curl-free horizontal
-        alphan, alphas = self.get_curl_free_current_potential()
-        alphan -= (alphan.min() + (alphan.max() - alphan.min())/2)
-        alphas -= (alphas.min() + (alphas.max() - alphas.min())/2)
-        paxes[1].contour(mlats, mlts, alphan, levels = np.r_[alphan.min():alphan.max():30], colors = 'black', linewidths = .5)
-        paxes[5].contour(mlats, mlts, alphas, levels = np.r_[alphas.min():alphas.max():30], colors = 'black', linewidths = .5)
-
-        en, es, nn, ns = self.get_curl_free_current()
-        paxes[1].featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
-        paxes[5].featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
-
-        paxes[1].write(self.minlat-5, 12, r'$\alpha$ and $\mathbf{j}_{cf} = \nabla\alpha$, where $\nabla^2\alpha = - J_u$' , ha = 'center', va = 'bottom', size = 18)
-
-        # Divergence-free horizontal
-        Psin, Psis = self.get_equivalent_current_function()
-        paxes[2].contour(mlats, mlts, Psin, levels = np.r_[Psin.min():Psin.max():30], colors = 'black', linewidths = .5)
-        paxes[6].contour(mlats, mlts, Psis, levels = np.r_[Psis.min():Psis.max():30], colors = 'black', linewidths = .5)
-
-        en, es, nn, ns = self.get_divergence_free_current()
-        paxes[2].featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
-        paxes[6].featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
-        paxes[2].write(self.minlat-5, 12, r'$\Psi$ and $\mathbf{j}_{df} = \mathbf{k}\times\nabla\Psi$' , ha = 'center', va = 'bottom', size = 18)
+        faclevels = np.r_[-.925:.926:.05]
+        pax_n.contourf(mlats, mlts, Jun, levels = faclevels, cmap = plt.cm.bwr, extend = 'both')
+        pax_s.contourf(mlats, mlts, Jus, levels = faclevels, cmap = plt.cm.bwr, extend = 'both')
 
         # Total horizontal
-        en, es, nn, ns = self.get_total_current()
-        paxes[3].featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
-        paxes[7].featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 2, unit = 'mA/m')
-
-        paxes[3].write(self.minlat-5, 12, r'$\mathbf{j} = \mathbf{j}_{df} + \mathbf{j}_{cf}$' , ha = 'center', va = 'bottom', size = 18)
+        j_e, j_n = self.get_total_current()
+        nn, ns = np.split(j_n, 2)
+        en, es = np.split(j_e, 2)
+        pax_n.featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 10, unit = 'mA/m', linewidth = '.5', color = 'gray', markercolor = 'grey')
+        pax_s.featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 10, unit = None  , linewidth = '.5', color = 'gray', markercolor = 'grey')
 
 
         # colorbar
-        cbar = plt.subplot2grid((101, 4), (100, 0))
-        cbar.contourf(np.vstack((faclevels, faclevels)), np.vstack((np.zeros_like(faclevels), np.ones_like(faclevels))), np.vstack((faclevels, faclevels)), levels = faclevels, cmap = plt.cm.bwr)
-        cbar.set_yticks([])
-        cbar.set_xlabel('downward    $\hspace{3cm}\mu$A/m$^2\hspace{3cm}$      upward', size = 18)
+        pax_c.contourf(np.vstack((np.zeros_like(faclevels), np.ones_like(faclevels))), 
+                       np.vstack((faclevels, faclevels)), 
+                       np.vstack((faclevels, faclevels)), 
+                       levels = faclevels, cmap = plt.cm.bwr)
+        pax_c.set_xticks([])
+        pax_c.set_ylabel('downward    $\hspace{3cm}\mu$A/m$^2\hspace{3cm}$      upward', size = 18)
+        pax_c.yaxis.set_label_position("right")
+        pax_c.yaxis.tick_right()
+
+        # print AL index values and integrated up/down currents
+        AL_n, AL_s, AU_n, AU_s = self.get_AE_indices()
+        ju_n, jd_n, ju_s, jd_s = self.get_integrated_upward_current()
+        pax_n.ax.text(pax_n.ax.get_xlim()[0], pax_n.ax.get_ylim()[0], 
+                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_\uparrow$:\t ${jn_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n), ha = 'left', va = 'bottom', size = 14)
+        pax_s.ax.text(pax_s.ax.get_xlim()[0], pax_s.ax.get_ylim()[0], 
+                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_\uparrow$:\t ${js_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s), ha = 'left', va = 'bottom', size = 14)
+
 
         plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)
         plt.show()
