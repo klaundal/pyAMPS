@@ -11,10 +11,16 @@ Welcome to pyAMPS's documentation!
    :caption: Contents:
 
 
+
 .. automodule:: pyAMPS
- 
+	:members:
+
 .. autoclass:: AMPS
     :members:
+
+.. automodule:: mlt_utils
+	:members:
+
 
 Indices and tables
 ==================

@@ -4,10 +4,41 @@
     nterms       -- function which calculates the number of terms in a 
                     real expansion of a poloidal (internal + external) and toroidal expansion 
     get_legendre -- calculate associated legendre functions - with option for Schmidt semi-normalization
+
+
+
+MIT License
+
+Copyright (c) 2017 Karl M. Laundal
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
+
 from __future__ import division
+from mlt_utils import mlon_to_mlt
 import numpy as np
+import apexpy
+import os
 d2r = np.pi/180
+
+DEFAULT = object()
+refre = 6371.2 # reference radius
 
 class SHkeys(object):
 
@@ -129,30 +160,38 @@ def nterms(NT = 0, MT = 0, NVi = 0, MVi = 0, NVe = 0, MVe = 0):
 
 
 def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
-    """ calculate associated Legendre functions 
+    """ Calculate associated Legendre polynomials P and its derivative
 
-        nmax             -- maximum total wavenumber
-        mmax             -- maximum zonal wavenumber
-        theta            -- colatitude in degrees (not latitude!), with N terms
-        schmidtnormalize -- True if Schmidth seminormalization is wanted, False otherwise
-        negative_m       -- True if you want the functions for negative m (complex expansion)
-        keys             -- pass SHkeys object to return an array instead of a dict
-                            default None
+        Algorithm from "Spacecraft Attitude Determination and Control" by James Richard Wertz
 
 
-        returns:
-          P, dP -- dicts of legendre functions, and derivatives, with wavenumber tuple as keys
-        
-        or, if keys != None:
-          PdP   -- array of size N, 2*M, where M is the number of terms. The first half of the 
-                   columns are P, and the second half are dP
+        Parameters
+        ----------
+        nmax : int
+            highest spherical harmonic degree
+        mmax : int
+            hightest spherical harmonic order
+        theta : array, float
+            colatitude in degrees (shape is not preserved)
+        schmidtnormalize : bool, optional
+            True if Schmidth seminormalization is wanted, False otherwise. Default True
+        keys : SHkeys, optional
+            If this parameter is set, an array will be returned instead of a dict. 
+            The array will be (N, 2M), where the M first columns represent the matrix
+            of P values, and the last M columns represent values of dP/dtheta
 
-
-        algorithm from "Spacecraft Attitude Determination and Control" by James Richard Wertz
-        
-        could be unstable for large nmax...
-
-        KML 2016-04-22
+        Returns
+        -------
+        P : dict
+            dictionary of Legendre polynomial evalulated at theta. Keys are spherical harmonic
+            wave number tuples (n, m)
+        dP : dict
+            dictionary of Legendre polynomial derivatives evaluated at theta. Keys are spherical
+            harmonic wave number tuples (n, m)
+        PdP : array (only if keys != None)
+            if keys != None, PdP is returned instaed of P and dP. PdP is an (N, 2M) array, where
+            the first M columns represents a matrix of P values, and the last M columns represent
+            values of dP/dtheta
 
     """
 
@@ -215,5 +254,163 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
         dPmat = np.hstack(tuple(dP[key] for key in keys)) 
     
         return np.hstack((Pmat, dPmat))
+
+
+
+
+def getG0(glat, glon, time, height, epoch = 2015., h_R = 110., ortho = False):
+    """ calculate the G matrix for the constant term in the AMPS model. The constant term is the 
+        term that depends only on the spherical harmonic coefficients that are not scaled by 
+        external parameters. This G matrix can be used to produce the full matrix.
+
+        The structure of the matrix is such that G0.dot(m), the product of the matrix with the 
+        first 1/19 of the model vector, will be model values of the eastward, northward, and
+        upward components of the magnetic field, stacked in a column vector.
+
+        glat, glon, time, and height must all have the same number of elements (let's call this N)
+
+        Parameters
+        ----------
+        glat : array
+            Geodetic latitude (degrees)
+        glon : array
+            Geographic/geodetic longitude (degrees)
+        time : array
+            Array of datetimes correspondign to each point. This is needed to calculate 
+            magnetic local time.
+        height : array
+            Geodetic heights, in km
+        epoch : float, optional
+            The epoch used for conversion to apex coordinates. Default 2015.
+        h_R : float, optional
+            Reference height used in conversion to modified apex coordinates. Default 110 km.
+
+        Returns
+        -------
+        G0 : array
+            an 3N by M matrix, where N is the number of elements in the input coordinates. There will be
+            3 times as many rows G0, since there are 3 components. Partionining G0 in thirds, from top to
+            bottom, gives the parts that correspond to east, north, and up, respectively. M
+            is the number of terms in the spherical harmonic expansion of B
+
+    """
+    glat   = glat.flatten()
+    glon   = glon.flatten()
+    height = height.flatten()
+
+    if ortho: # base vectors are unit vectors, and glon is mlt/15:
+        f1e, f1n, f2e, f2n = 1., 0., 0., 1.
+        d1e, d1n, d2e, d2n = 1., 0., 0., -np.ones_like(glat)
+        #d2n[glat > 0] *= -1.
+        alat = glat
+        qlat = glat
+        d2n = d2n[:, np.newaxis]
+        phi = glon[:, np.newaxis]
+
+    else:
+        # convert to magnetic coords and get base vectors
+        a = apexpy.Apex(epoch, refh = h_R)
+        qlat, qlon = a.geo2qd(  glat.flatten(), glon.flatten(), height.flatten())
+        alat, alon = a.geo2apex(glat.flatten(), glon.flatten(), height.flatten())
+        f1, f2, f3, g1, g2, g3, d1, d2, d3, e1, e2, e3 = a.basevectors_apex(qlat, qlon, height, coords  = 'qd')
+        f1e = f1[0][:, np.newaxis] # base vector components as column vectors
+        f1n = f1[1][:, np.newaxis]
+        f2e = f2[0][:, np.newaxis]
+        f2n = f2[1][:, np.newaxis]
+        d1e = d1[0][:, np.newaxis]
+        d1n = d1[1][:, np.newaxis]
+        d2e = d2[0][:, np.newaxis]
+        d2n = d2[1][:, np.newaxis]
+
+        # calculate magnetic local time
+        phi = mlon_to_mlt(qlon, time, a.year)[:, np.newaxis]*15 # multiply by 15 to get degrees
+
+    # turn the coordinate arrays into column vectors:
+    alat, qlat, h = map(lambda x: x.flatten()[:, np.newaxis], [alat, qlat, height])
+
+    # truncation levels:
+    NT, MT, NV, MV = 65, 3, 45, 3
+
+
+
+    # generate spherical harmonic keys    
+    keys = {} # dictionary of spherical harmonic keys
+    keys['cos_T'] = SHkeys(NT, MT).setNmin(1).MleN().Mge(0)
+    keys['sin_T'] = SHkeys(NT, MT).setNmin(1).MleN().Mge(1)
+    keys['cos_V'] = SHkeys(NV, MV).setNmin(1).MleN().Mge(0)
+    keys['sin_V'] = SHkeys(NV, MV).setNmin(1).MleN().Mge(1)
+    m_cos_V = keys['cos_V'].m
+    m_sin_V = keys['sin_V'].m
+    m_cos_T = keys['cos_T'].m
+    m_sin_T = keys['sin_T'].m
+
+    nV = np.hstack((keys['cos_V'].n, keys['sin_V'].n))
+
+    # generate Legendre matrices - first get dicts of arrays, and then stack them in the appropriate fashion
+    legendre_T = get_legendre(NT, MT, 90 - alat, keys = keys['cos_T'])
+    legendre_V = get_legendre(NV, MV, 90 - qlat, keys = keys['cos_V'])
+    P_cos_T  =  legendre_T[:, :len(keys['cos_T']) ] # split
+    dP_cos_T = -legendre_T[:,  len(keys['cos_T']):]
+    P_cos_V  =  legendre_V[:, :len(keys['cos_V']) ] # split
+    dP_cos_V = -legendre_V[:,  len(keys['cos_V']):]
+    P_sin_T  =  P_cos_T[ :, keys['cos_T'].m.flatten() != 0] 
+    dP_sin_T =  dP_cos_T[:, keys['cos_T'].m.flatten() != 0]
+    P_sin_V  =  P_cos_V[ :, keys['cos_V'].m.flatten() != 0]
+    dP_sin_V =  dP_cos_V[:, keys['cos_V'].m.flatten() != 0]  
+
+    # trig matrices:
+    cos_T  =  np.cos(phi * d2r * m_cos_T)
+    sin_T  =  np.sin(phi * d2r * m_sin_T)
+    cos_V  =  np.cos(phi * d2r * m_cos_V)
+    sin_V  =  np.sin(phi * d2r * m_sin_V)
+    dcos_T = -np.sin(phi * d2r * m_cos_T)
+    dsin_T =  np.cos(phi * d2r * m_sin_T)
+    dcos_V = -np.sin(phi * d2r * m_cos_V)
+    dsin_V =  np.cos(phi * d2r * m_sin_V)
+
+
+    cos_qlat   = np.cos(qlat * d2r)
+    cos_alat   = np.cos(alat * d2r)
+
+    if ortho:
+        sinI = 1.
+    else:
+        sinI  = 2 * np.sin( alat * d2r )/np.sqrt(4 - 3*cos_alat**2)
+
+    r  = refre + h
+    Rtor  = refre/r
+
+    F = f1e*f2n - f1n*f2e
+
+    # matrix with horizontal spherical harmonic functions in QD coordinates
+    V        = np.hstack((P_cos_V * cos_V, P_sin_V * sin_V ))
+
+    # matrices with partial derivatives in QD coordinates:
+    dV_dqlon  = np.hstack(( P_cos_V * dcos_V * m_cos_V,  P_sin_V * dsin_V * m_sin_V ))
+    dV_dqlat  = np.hstack((dP_cos_V *  cos_V          , dP_sin_V *  sin_V           ))
+
+    # matrices with partial derivatives in MA coordinates:
+    dT_dalon  = np.hstack(( P_cos_T * dcos_T * m_cos_T,  P_sin_T * dsin_T * m_sin_T))
+    dT_dalat  = np.hstack((dP_cos_T *  cos_T          , dP_sin_T *  sin_T * m_sin_T))
+
+    # Toroidal field components
+    B_T_e  =   -d1n * dT_dalon / cos_alat + d2n * dT_dalat / sinI
+    B_T_n  =    d1e * dT_dalon / cos_alat - d2e * dT_dalat / sinI
+    B_T_u  =    np.zeros(B_T_n.shape)
+
+    # Poloidal field components:
+    B_V_e = (-f2n / (cos_qlat * r) * dV_dqlon + f1n * dV_dqlat / r) * refre * Rtor ** (nV + 1)
+    B_V_n = ( f2e / (cos_qlat * r) * dV_dqlon - f1e * dV_dqlat / r) * refre * Rtor ** (nV + 1)
+    B_V_u = np.sqrt(F) * V  * (nV + 1) * Rtor ** (nV + 2)
+
+    # combine:
+    G     = np.hstack((np.vstack((B_T_e  , 
+                                  B_T_n  , 
+                                  B_T_u  )),   np.vstack((B_V_e, 
+                                                          B_V_n, 
+                                                          B_V_u))
+                      ))
+
+    return G
 
 

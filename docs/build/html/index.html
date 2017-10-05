@@ -200,7 +200,7 @@ to calculate model AE indices that are more directly comparable to the measured 
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_curl_free_current">
-<code class="descname">get_curl_free_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_curl_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_curl_free_current" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_curl_free_current</code><span class="sig-paren">(</span><em>mlat=&lt;object object&gt;</em>, <em>mlt=&lt;object object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_curl_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_curl_free_current" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the curl-free part of the horizontal current, in units of mA/m.
 The calculations refer to the height chosen upon initialization of the AMPS
 object (default 110 km).</p>
@@ -208,16 +208,19 @@ object (default 110 km).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>jcf_eastward_n</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the curl-free current in the northern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jcf_eastward_s</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the curl-free current in the southern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jcf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the curl-free current in the northern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jcf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the curl-free current in the southern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mlat</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If
+not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
+<li><strong>mlt</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If
+not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>jcf_eastward</strong> (<em>numpy.array, float</em>) &#8211; eastward component of the curl-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jcf_northward</strong> (<em>numpy.array, float</em>) &#8211; northward component of the curl-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -259,7 +262,7 @@ Shape: (self.resolution, self.resolution)</li>
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_divergence_free_current">
-<code class="descname">get_divergence_free_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_divergence_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_divergence_free_current" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_divergence_free_current</code><span class="sig-paren">(</span><em>mlat=&lt;object object&gt;</em>, <em>mlt=&lt;object object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_divergence_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_divergence_free_current" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the divergence-free part of the horizontal current, in units of mA/m.
 The calculations refer to the height chosen upon initialization of the AMPS
 object (default 110 km).</p>
@@ -267,16 +270,19 @@ object (default 110 km).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>jdf_eastward_n</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the divergence-free current in the northern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jdf_eastward_s</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the divergence-free current in the southern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jdf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the divergence-free current in the northern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jdf_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the divergence-free current in the southern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mlat</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If
+not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
+<li><strong>mlt</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If
+not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>jdf_eastward</strong> (<em>numpy.array, float</em>) &#8211; eastward component of the divergence-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>jdf_northward</strong> (<em>numpy.array, float</em>) &#8211; northward component of the divergence-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -481,7 +487,7 @@ Shape: (self.resolution, self.resolution)</li>
 
 <dl class="method">
 <dt id="pyAMPS.AMPS.get_total_current">
-<code class="descname">get_total_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_total_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_total_current" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_total_current</code><span class="sig-paren">(</span><em>mlat=&lt;object object&gt;</em>, <em>mlt=&lt;object object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_total_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_total_current" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the total horizontal current, in units of mA/m. This is calculated as
 the sum of the curl-free and divergence-free parts. The calculations refer to
 the height chosen upon initialization of the AMPS object (default 110 km).</p>
@@ -489,16 +495,19 @@ the height chosen upon initialization of the AMPS object (default 110 km).</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>j_eastward_n</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the  current in the northern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>j_eastward_s</strong> (<em>numpy.array, float</em>) &#8211; eastward componet of the  current in the southern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>j_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the current in the northern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>j_northward_n</strong> (<em>numpy.array, float</em>) &#8211; northward componet of the current in the southern hemisphere
-evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mlat</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If
+not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
+<li><strong>mlt</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If
+not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>j_eastward</strong> (<em>numpy.array, float</em>) &#8211; eastward component of the horizontal current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+<li><strong>j_northward</strong> (<em>numpy.array, float</em>) &#8211; northward component of the horizontal current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
+</ul>
+</p>
 </td>
 </tr>
 </tbody>
@@ -600,6 +609,171 @@ external conditions, it is faster to do this:</p>
 by allowing the inputs to be arrays. That is not yet implemented.</p>
 </dd></dl>
 
+</dd></dl>
+
+<span class="target" id="module-mlt_utils"></span><p>This module contains functions which are used to calculate magnetic local time accurately and efficiently</p>
+<dl class="function">
+<dt id="mlt_utils.car_to_sph">
+<code class="descclassname">mlt_utils.</code><code class="descname">car_to_sph</code><span class="sig-paren">(</span><em>car</em>, <em>deg=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#car_to_sph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.car_to_sph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert from spherical to cartesian coordinates</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>car</strong> (<em>3 x N array</em>) &#8211; 3 x N array, where the rows are, from top to bottom:
+x, y, z, in ECEF coordinates</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>sph</strong> (<em>3 x N array</em>) &#8211; 3 x N array, where the rows are, from top to bottom:
+radius, colatitude, and longitude</li>
+<li><strong>deg</strong> (<em>bool, optional</em>) &#8211; set to True if output is wanted in degrees. False if radians</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlt_utils.geo2mag">
+<code class="descclassname">mlt_utils.</code><code class="descname">geo2mag</code><span class="sig-paren">(</span><em>glat</em>, <em>glon</em>, <em>epoch</em>, <em>deg=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#geo2mag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.geo2mag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert geographic to centered dipole coordinates</p>
+<p>The conversion uses IGRF coefficients directly, interpolated
+to the provided epoch. The construction of the rotation matrix
+follows Laundal &amp; Richmond (2017) <a class="footnote-reference" href="#id9" id="id7">[4]</a> quite directly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>glat</strong> (<em>array_like</em>) &#8211; array of geographic latitudes</li>
+<li><strong>glon</strong> (<em>array_like</em>) &#8211; array of geographic longitudes</li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; epoch (year) for the dipole used in the conversion</li>
+<li><strong>deg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) &#8211; true if input is in degrees, False otherwise</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>cdlat</strong> (<em>ndarray</em>) &#8211; array of centered dipole latitudes [degrees]</li>
+<li><strong>cdlon</strong> (<em>ndarray</em>) &#8211; array of centered dipole longitudes [degrees]</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlt_utils.is_leapyear">
+<code class="descclassname">mlt_utils.</code><code class="descname">is_leapyear</code><span class="sig-paren">(</span><em>year</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#is_leapyear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.is_leapyear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if leapyear else False</p>
+<p>Handles arrays and preserves shape</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>year</strong> (<em>array_like</em>) &#8211; array of years</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>is_leapyear</strong> &#8211; True where input is leapyear, False elsewhere</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">ndarray of bools</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlt_utils.mlon2mlt">
+<code class="descclassname">mlt_utils.</code><code class="descname">mlon2mlt</code><span class="sig-paren">(</span><em>mlon</em>, <em>times</em>, <em>epoch</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#mlon2mlt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.mlon2mlt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate magnetic local time from magnetic longitude and time(s).</p>
+<p>This is an implementation of the formula recommended in Laundal &amp; Richmond, 2017 <a class="footnote-reference" href="#id9" id="id8">[4]</a>.
+It uses the subsolar point geomagnetic (centered dipole) longitude to define
+the noon meridian.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mlon</strong> (<em>array_like</em>) &#8211; array of magnetic longitudes</li>
+<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/2/library/datetime.html#module-datetime" title="(in Python v2.7)"><em>datetime</em></a><em> or </em><em>list of datetimes</em>) &#8211; datetime object, or list of datetimes with equal number of elements
+as mlon</li>
+<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the epoch (year, ) used for geo-&gt;mag conversion</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[4]</td><td><em>(<a class="fn-backref" href="#id7">1</a>, <a class="fn-backref" href="#id8">2</a>)</em> Laundal, K.M. &amp; Richmond, A.D. Space Sci Rev (2017) 206: 27.
+<a class="reference external" href="https://doi.org/10.1007/s11214-016-0275-y">https://doi.org/10.1007/s11214-016-0275-y</a></td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlt_utils.sph_to_car">
+<code class="descclassname">mlt_utils.</code><code class="descname">sph_to_car</code><span class="sig-paren">(</span><em>sph</em>, <em>deg=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#sph_to_car"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.sph_to_car" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert from spherical to cartesian coordinates</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sph</strong> (<em>3 x N array</em>) &#8211; 3 x N array, where the rows are, from top to bottom:
+radius, colatitude, and longitude</li>
+<li><strong>deg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) &#8211; set to True if input is given in degrees. False if radians</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>car</strong> &#8211; 3 x N array, where the rows are, from top to bottom:
+x, y, z, in ECEF coordinates</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">3 x N array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="mlt_utils.subsol">
+<code class="descclassname">mlt_utils.</code><code class="descname">subsol</code><span class="sig-paren">(</span><em>datetimes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#subsol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.subsol" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate subsolar point at given datetime(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>datetimes</strong> (<a class="reference external" href="https://docs.python.org/2/library/datetime.html#module-datetime" title="(in Python v2.7)"><em>datetime</em></a><em> or </em><em>list of datetimes</em>) &#8211; datetime or list (or other iterable) of datetimes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
+<li><strong>subsol_lat</strong> (<em>ndarray</em>) &#8211; latitude(s) of the subsolar point</li>
+<li><strong>subsol_lon</strong> (<em>ndarray</em>) &#8211; longiutde(s) of the subsolar point</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The code is vectorized, so it should be fast.</p>
+<p>After Fortran code by: 961026 A. D. Richmond, NCAR</p>
+<p class="last">Documentation from original code:
+Find subsolar geographic latitude and longitude from date and time.
+Based on formulas in Astronomical Almanac for the year 1996, p. C24.
+(U.S. Government Printing Office, 1994).
+Usable for years 1601-2100, inclusive.  According to the Almanac,
+results are good to at least 0.01 degree latitude and 0.025 degree
+longitude between years 1950 and 2050.  Accuracy for other years
+has not been tested.  Every day is assumed to have exactly
+86400 seconds; thus leap seconds that sometimes occur on December
+31 are ignored:  their effect is below the accuracy threshold of
+the algorithm.</p>
+</div>
 </dd></dl>
 
 </div>

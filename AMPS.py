@@ -11,12 +11,6 @@ This module can be used to
     - total horizontal current (vector)
     - eastward or northward ground perturbation 
       corresponding to equivalent current (scalars)
-||||||||  2) Calculate the model magnetic field in space, along a trajetory, 
-||todo||     provided a time series of external parameters. This is done through
-||||||||     the get_magnetic_field(...) function. The magnetic field will be provided in geographic coordinates
-||||||||  3) Calculate the model magnetic field in space, along a trajetory, 
-||todo||     provided a time series of external parameters. This is done through
-||||||||     the get_ground_perturbation(...) function. 
 
 
 
@@ -45,9 +39,10 @@ SOFTWARE.
 
 from __future__ import division
 import numpy as np
+import os
 import matplotlib.pyplot as plt
 from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, SHkeys
+from sh_utils import get_legendre, SHkeys, getG0
 from model_utils import get_model_vectors
 from matplotlib import rc
 
@@ -838,4 +833,78 @@ class AMPS(object):
 
         plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)
         plt.show()
+
+
+def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., ortho = False):
+    """ Calculate model magnetic field in space 
+
+    Note
+    ----
+    This function consumes a lot of memory: For an input of ~80,000 elements, you will need ~6 GB.
+
+
+    """
+
+    # TODO: CHECK THAT INPUT IS OK
+
+    G0 = getG0(glat, glon, time, height, epoch = epoch, h_R = h_R, ortho = ortho)
+
+    # load model vector
+    m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
+
+    # get 19 unscaled magnetic field terms at the given coords:
+    Bs = [G0.dot( m_part ).flatten() for m_part in np.split(m, 19)]
+
+    # prepare the scales (external parameters)
+    By, Bz, v, tilt, f107 = map(lambda x: x.flatten(), [By, Bz, v, tilt, f107]) # flatten input
+    ca = np.arctan2(By, Bz)
+    epsilon = v**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 # Newell coupling           
+    tau     = v**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
+
+    # make a dict of the 19 external parameters (flat arrays)
+    external_params = {0  : np.ones_like(ca)           ,        #'const'             
+                       1  : 1              * np.sin(ca),        #'sinca'             
+                       2  : 1              * np.cos(ca),        #'cosca'             
+                       3  : epsilon                    ,        #'epsilon'           
+                       4  : epsilon        * np.sin(ca),        #'epsilon_sinca'     
+                       5  : epsilon        * np.cos(ca),        #'epsilon_cosca'     
+                       6  : tilt                       ,        #'tilt'              
+                       7  : tilt           * np.sin(ca),        #'tilt_sinca'        
+                       8  : tilt           * np.cos(ca),        #'tilt_cosca'        
+                       9  : tilt * epsilon             ,        #'tilt_epsilon'      
+                       10 : tilt * epsilon * np.sin(ca),        #'tilt_epsilon_sinca'
+                       11 : tilt * epsilon * np.cos(ca),        #'tilt_epsilon_cosca'
+                       12 : tau                        ,        #'tau'               
+                       13 : tau            * np.sin(ca),        #'tau_sinca'         
+                       14 : tau            * np.cos(ca),        #'tau_cosca'         
+                       15 : tilt * tau                 ,        #'tilt_tau'          
+                       16 : tilt * tau     * np.sin(ca),        #'tilt_tau_sinca'    
+                       17 : tilt * tau     * np.cos(ca),        #'tilt_tau_cosca'    
+                       18 : f107                        }       #'f107'
+
+    # scale the 19 magnetic field terms, and add (the scales are tiled once for each component)
+    B = reduce(lambda x, y: x+y, [Bs[i] * np.tile(external_params[i], 3) for i in range(19)])
+
+
+    # the resulting array will be stacked Be, Bn, Bu components. Return the partions
+    return np.split(B, 3)
+
+
+
+
+
+
+
+
+
+
+
+
+def get_B_ground(qdlat, mlt, vx, By, Bz, tilt, F107, epsilon_multiplier = 1.):
+    """ Calculate model magnetic field on ground 
+
+
+
+    """
+    pass
 

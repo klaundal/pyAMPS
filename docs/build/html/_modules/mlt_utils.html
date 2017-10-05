@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mlt_utils &#8212; pyAMPS 0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for mlt_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains functions which are used to calculate magnetic local time accurately and efficiently</span>
+
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span> <span class="c1"># because of the DatetimeIndex class and IGRF coefficient interpolation</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">d2r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span>
+<span class="n">r2d</span> <span class="o">=</span> <span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+<span class="c1"># first make arrays of IGRF dipole coefficients. This is used to make rotation matrix from geo to cd coords</span>
+<span class="c1"># these values are from https://www.ngdc.noaa.gov/IAGA/vmod/igrf12coeffs.txt</span>
+<span class="n">time</span> <span class="o">=</span><span class="p">[</span><span class="mf">1900.0</span><span class="p">,</span> <span class="mf">1905.0</span><span class="p">,</span> <span class="mf">1910.0</span><span class="p">,</span> <span class="mf">1915.0</span><span class="p">,</span> <span class="mf">1920.0</span><span class="p">,</span> <span class="mf">1925.0</span><span class="p">,</span> <span class="mf">1930.0</span><span class="p">,</span> <span class="mf">1935.0</span><span class="p">,</span> <span class="mf">1940.0</span><span class="p">,</span> <span class="mf">1945.0</span><span class="p">,</span> <span class="mf">1950.0</span><span class="p">,</span> <span class="mf">1955.0</span><span class="p">,</span> <span class="mf">1960.0</span><span class="p">,</span> <span class="mf">1965.0</span><span class="p">,</span> <span class="mf">1970.0</span><span class="p">,</span> <span class="mf">1975.0</span><span class="p">,</span> <span class="mf">1980.0</span><span class="p">,</span> <span class="mf">1985.0</span><span class="p">,</span> <span class="mf">1990.0</span><span class="p">,</span> <span class="mf">1995.0</span><span class="p">,</span>   <span class="mf">2000.0</span><span class="p">,</span>    <span class="mf">2005.0</span><span class="p">,</span>    <span class="mf">2010.0</span><span class="p">,</span>   <span class="mf">2015.0</span><span class="p">,</span> <span class="mf">2020.0</span><span class="p">]</span>
+<span class="n">g10</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">31543</span><span class="p">,</span> <span class="o">-</span><span class="mi">31464</span><span class="p">,</span> <span class="o">-</span><span class="mi">31354</span><span class="p">,</span> <span class="o">-</span><span class="mi">31212</span><span class="p">,</span> <span class="o">-</span><span class="mi">31060</span><span class="p">,</span> <span class="o">-</span><span class="mi">30926</span><span class="p">,</span> <span class="o">-</span><span class="mi">30805</span><span class="p">,</span> <span class="o">-</span><span class="mi">30715</span><span class="p">,</span> <span class="o">-</span><span class="mi">30654</span><span class="p">,</span> <span class="o">-</span><span class="mi">30594</span><span class="p">,</span> <span class="o">-</span><span class="mi">30554</span><span class="p">,</span> <span class="o">-</span><span class="mi">30500</span><span class="p">,</span> <span class="o">-</span><span class="mi">30421</span><span class="p">,</span> <span class="o">-</span><span class="mi">30334</span><span class="p">,</span> <span class="o">-</span><span class="mi">30220</span><span class="p">,</span> <span class="o">-</span><span class="mi">30100</span><span class="p">,</span> <span class="o">-</span><span class="mi">29992</span><span class="p">,</span> <span class="o">-</span><span class="mi">29873</span><span class="p">,</span> <span class="o">-</span><span class="mi">29775</span><span class="p">,</span> <span class="o">-</span><span class="mi">29692</span><span class="p">,</span> <span class="o">-</span><span class="mf">29619.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">29554.63</span><span class="p">,</span> <span class="o">-</span><span class="mf">29496.57</span><span class="p">,</span> <span class="o">-</span><span class="mf">29442.0</span><span class="p">]</span>
+<span class="n">g11</span> <span class="o">=</span> <span class="p">[</span> <span class="o">-</span><span class="mi">2298</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2298</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2297</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2306</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2317</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2318</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2316</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2306</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2292</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2285</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2250</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2215</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2169</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2119</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2068</span><span class="p">,</span>  <span class="o">-</span><span class="mi">2013</span><span class="p">,</span>  <span class="o">-</span><span class="mi">1956</span><span class="p">,</span>  <span class="o">-</span><span class="mi">1905</span><span class="p">,</span>  <span class="o">-</span><span class="mi">1848</span><span class="p">,</span>  <span class="o">-</span><span class="mi">1784</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1728.2</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1669.05</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1586.42</span><span class="p">,</span>  <span class="o">-</span><span class="mf">1501.0</span><span class="p">]</span>
+<span class="n">h11</span> <span class="o">=</span> <span class="p">[</span>  <span class="mi">5922</span><span class="p">,</span>   <span class="mi">5909</span><span class="p">,</span>   <span class="mi">5898</span><span class="p">,</span>   <span class="mi">5875</span><span class="p">,</span>   <span class="mi">5845</span><span class="p">,</span>   <span class="mi">5817</span><span class="p">,</span>   <span class="mi">5808</span><span class="p">,</span>   <span class="mi">5812</span><span class="p">,</span>   <span class="mi">5821</span><span class="p">,</span>   <span class="mi">5810</span><span class="p">,</span>   <span class="mi">5815</span><span class="p">,</span>   <span class="mi">5820</span><span class="p">,</span>   <span class="mi">5791</span><span class="p">,</span>   <span class="mi">5776</span><span class="p">,</span>   <span class="mi">5737</span><span class="p">,</span>   <span class="mi">5675</span><span class="p">,</span>   <span class="mi">5604</span><span class="p">,</span>   <span class="mi">5500</span><span class="p">,</span>   <span class="mi">5406</span><span class="p">,</span>   <span class="mi">5306</span><span class="p">,</span>   <span class="mf">5186.1</span><span class="p">,</span>   <span class="mf">5077.99</span><span class="p">,</span>   <span class="mf">4944.26</span><span class="p">,</span>   <span class="mf">4797.1</span><span class="p">]</span>
+<span class="n">g10sv</span> <span class="o">=</span>  <span class="mf">10.3</span> <span class="c1"># secular variations</span>
+<span class="n">g11sv</span> <span class="o">=</span>  <span class="mf">18.1</span>
+<span class="n">h11sv</span> <span class="o">=</span> <span class="o">-</span><span class="mf">26.6</span>
+<span class="n">g10</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g10</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">g10sv</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span> <span class="c1"># append 2020 values using secular variation</span>
+<span class="n">g11</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g11</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">g11sv</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">h11</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h11</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">h11sv</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">igrf_dipole</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;g10&#39;</span><span class="p">:</span><span class="n">g10</span><span class="p">,</span> <span class="s1">&#39;g11&#39;</span><span class="p">:</span><span class="n">g11</span><span class="p">,</span> <span class="s1">&#39;h11&#39;</span><span class="p">:</span><span class="n">h11</span><span class="p">},</span> <span class="n">index</span> <span class="o">=</span> <span class="n">time</span><span class="p">)</span>
+<span class="n">igrf_dipole</span><span class="p">[</span><span class="s1">&#39;B0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">igrf_dipole</span><span class="o">.</span><span class="n">g10</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">igrf_dipole</span><span class="o">.</span><span class="n">g11</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">igrf_dipole</span><span class="o">.</span><span class="n">h11</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+
+
+<div class="viewcode-block" id="mlon2mlt"><a class="viewcode-back" href="../index.html#mlt_utils.mlon2mlt">[docs]</a><span class="k">def</span> <span class="nf">mlon2mlt</span><span class="p">(</span><span class="n">mlon</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Calculate magnetic local time from magnetic longitude and time(s). </span>
+
+<span class="sd">    This is an implementation of the formula recommended in Laundal &amp; Richmond, 2017 [4]_. </span>
+<span class="sd">    It uses the subsolar point geomagnetic (centered dipole) longitude to define</span>
+<span class="sd">    the noon meridian. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mlon : array_like</span>
+<span class="sd">        array of magnetic longitudes</span>
+<span class="sd">    times : datetime or list of datetimes</span>
+<span class="sd">        datetime object, or list of datetimes with equal number of elements</span>
+<span class="sd">        as mlon</span>
+<span class="sd">    epoch : float</span>
+<span class="sd">        the epoch (year, ) used for geo-&gt;mag conversion</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [4] Laundal, K.M. &amp; Richmond, A.D. Space Sci Rev (2017) 206: 27. </span>
+<span class="sd">           https://doi.org/10.1007/s11214-016-0275-y</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ssglat</span><span class="p">,</span> <span class="n">ssglon</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">subsol</span><span class="p">(</span><span class="n">times</span><span class="p">))</span>
+    <span class="n">sqlat</span><span class="p">,</span> <span class="n">ssqlon</span> <span class="o">=</span> <span class="n">geo2mag</span><span class="p">(</span><span class="n">ssglat</span><span class="p">,</span> <span class="n">ssglon</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span>
+
+
+    <span class="n">londiff</span> <span class="o">=</span> <span class="n">mlon</span> <span class="o">-</span> <span class="n">ssqlon</span>
+    <span class="n">londiff</span> <span class="o">=</span> <span class="p">(</span><span class="n">londiff</span> <span class="o">+</span> <span class="mi">180</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span> <span class="o">-</span> <span class="mi">180</span> <span class="c1"># signed difference in longitude</span>
+
+    <span class="n">mlt</span> <span class="o">=</span> <span class="p">(</span><span class="mf">180.</span> <span class="o">+</span> <span class="n">londiff</span><span class="p">)</span><span class="o">/</span><span class="mf">15.</span> <span class="c1"># convert to mlt with ssqlon at noon</span>
+
+    <span class="k">return</span> <span class="n">mlt</span></div>
+
+
+<div class="viewcode-block" id="sph_to_car"><a class="viewcode-back" href="../index.html#mlt_utils.sph_to_car">[docs]</a><span class="k">def</span> <span class="nf">sph_to_car</span><span class="p">(</span><span class="n">sph</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert from spherical to cartesian coordinates</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sph : 3 x N array</span>
+<span class="sd">        3 x N array, where the rows are, from top to bottom:</span>
+<span class="sd">        radius, colatitude, and longitude</span>
+<span class="sd">    deg : bool, optional</span>
+<span class="sd">        set to True if input is given in degrees. False if radians</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    car : 3 x N array</span>
+<span class="sd">        3 x N array, where the rows are, from top to bottom:</span>
+<span class="sd">        x, y, z, in ECEF coordinates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="n">sph</span>
+
+    <span class="k">if</span> <span class="n">deg</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">conv</span> <span class="o">=</span> <span class="mf">1.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">conv</span> <span class="o">=</span> <span class="n">d2r</span>
+
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">conv</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span> <span class="o">*</span> <span class="n">conv</span><span class="p">),</span> 
+                      <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">conv</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span> <span class="o">*</span> <span class="n">conv</span><span class="p">),</span> 
+                      <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">conv</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="car_to_sph"><a class="viewcode-back" href="../index.html#mlt_utils.car_to_sph">[docs]</a><span class="k">def</span> <span class="nf">car_to_sph</span><span class="p">(</span><span class="n">car</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert from spherical to cartesian coordinates</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    car : 3 x N array</span>
+<span class="sd">        3 x N array, where the rows are, from top to bottom:</span>
+<span class="sd">        x, y, z, in ECEF coordinates</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    sph : 3 x N array</span>
+<span class="sd">        3 x N array, where the rows are, from top to bottom:</span>
+<span class="sd">        radius, colatitude, and longitude</span>
+<span class="sd">    deg : bool, optional</span>
+<span class="sd">        set to True if output is wanted in degrees. False if radians</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">car</span>
+
+    <span class="k">if</span> <span class="n">deg</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">conv</span> <span class="o">=</span> <span class="mf">1.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">conv</span> <span class="o">=</span> <span class="n">r2d</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">r</span><span class="p">)</span><span class="o">*</span><span class="n">conv</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span><span class="p">)</span><span class="o">/</span><span class="mi">180</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">conv</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">))</span></div>
+
+
+
+<span class="sd">&quot;&quot;&quot; function for computing subsolar point &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="subsol"><a class="viewcode-back" href="../index.html#mlt_utils.subsol">[docs]</a><span class="k">def</span> <span class="nf">subsol</span><span class="p">(</span><span class="n">datetimes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    calculate subsolar point at given datetime(s)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    datetimes : datetime or list of datetimes</span>
+<span class="sd">        datetime or list (or other iterable) of datetimes</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    subsol_lat : ndarray</span>
+<span class="sd">        latitude(s) of the subsolar point</span>
+<span class="sd">    subsol_lon : ndarray</span>
+<span class="sd">        longiutde(s) of the subsolar point</span>
+
+<span class="sd">    Note</span>
+<span class="sd">    ----</span>
+<span class="sd">    The code is vectorized, so it should be fast.</span>
+
+<span class="sd">    After Fortran code by: 961026 A. D. Richmond, NCAR</span>
+
+<span class="sd">    Documentation from original code:</span>
+<span class="sd">    Find subsolar geographic latitude and longitude from date and time.</span>
+<span class="sd">    Based on formulas in Astronomical Almanac for the year 1996, p. C24.</span>
+<span class="sd">    (U.S. Government Printing Office, 1994).</span>
+<span class="sd">    Usable for years 1601-2100, inclusive.  According to the Almanac, </span>
+<span class="sd">    results are good to at least 0.01 degree latitude and 0.025 degree </span>
+<span class="sd">    longitude between years 1950 and 2050.  Accuracy for other years </span>
+<span class="sd">    has not been tested.  Every day is assumed to have exactly</span>
+<span class="sd">    86400 seconds; thus leap seconds that sometimes occur on December</span>
+<span class="sd">    31 are ignored:  their effect is below the accuracy threshold of</span>
+<span class="sd">    the algorithm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># use pandas DatetimeIndex for fast access to year, month day etc...</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">datetimes</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span> 
+        <span class="n">datetimes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">(</span><span class="n">datetimes</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">datetimes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">([</span><span class="n">datetimes</span><span class="p">])</span>
+
+    <span class="n">year</span> <span class="o">=</span> <span class="n">datetimes</span><span class="o">.</span><span class="n">year</span>
+    <span class="c1"># day of year:</span>
+    <span class="n">doy</span>  <span class="o">=</span> <span class="n">datetimes</span><span class="o">.</span><span class="n">dayofyear</span>
+    <span class="c1"># seconds since start of day:</span>
+    <span class="n">ut</span>   <span class="o">=</span> <span class="n">datetimes</span><span class="o">.</span><span class="n">hour</span> <span class="o">*</span> <span class="mf">60.</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">datetimes</span><span class="o">.</span><span class="n">minute</span><span class="o">*</span><span class="mf">60.</span> <span class="o">+</span> <span class="n">datetimes</span><span class="o">.</span><span class="n">second</span> 
+ 
+    <span class="n">yr</span> <span class="o">=</span> <span class="n">year</span> <span class="o">-</span> <span class="mi">2000</span>
+
+    <span class="k">if</span> <span class="n">year</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">2100</span> <span class="ow">or</span> <span class="n">year</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">1600</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;subsol.py: subsol invalid after 2100 and before 1600&#39;</span><span class="p">)</span>
+
+    <span class="n">nleap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">year</span><span class="o">-</span><span class="mi">1601</span><span class="p">)</span><span class="o">/</span><span class="mf">4.</span><span class="p">)</span>
+    <span class="n">nleap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nleap</span><span class="p">)</span> <span class="o">-</span> <span class="mi">99</span>
+
+    <span class="c1"># exception for years &lt;= 1900:</span>
+    <span class="n">ncent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">year</span><span class="o">-</span><span class="mi">1601</span><span class="p">)</span><span class="o">/</span><span class="mf">100.</span><span class="p">)</span>
+    <span class="n">ncent</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">-</span> <span class="n">ncent</span>
+    <span class="n">nleap</span><span class="p">[</span><span class="n">year</span> <span class="o">&lt;=</span> <span class="mi">1900</span><span class="p">]</span> <span class="o">=</span> <span class="n">nleap</span><span class="p">[</span><span class="n">year</span> <span class="o">&lt;=</span> <span class="mi">1900</span><span class="p">]</span> <span class="o">+</span> <span class="n">ncent</span><span class="p">[</span><span class="n">year</span> <span class="o">&lt;=</span> <span class="mi">1900</span><span class="p">]</span>
+
+    <span class="n">l0</span> <span class="o">=</span> <span class="o">-</span><span class="mf">79.549</span> <span class="o">+</span> <span class="p">(</span><span class="o">-.</span><span class="mi">238699</span><span class="o">*</span><span class="p">(</span><span class="n">yr</span><span class="o">-</span><span class="mi">4</span><span class="o">*</span><span class="n">nleap</span><span class="p">)</span> <span class="o">+</span> <span class="mf">3.08514e-2</span><span class="o">*</span><span class="n">nleap</span><span class="p">)</span>
+
+    <span class="n">g0</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.472</span> <span class="o">+</span> <span class="p">(</span><span class="o">-.</span><span class="mi">2558905</span><span class="o">*</span><span class="p">(</span><span class="n">yr</span><span class="o">-</span><span class="mi">4</span><span class="o">*</span><span class="n">nleap</span><span class="p">)</span> <span class="o">-</span> <span class="mf">3.79617e-2</span><span class="o">*</span><span class="n">nleap</span><span class="p">)</span>
+
+    <span class="c1"># Days (including fraction) since 12 UT on January 1 of IYR:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="p">(</span><span class="n">ut</span><span class="o">/</span><span class="mf">86400.</span> <span class="o">-</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">+</span> <span class="n">doy</span>
+
+    <span class="c1"># Addition to Mean longitude of Sun since January 1 of IYR:</span>
+    <span class="n">lf</span> <span class="o">=</span> <span class="o">.</span><span class="mi">9856474</span><span class="o">*</span><span class="n">df</span>
+
+    <span class="c1"># Addition to Mean anomaly since January 1 of IYR:</span>
+    <span class="n">gf</span> <span class="o">=</span> <span class="o">.</span><span class="mi">9856003</span><span class="o">*</span><span class="n">df</span>
+
+    <span class="c1"># Mean longitude of Sun:</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">l0</span> <span class="o">+</span> <span class="n">lf</span>
+
+    <span class="c1"># Mean anomaly:</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">g0</span> <span class="o">+</span> <span class="n">gf</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="n">g</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.</span>
+
+    <span class="c1"># Ecliptic longitude:</span>
+    <span class="n">lmbda</span> <span class="o">=</span> <span class="n">l</span> <span class="o">+</span> <span class="mf">1.915</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span> <span class="o">+</span> <span class="o">.</span><span class="mi">020</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">grad</span><span class="p">)</span>
+    <span class="n">lmrad</span> <span class="o">=</span> <span class="n">lmbda</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.</span>
+    <span class="n">sinlm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">lmrad</span><span class="p">)</span>
+
+    <span class="c1"># Days (including fraction) since 12 UT on January 1 of 2000:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">df</span> <span class="o">+</span> <span class="mf">365.</span><span class="o">*</span><span class="n">yr</span> <span class="o">+</span> <span class="n">nleap</span>
+
+    <span class="c1"># Obliquity of ecliptic:</span>
+    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">23.439</span> <span class="o">-</span> <span class="mf">4.e-7</span><span class="o">*</span><span class="n">n</span>
+    <span class="n">epsrad</span>  <span class="o">=</span> <span class="n">epsilon</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.</span>
+
+    <span class="c1"># Right ascension:</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">epsrad</span><span class="p">)</span><span class="o">*</span><span class="n">sinlm</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lmrad</span><span class="p">))</span> <span class="o">*</span> <span class="mf">180.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="c1"># Declination:</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">epsrad</span><span class="p">)</span><span class="o">*</span><span class="n">sinlm</span><span class="p">)</span> <span class="o">*</span> <span class="mf">180.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="c1"># Subsolar latitude:</span>
+    <span class="n">sbsllat</span> <span class="o">=</span> <span class="n">delta</span>
+
+    <span class="c1"># Equation of time (degrees):</span>
+    <span class="n">etdeg</span> <span class="o">=</span> <span class="n">l</span> <span class="o">-</span> <span class="n">alpha</span>
+    <span class="n">nrot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">etdeg</span><span class="o">/</span><span class="mf">360.</span><span class="p">)</span>
+    <span class="n">etdeg</span> <span class="o">=</span> <span class="n">etdeg</span> <span class="o">-</span> <span class="mf">360.</span><span class="o">*</span><span class="n">nrot</span>
+
+    <span class="c1"># Apparent time (degrees):</span>
+    <span class="n">aptime</span> <span class="o">=</span> <span class="n">ut</span><span class="o">/</span><span class="mf">240.</span> <span class="o">+</span> <span class="n">etdeg</span>    <span class="c1"># Earth rotates one degree every 240 s.</span>
+
+    <span class="c1"># Subsolar longitude:</span>
+    <span class="n">sbsllon</span> <span class="o">=</span> <span class="mf">180.</span> <span class="o">-</span> <span class="n">aptime</span>
+    <span class="n">nrot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">sbsllon</span><span class="o">/</span><span class="mf">360.</span><span class="p">)</span>
+    <span class="n">sbsllon</span> <span class="o">=</span> <span class="n">sbsllon</span> <span class="o">-</span> <span class="mf">360.</span><span class="o">*</span><span class="n">nrot</span>
+
+    <span class="k">return</span> <span class="n">sbsllat</span><span class="p">,</span> <span class="n">sbsllon</span></div>
+
+
+
+<div class="viewcode-block" id="is_leapyear"><a class="viewcode-back" href="../index.html#mlt_utils.is_leapyear">[docs]</a><span class="k">def</span> <span class="nf">is_leapyear</span><span class="p">(</span><span class="n">year</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return True if leapyear else False</span>
+
+<span class="sd">        Handles arrays and preserves shape</span>
+<span class="sd">    </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        year : array_like</span>
+<span class="sd">            array of years</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        is_leapyear : ndarray of bools</span>
+<span class="sd">            True where input is leapyear, False elsewhere</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># if array:</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">year</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
+
+        <span class="n">out</span><span class="p">[</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">4</span>   <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">out</span><span class="p">[</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">out</span><span class="p">[</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">400</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="c1"># if scalar:</span>
+    <span class="k">if</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">400</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="geo2mag"><a class="viewcode-back" href="../index.html#mlt_utils.geo2mag">[docs]</a><span class="k">def</span> <span class="nf">geo2mag</span><span class="p">(</span><span class="n">glat</span><span class="p">,</span> <span class="n">glon</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert geographic to centered dipole coordinates</span>
+
+<span class="sd">    The conversion uses IGRF coefficients directly, interpolated</span>
+<span class="sd">    to the provided epoch. The construction of the rotation matrix</span>
+<span class="sd">    follows Laundal &amp; Richmond (2017) [4]_ quite directly. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    glat : array_like</span>
+<span class="sd">        array of geographic latitudes</span>
+<span class="sd">    glon : array_like</span>
+<span class="sd">        array of geographic longitudes</span>
+<span class="sd">    epoch : float</span>
+<span class="sd">        epoch (year) for the dipole used in the conversion</span>
+<span class="sd">    deg : bool, optional</span>
+<span class="sd">        true if input is in degrees, False otherwise</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cdlat : ndarray</span>
+<span class="sd">        array of centered dipole latitudes [degrees]</span>
+<span class="sd">    cdlon : ndarray</span>
+<span class="sd">        array of centered dipole longitudes [degrees]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Find IGRF parameters for given epoch:</span>
+    <span class="n">dipole</span> <span class="o">=</span> <span class="n">igrf_dipole</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">igrf_dipole</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">epoch</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span><span class="o">.</span><span class="n">interpolate</span><span class="p">()</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span> 
+    <span class="n">dipole</span> <span class="o">=</span> <span class="n">dipole</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">epoch</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># make rotation matrix from geo to cd</span>
+    <span class="n">Zcd</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dipole</span><span class="o">.</span><span class="n">g11</span><span class="p">,</span> <span class="n">dipole</span><span class="o">.</span><span class="n">h11</span><span class="p">,</span> <span class="n">dipole</span><span class="o">.</span><span class="n">g10</span><span class="p">])</span><span class="o">/</span><span class="n">dipole</span><span class="o">.</span><span class="n">B0</span>
+    <span class="n">Zgeo_x_Zcd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">Zcd</span><span class="p">)</span>
+    <span class="n">Ycd</span> <span class="o">=</span> <span class="n">Zgeo_x_Zcd</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Zgeo_x_Zcd</span><span class="p">)</span>
+    <span class="n">Xcd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">Ycd</span><span class="p">,</span> <span class="n">Zcd</span><span class="p">)</span>
+
+    <span class="n">Rgeo_to_cd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Xcd</span><span class="p">,</span> <span class="n">Ycd</span><span class="p">,</span> <span class="n">Zcd</span><span class="p">))</span>
+
+    <span class="c1"># convert input to ECEF:</span>
+    <span class="n">colat</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="n">glat</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">glon</span>  <span class="o">=</span> <span class="n">glon</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">r_geo</span> <span class="o">=</span> <span class="n">sph_to_car</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">colat</span><span class="p">),</span> <span class="n">colat</span><span class="p">,</span> <span class="n">glon</span><span class="p">)),</span> <span class="n">deg</span> <span class="o">=</span> <span class="n">deg</span><span class="p">)</span>
+
+    <span class="c1"># rotate:</span>
+    <span class="n">r_cd</span> <span class="o">=</span> <span class="n">Rgeo_to_cd</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r_geo</span><span class="p">)</span>
+
+    <span class="c1"># convert result back to spherical:</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">colat_cd</span><span class="p">,</span> <span class="n">lon_cd</span> <span class="o">=</span> <span class="n">car_to_sph</span><span class="p">(</span><span class="n">r_cd</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># return, converting colat to lat</span>
+    <span class="k">return</span> <span class="mi">90</span> <span class="o">-</span> <span class="n">colat_cd</span><span class="p">,</span> <span class="n">lon_cd</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Karl M. Laundal.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
