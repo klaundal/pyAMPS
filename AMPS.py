@@ -835,19 +835,61 @@ class AMPS(object):
         plt.show()
 
 
-def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., ortho = False):
+
+def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110.):
     """ Calculate model magnetic field in space 
+
+    Parameters
+    ----------
+    glat : array_like
+        array of geographic latitudes (degrees)
+    glon : array_like
+        array of geographic longitudes (degrees)
+    height : array_like
+        array of geodetic heights (km)
+    time : array'_like
+        list/array of datetimes, needed to calculate magnetic local time
+    v : array_like
+        array of solar wind velocities in GSM/GSE x direction (km/s)
+    By : array_like
+        array of solar wind By values (nT)
+    Bz : array_like
+        array of solar wind Bz values (nT)
+    tilt : array_like
+        array of dipole tilt angles (degrees)
+    f107 : array_like
+        array of F10.7 index values (SFU)
+    epoch : float, optional
+        epoch (year) used in conversion to magnetic coordinates with the IGRF. Default = 2015.
+    h_R : float, optional
+        referene height (km) used when calculating modified apex coordinates. Default = 110. 
+
+    Returns
+    -------
+    Be : array_like
+        array of model magnetic field (nT) in geodetic eastward direction 
+        (same dimension as input)
+    Bn : array_like
+        array of model magnetic field (nT) in geodetic northward direction 
+        (same dimension as input)
+    Bu : array_like
+        array of model magnetic field (nT) in geodetic upward direction 
+        (same dimension as input)
+
+
 
     Note
     ----
+    Inputs should have the same dimensions.
+
     This function consumes a lot of memory: For an input of ~80,000 elements, you will need ~6 GB.
 
 
     """
 
-    # TODO: CHECK THAT INPUT IS OK
+    # TODO: ADD SANITY CHECKS ON INPUT (?)
 
-    G0 = getG0(glat, glon, time, height, epoch = epoch, h_R = h_R, ortho = ortho)
+    G0 = getG0(glat, glon, time, height, epoch = epoch, h_R = h_R)
 
     # load model vector
     m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
@@ -858,8 +900,8 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     # prepare the scales (external parameters)
     By, Bz, v, tilt, f107 = map(lambda x: x.flatten(), [By, Bz, v, tilt, f107]) # flatten input
     ca = np.arctan2(By, Bz)
-    epsilon = v**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 # Newell coupling           
-    tau     = v**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
+    epsilon = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 # Newell coupling           
+    tau     = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
 
     # make a dict of the 19 external parameters (flat arrays)
     external_params = {0  : np.ones_like(ca)           ,        #'const'             
@@ -900,11 +942,98 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
 
 
-def get_B_ground(qdlat, mlt, vx, By, Bz, tilt, F107, epsilon_multiplier = 1.):
+def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1.):
     """ Calculate model magnetic field on ground 
 
+    good for time series
 
+
+    Parameters
+    ----------
+    qdlat : array_like
+        array of quasi-dipole latitudes (degrees)
+    mlt : array_like
+        array of magnetic local times (hours)
+    height : float
+        geodetic height, in km (0 <= height <= current_height)
+    v : array_like
+        array of solar wind velocities in GSM/GSE x direction (km/s)
+    By : array_like
+        array of solar wind By values (nT)
+    Bz : array_like
+        array of solar wind Bz values (nT)
+    tilt : array_like
+        array of dipole tilt angles (degrees)
+    f107 : array_like
+        array of F10.7 index values (SFU)
+    current_height : float, optional
+        height (km) of the current sheet. Default is 110 km
+    epsilon_multiplier: float, optional
+        multiplier for the epsilon parameter. Default is 1.
+
+
+    Returns
+    -------
+    Bqphi : array_like
+        magnetic field in quasi-dipole eastward direction
+    Bqlambda : array_like
+        magnetic field in quasi-dipole northward direction
+    Bqr : array_like
+        magnetic field in upward direction. See notes
+
+    Note
+    ----
+    We assume that there are no induced currents. The error in this assumption will be larger
+    for the radial component than for the horizontal components
 
     """
-    pass
+
+
+    # load model vector
+    m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
+
+    # get G0 matrix
+    G0 = get_ground_field_G0(qdlat, mlt, height, current_height)
+
+    # remove toroidal coefficients from model vector, by splitting it in 19 parts, and keeping the last 
+    # n_terms coefficients in each part, which corresponds to the number of coefficients of the poloidal field
+    n_terms = G0.shape[1]
+    m = reduce(lambda x, y: np.hstack((x, y)), [m_part[-n_terms:].flatten() for m_part in np.split(m, 19)])
+
+    # get 19 unscaled magnetic field terms at the given coords:
+    Bs  = [G0.dot(  m_part ).flatten() for m_part in np.split(m, 19)]
+
+    # prepare the scales (external parameters)
+    By, Bz, v, tilt, f107 = map(lambda x: x.flatten(), [By, Bz, v, tilt, f107]) # flatten input
+    ca = np.arctan2(By, Bz)
+    epsilon = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 * epsilon_multiplier # Newell coupling           
+    tau     = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
+
+    # make a dict of the 19 external parameters (flat arrays)
+    external_params = {0  : np.ones_like(ca)           ,        #'const'             
+                       1  : 1              * np.sin(ca),        #'sinca'             
+                       2  : 1              * np.cos(ca),        #'cosca'             
+                       3  : epsilon                    ,        #'epsilon'           
+                       4  : epsilon        * np.sin(ca),        #'epsilon_sinca'     
+                       5  : epsilon        * np.cos(ca),        #'epsilon_cosca'     
+                       6  : tilt                       ,        #'tilt'              
+                       7  : tilt           * np.sin(ca),        #'tilt_sinca'        
+                       8  : tilt           * np.cos(ca),        #'tilt_cosca'        
+                       9  : tilt * epsilon             ,        #'tilt_epsilon'      
+                       10 : tilt * epsilon * np.sin(ca),        #'tilt_epsilon_sinca'
+                       11 : tilt * epsilon * np.cos(ca),        #'tilt_epsilon_cosca'
+                       12 : tau                        ,        #'tau'               
+                       13 : tau            * np.sin(ca),        #'tau_sinca'         
+                       14 : tau            * np.cos(ca),        #'tau_cosca'         
+                       15 : tilt * tau                 ,        #'tilt_tau'          
+                       16 : tilt * tau     * np.sin(ca),        #'tilt_tau_sinca'    
+                       17 : tilt * tau     * np.cos(ca),        #'tilt_tau_cosca'    
+                       18 : f107                        }       #'f107'
+
+    # scale the 19 magnetic field terms, and add (the scales are tiled once for each component)
+    B = reduce(lambda x, y: x+y, [Bs[i] * np.tile(external_params[i], 3) for i in range(19)])
+
+
+    # the resulting array will be stacked Be, Bn, Bu components. Return the partions
+    return np.split(B, 3)
 

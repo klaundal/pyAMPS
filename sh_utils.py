@@ -258,7 +258,7 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
 
 
 
-def getG0(glat, glon, time, height, epoch = 2015., h_R = 110., ortho = False):
+def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
     """ calculate the G matrix for the constant term in the AMPS model. The constant term is the 
         term that depends only on the spherical harmonic coefficients that are not scaled by 
         external parameters. This G matrix can be used to produce the full matrix.
@@ -298,32 +298,22 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110., ortho = False):
     glon   = glon.flatten()
     height = height.flatten()
 
-    if ortho: # base vectors are unit vectors, and glon is mlt/15:
-        f1e, f1n, f2e, f2n = 1., 0., 0., 1.
-        d1e, d1n, d2e, d2n = 1., 0., 0., -np.ones_like(glat)
-        #d2n[glat > 0] *= -1.
-        alat = glat
-        qlat = glat
-        d2n = d2n[:, np.newaxis]
-        phi = glon[:, np.newaxis]
+    # convert to magnetic coords and get base vectors
+    a = apexpy.Apex(epoch, refh = h_R)
+    qlat, qlon = a.geo2qd(  glat.flatten(), glon.flatten(), height.flatten())
+    alat, alon = a.geo2apex(glat.flatten(), glon.flatten(), height.flatten())
+    f1, f2, f3, g1, g2, g3, d1, d2, d3, e1, e2, e3 = a.basevectors_apex(qlat, qlon, height, coords  = 'qd')
+    f1e = f1[0][:, np.newaxis] # base vector components as column vectors
+    f1n = f1[1][:, np.newaxis]
+    f2e = f2[0][:, np.newaxis]
+    f2n = f2[1][:, np.newaxis]
+    d1e = d1[0][:, np.newaxis]
+    d1n = d1[1][:, np.newaxis]
+    d2e = d2[0][:, np.newaxis]
+    d2n = d2[1][:, np.newaxis]
 
-    else:
-        # convert to magnetic coords and get base vectors
-        a = apexpy.Apex(epoch, refh = h_R)
-        qlat, qlon = a.geo2qd(  glat.flatten(), glon.flatten(), height.flatten())
-        alat, alon = a.geo2apex(glat.flatten(), glon.flatten(), height.flatten())
-        f1, f2, f3, g1, g2, g3, d1, d2, d3, e1, e2, e3 = a.basevectors_apex(qlat, qlon, height, coords  = 'qd')
-        f1e = f1[0][:, np.newaxis] # base vector components as column vectors
-        f1n = f1[1][:, np.newaxis]
-        f2e = f2[0][:, np.newaxis]
-        f2n = f2[1][:, np.newaxis]
-        d1e = d1[0][:, np.newaxis]
-        d1n = d1[1][:, np.newaxis]
-        d2e = d2[0][:, np.newaxis]
-        d2n = d2[1][:, np.newaxis]
-
-        # calculate magnetic local time
-        phi = mlon_to_mlt(qlon, time, a.year)[:, np.newaxis]*15 # multiply by 15 to get degrees
+    # calculate magnetic local time
+    phi = mlon_to_mlt(qlon, time, a.year)[:, np.newaxis]*15 # multiply by 15 to get degrees
 
     # turn the coordinate arrays into column vectors:
     alat, qlat, h = map(lambda x: x.flatten()[:, np.newaxis], [alat, qlat, height])
@@ -372,10 +362,7 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110., ortho = False):
     cos_qlat   = np.cos(qlat * d2r)
     cos_alat   = np.cos(alat * d2r)
 
-    if ortho:
-        sinI = 1.
-    else:
-        sinI  = 2 * np.sin( alat * d2r )/np.sqrt(4 - 3*cos_alat**2)
+    sinI  = 2 * np.sin( alat * d2r )/np.sqrt(4 - 3*cos_alat**2)
 
     r  = refre + h
     Rtor  = refre/r
@@ -413,4 +400,85 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110., ortho = False):
 
     return G
 
+
+def get_ground_field_G0(qdlat, mlt, height, current_height):
+    """ calculate the G matrix for the constant term in the AMPS model needed to calculate
+        corresponding ground magnetic field perturbations. The constant term is the 
+        term that depends only on the spherical harmonic coefficients that are not scaled by 
+        external parameters. This G matrix can be used to produce the full matrix.
+
+
+        Parameters
+        ----------
+        qdlat : array
+            Quasi-dipole latitude (degrees)
+        MLT : array
+            Magnetic local time (MLT)
+        height : float
+            Geodetic height, in km (0 <= height <= current_height)
+        current_height : float
+            height of the current
+
+        Returns
+        -------
+        G0 : array
+            an 3N by M matrix, where N is the number of elements in the input coordinates. There will be
+            3 times as many rows G0, since there are 3 components. Partionining G0 in thirds, from top to
+            bottom, gives the parts that correspond to east, north, and up, respectively. M
+            is the number of terms in the spherical harmonic expansion of B
+
+    """
+    qdlat  = qdlat.flatten() [:, np.newaxis]
+    mlt    = mlt.flatten()   [:, np.newaxis]
+
+    # convert mlt to degreees
+    phi = mlt*15 # multiply by 15 to get degrees
+
+    # truncation levels:
+    N, M = 45, 3
+
+    # generate spherical harmonic keys    
+    keys = {} # dictionary of spherical harmonic keys
+    keys['cos'] = SHkeys(N, M).setNmin(1).MleN().Mge(0)
+    keys['sin'] = SHkeys(N, M).setNmin(1).MleN().Mge(1)
+    m_cos = keys['cos'].m
+    m_sin = keys['sin'].m
+
+    n = np.hstack((keys['cos'].n, keys['sin'].n))
+
+    # generate Legendre matrices - first get dicts of arrays, and then stack them in the appropriate fashion
+    legendre = get_legendre(N, M, 90 - qdlat, keys = keys['cos'])
+    P_cos  =  legendre[: , :len(keys['cos']) ] # split
+    dP_cos = -legendre[: ,  len(keys['cos']):]
+    P_sin  =  P_cos   [: , keys['cos'].m.flatten() != 0]
+    dP_sin =  dP_cos  [: , keys['cos'].m.flatten() != 0]  
+
+    # trig matrices:
+    cos  =  np.cos(phi * d2r * m_cos)
+    sin  =  np.sin(phi * d2r * m_sin)
+    dcos = -np.sin(phi * d2r * m_cos)
+    dsin =  np.cos(phi * d2r * m_sin)
+
+    cos_qlat   = np.cos(qdlat * d2r)
+
+    r = refre + height
+    r_ratio_horizontal = r ** (n    ) * refre ** (n + 1) / (refre + current_height) ** (2*n + 1) * (n + 1) / n
+    r_ratio_vertical   = r ** (n - 1) * refre ** (n + 2) / (refre + current_height) ** (2*n + 1) * (n + 1)
+
+    # matrix with trig functions
+    trigs   = np.hstack((cos, sin ))
+
+    # matrix with derivative of trig functions
+    trigs_d = np.hstack(( dcos * m_cos, dsin * m_sin ))
+
+    # matrices with P and dP stacked
+    P  = np.hstack((P_cos , P_sin ))
+    dP = np.hstack((dP_cos, dP_sin))
+
+    G0east  = - P  * trigs_d * r_ratio_horizontal / cos_qlat
+    G0north = - dP * trigs   * r_ratio_horizontal 
+    G0up    =   P  * trigs   * r_ratio_vertical
+
+    # stack vertically and return 
+    return np.vstack((G0east, G0north, G0up))
 
