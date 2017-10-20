@@ -42,7 +42,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, SHkeys, getG0
+from sh_utils import get_legendre, getG0, get_ground_field_G0
 from model_utils import get_model_vectors
 from matplotlib import rc
 
@@ -740,7 +740,6 @@ class AMPS(object):
         """
 
         rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
-        m = self.m_P
         n = self.n_P
 
         dP = self.pol_dP_scalar
@@ -785,7 +784,7 @@ class AMPS(object):
         mltv  = np.split(self.vectorgrid[1], 2)[0]
 
         # set up figure and polar coordinate plots:
-        fig = plt.figure(figsize = (15, 7))
+        plt.figure(figsize = (15, 7))
         pax_n = Polarsubplot(plt.subplot2grid((1, 15), (0,  0), colspan = 7), minlat = self.minlat, linestyle = ':', linewidth = .3, color = 'lightgrey')
         pax_s = Polarsubplot(plt.subplot2grid((1, 15), (0,  7), colspan = 7), minlat = self.minlat, linestyle = ':', linewidth = .3, color = 'lightgrey')
         pax_c = plt.subplot2grid((1, 150), (0, 149), colspan = 1)
@@ -882,7 +881,8 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     ----
     Inputs should have the same dimensions.
 
-    This function consumes a lot of memory: For an input of ~80,000 elements, you will need ~6 GB.
+    This function consumes a lot of memory: For an input of ~80,000 elements,
+    you will need ~6 GB.
 
 
     """
@@ -892,7 +892,8 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     G0 = getG0(glat, glon, time, height, epoch = epoch, h_R = h_R)
 
     # load model vector
-    m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
+    m = np.load(os.path.dirname(os.path.abspath(__file__)) +
+                '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
 
     # get 19 unscaled magnetic field terms at the given coords:
     Bs = [G0.dot( m_part ).flatten() for m_part in np.split(m, 19)]
@@ -904,25 +905,25 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     tau     = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
 
     # make a dict of the 19 external parameters (flat arrays)
-    external_params = {0  : np.ones_like(ca)           ,        #'const'             
-                       1  : 1              * np.sin(ca),        #'sinca'             
-                       2  : 1              * np.cos(ca),        #'cosca'             
-                       3  : epsilon                    ,        #'epsilon'           
-                       4  : epsilon        * np.sin(ca),        #'epsilon_sinca'     
-                       5  : epsilon        * np.cos(ca),        #'epsilon_cosca'     
-                       6  : tilt                       ,        #'tilt'              
-                       7  : tilt           * np.sin(ca),        #'tilt_sinca'        
-                       8  : tilt           * np.cos(ca),        #'tilt_cosca'        
-                       9  : tilt * epsilon             ,        #'tilt_epsilon'      
-                       10 : tilt * epsilon * np.sin(ca),        #'tilt_epsilon_sinca'
-                       11 : tilt * epsilon * np.cos(ca),        #'tilt_epsilon_cosca'
-                       12 : tau                        ,        #'tau'               
-                       13 : tau            * np.sin(ca),        #'tau_sinca'         
-                       14 : tau            * np.cos(ca),        #'tau_cosca'         
-                       15 : tilt * tau                 ,        #'tilt_tau'          
-                       16 : tilt * tau     * np.sin(ca),        #'tilt_tau_sinca'    
-                       17 : tilt * tau     * np.cos(ca),        #'tilt_tau_cosca'    
-                       18 : f107                        }       #'f107'
+    external_params = {0  : np.ones_like(ca)           ,        # 'const'             
+                       1  : 1              * np.sin(ca),        # 'sinca'             
+                       2  : 1              * np.cos(ca),        # 'cosca'             
+                       3  : epsilon                    ,        # 'epsilon'           
+                       4  : epsilon        * np.sin(ca),        # 'epsilon_sinca'     
+                       5  : epsilon        * np.cos(ca),        # 'epsilon_cosca'     
+                       6  : tilt                       ,        # 'tilt'              
+                       7  : tilt           * np.sin(ca),        # 'tilt_sinca'        
+                       8  : tilt           * np.cos(ca),        # 'tilt_cosca'        
+                       9  : tilt * epsilon             ,        # 'tilt_epsilon'      
+                       10 : tilt * epsilon * np.sin(ca),        # 'tilt_epsilon_sinca'
+                       11 : tilt * epsilon * np.cos(ca),        # 'tilt_epsilon_cosca'
+                       12 : tau                        ,        # 'tau'               
+                       13 : tau            * np.sin(ca),        # 'tau_sinca'         
+                       14 : tau            * np.cos(ca),        # 'tau_cosca'         
+                       15 : tilt * tau                 ,        # 'tilt_tau'          
+                       16 : tilt * tau     * np.sin(ca),        # 'tilt_tau_sinca'    
+                       17 : tilt * tau     * np.cos(ca),        # 'tilt_tau_cosca'    
+                       18 : f107                        }       # 'f107'
 
     # scale the 19 magnetic field terms, and add (the scales are tiled once for each component)
     B = reduce(lambda x, y: x+y, [Bs[i] * np.tile(external_params[i], 3) for i in range(19)])
