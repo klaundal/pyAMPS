@@ -38,11 +38,12 @@ SOFTWARE.
 """
 
 from __future__ import division
+import dask.array as da
 import numpy as np
 import os
 import matplotlib.pyplot as plt
 from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, getG0, get_ground_field_G0
+from sh_utils import get_legendre, getG0, get_ground_field_G0, nterms
 from model_utils import get_model_vectors
 from matplotlib import rc
 
@@ -943,16 +944,18 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
 
 
-def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1.):
+def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1., chunksize = 25000):
     """ Calculate model magnetic field on ground 
 
-    good for time series
+    This function uses dask to parallelize computations. That means that it is quite
+    fast and that the memory consumption will not explode unless chunksize is too large.
 
 
     Parameters
     ----------
-    qdlat : array_like
-        array of quasi-dipole latitudes (degrees)
+    qdlat : array_like or float
+        quasi-dipole latitude, in degrees. Can be either a scalar (float), or
+        an array with an equal number of elements as mlt
     mlt : array_like
         array of magnetic local times (hours)
     height : float
@@ -971,6 +974,9 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
         height (km) of the current sheet. Default is 110 km
     epsilon_multiplier: float, optional
         multiplier for the epsilon parameter. Default is 1.
+    chunksize : int
+        the input arrays will be split in chunks in order to parallelize
+        computations. Larger chunks consumes more memory, but might be faster
 
 
     Returns
@@ -993,16 +999,34 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     # load model vector
     m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
 
-    # get G0 matrix
-    G0 = get_ground_field_G0(qdlat, mlt, height, current_height)
+    # number of equations
+    neq = nterms(0, 0, 45, 3)
 
     # remove toroidal coefficients from model vector, by splitting it in 19 parts, and keeping the last 
     # n_terms coefficients in each part, which corresponds to the number of coefficients of the poloidal field
-    n_terms = G0.shape[1]
-    m = reduce(lambda x, y: np.hstack((x, y)), [m_part[-n_terms:].flatten() for m_part in np.split(m, 19)])
+    m = reduce(lambda x, y: np.hstack((x, y)), [m_part[-neq:].flatten() for m_part in np.split(m, 19)])
 
-    # get 19 unscaled magnetic field terms at the given coords:
-    Bs  = [G0.dot(  m_part ).flatten() for m_part in np.split(m, 19)]
+    # convert input to dask arrays - qdlat is converted to np.float32 to make sure it has the flatten function
+    qdlat = da.from_array(np.float32(qdlat).flatten(), chunks = chunksize)
+    mlt   = da.from_array(mlt.flatten()  , chunks = chunksize)
+
+    # get G0 matrix - but first make a wrapper that only takes dask arrays as input
+    _getG0 = lambda x, y: get_ground_field_G0(x, y, height, current_height)
+
+    # use that wrapper to calculate G0 for each block
+    G0 = da.map_blocks(_getG0, qdlat, mlt, chunks = (3*chunksize, neq), new_axis = 1)
+
+    # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
+    m_matrix = np.vstack(np.split(m, 19)).T
+    B_matrix  = G0.dot(  m_matrix ).compute()
+
+    # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
+    # reorganized so that we have only three large partitions: (east, north, up). Split and recombine:
+    B_chunks = [B_matrix[i : (i + 3*chunksize)] for i in range(0, B_matrix.shape[0], 3 * chunksize)]
+    B_e = np.vstack(tuple([B[                  :     B.shape[0]//3] for B in B_chunks]))
+    B_n = np.vstack(tuple([B[    B.shape[0]//3 : 2 * B.shape[0]//3] for B in B_chunks]))
+    B_r = np.vstack(tuple([B[2 * B.shape[0]//3 :                  ] for B in B_chunks]))
+    Bs  = np.vstack((B_e, B_n, B_r)).T
 
     # prepare the scales (external parameters)
     By, Bz, v, tilt, f107 = map(lambda x: x.flatten(), [By, Bz, v, tilt, f107]) # flatten input

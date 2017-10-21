@@ -34,7 +34,6 @@ from __future__ import division
 from mlt_utils import mlon_to_mlt
 import numpy as np
 import apexpy
-import os
 d2r = np.pi/180
 
 DEFAULT = object()
@@ -462,8 +461,8 @@ def get_ground_field_G0(qdlat, mlt, height, current_height):
     cos_qlat   = np.cos(qdlat * d2r)
 
     r = refre + height
-    r_ratio_horizontal = r ** (n    ) * refre ** (n + 1) / (refre + current_height) ** (2*n + 1) * (n + 1) / n
-    r_ratio_vertical   = r ** (n - 1) * refre ** (n + 2) / (refre + current_height) ** (2*n + 1) * (n + 1)
+    r_ratio_horizontal = (r / (refre + current_height)) ** (n    ) * (refre / (refre + current_height)) ** (n + 1) * (n + 1) / n
+    r_ratio_vertical   = (r / (refre + current_height)) ** (n - 1) * (refre / (refre + current_height)) ** (n + 2) * (n + 1)
 
     # matrix with trig functions
     trigs   = np.hstack((cos, sin ))
@@ -475,9 +474,9 @@ def get_ground_field_G0(qdlat, mlt, height, current_height):
     P  = np.hstack((P_cos , P_sin ))
     dP = np.hstack((dP_cos, dP_sin))
 
-    G0east  = - P  * trigs_d * r_ratio_horizontal / cos_qlat
-    G0north = - dP * trigs   * r_ratio_horizontal 
-    G0up    =   P  * trigs   * r_ratio_vertical
+    G0east  = P  * trigs_d * r_ratio_horizontal / cos_qlat
+    G0north = dP * trigs   * r_ratio_horizontal 
+    G0up    = P  * trigs   * r_ratio_vertical
 
     # stack vertically and return 
     return np.vstack((G0east, G0north, G0up))
