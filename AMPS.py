@@ -836,7 +836,7 @@ class AMPS(object):
 
 
 
-def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110.):
+def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000):
     """ Calculate model magnetic field in space 
 
     Parameters
@@ -863,6 +863,9 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
         epoch (year) used in conversion to magnetic coordinates with the IGRF. Default = 2015.
     h_R : float, optional
         referene height (km) used when calculating modified apex coordinates. Default = 110. 
+    chunksize : int, optional
+        the size of the chunks that are calculated in parallel using the dask module. 
+        Default 15000
 
     Returns
     -------
@@ -882,22 +885,44 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     ----
     Inputs should have the same dimensions.
 
-    This function consumes a lot of memory: For an input of ~80,000 elements,
-    you will need ~6 GB.
+    This function makes use of the dask module to parallelize computations. Performance can be 
+    tuned by changing the chunksize keyword. Increasing it may speed things up but it will 
+    also use more memory. If memory is an issue, decrease chunksize.
 
 
     """
 
-    # TODO: ADD SANITY CHECKS ON INPUT (?)
-
-    G0 = getG0(glat, glon, time, height, epoch = epoch, h_R = h_R)
+    # TODO: ADD CHECKS ON INPUT (?)
 
     # load model vector
-    m = np.load(os.path.dirname(os.path.abspath(__file__)) +
-                '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
+    m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
 
-    # get 19 unscaled magnetic field terms at the given coords:
-    Bs = [G0.dot( m_part ).flatten() for m_part in np.split(m, 19)]
+    # number of equations
+    neq = nterms(65, 3, 45, 3)
+
+    # turn coordinates/times into dask arrays
+    glat   = da.from_array(glat  , chunks = chunksize)
+    glon   = da.from_array(glon  , chunks = chunksize)
+    time   = da.from_array(time  , chunks = chunksize)
+    height = da.from_array(height, chunks = chunksize)
+
+    # get G0 matrix - but first make a wrapper that only takes dask arrays as input
+    _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R)
+
+    # use that wrapper to calculate G0 for each block
+    G0 = da.map_blocks(_getG0, glat, glon, time, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float32)
+
+    # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
+    m_matrix = np.vstack(np.split(m, 19)).T
+    B_matrix  = G0.dot(  m_matrix ).compute()
+
+    # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
+    # reorganized so that we have only three large partitions: (east, north, up). Split and recombine:
+    B_chunks = [B_matrix[i : (i + 3*chunksize)] for i in range(0, B_matrix.shape[0], 3 * chunksize)]
+    B_e = np.vstack(tuple([B[                  :     B.shape[0]//3] for B in B_chunks]))
+    B_n = np.vstack(tuple([B[    B.shape[0]//3 : 2 * B.shape[0]//3] for B in B_chunks]))
+    B_r = np.vstack(tuple([B[2 * B.shape[0]//3 :                  ] for B in B_chunks]))
+    Bs  = np.vstack((B_e, B_n, B_r)).T
 
     # prepare the scales (external parameters)
     By, Bz, v, tilt, f107 = map(lambda x: x.flatten(), [By, Bz, v, tilt, f107]) # flatten input
@@ -932,15 +957,6 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
     # the resulting array will be stacked Be, Bn, Bu components. Return the partions
     return np.split(B, 3)
-
-
-
-
-
-
-
-
-
 
 
 
