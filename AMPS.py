@@ -177,6 +177,17 @@ class AMPS(object):
 
         self.vectorgrid = self._get_vectorgrid()
         self.scalargrid = self._get_scalargrid(resolution = resolution)
+
+        mlats = np.split(self.scalargrid[0], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
+        mlts  = np.split(self.scalargrid[1], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
+        mlatv = np.split(self.vectorgrid[0], 2)[0]
+        mltv  = np.split(self.vectorgrid[1], 2)[0]
+
+        self.plotgrid_scalar = (mlats, mlts)
+        self.plotgrid_vector = (mlatv, mltv)
+
+
+
         self.calculate_matrices()
 
     def update_model(self, v, By, Bz, tilt, F107):
@@ -779,10 +790,8 @@ class AMPS(object):
         """
 
         # get the grids:
-        mlats = np.split(self.scalargrid[0], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
-        mlts  = np.split(self.scalargrid[1], 2)[0].reshape((self.scalar_resolution, self.scalar_resolution))
-        mlatv = np.split(self.vectorgrid[0], 2)[0]
-        mltv  = np.split(self.vectorgrid[1], 2)[0]
+        mlats, mlts = self.plotgrid_scalar
+        mlatv, mltv = self.plotgrid_vector
 
         # set up figure and polar coordinate plots:
         plt.figure(figsize = (15, 7))
