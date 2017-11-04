@@ -413,7 +413,7 @@ class AMPS(object):
         _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
         return map( _reshape, np.split(Ju, 2)) # north, south 
 
-    def get_upward_current(self):
+    def get_upward_current(self, mlat = DEFAULT, mlt = DEFAULT):
         """
         Calculate the upward current (unit is microAmps per square meter). The 
         calculations refer to the height chosen upon initialization of the 
@@ -429,12 +429,26 @@ class AMPS(object):
             Upward current in the southern hemisphere.
             Shape: (self.resolution, self.resolution)
         """
-        
-        Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
+
+        if mlat is DEFAULT or mlt is DEFAULT:
+            Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
                                                       + np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) )
 
-        _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-        return map( _reshape, np.split(Ju, 2)) # north, south 
+            _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
+            return map( _reshape, np.split(Ju, 2)) # north, south 
+
+        else: # calculate at custom coordinates
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[:, np.newaxis]
+
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+            dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
+            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+            Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
+                                                          + np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
+            return Ju
 
 
     def get_curl_free_current_potential(self):
