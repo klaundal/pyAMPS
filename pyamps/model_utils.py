@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 import os
 
-coeff_fn = os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_coefficients.csv'
+basepath = os.path.dirname(__file__)
+
+coeff_fn = os.path.join(basepath,'..','coefficients','model_coefficients.csv')
 
 def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
     """ tor_c, tor_s, pol_c, pol_s = get_model_vectors(v, By, Bz, tilt, F107)

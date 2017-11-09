@@ -5,14 +5,15 @@
     This script is provided for transparency; when the csv file is made, it is
     no longer useful.
 """
-
+import os.path
 import numpy as np
 import pandas as pd
 from sh_utils import SHkeys
 
+basepath = os.path.dirname(__file__)
 
 # load model vector and define truncation levels and external parametrisation
-model_vector = np.load('coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
+model_vector = np.load(os.path.join(basepath,'..','coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy'))
 NT, MT, NV, MV = 65, 3, 45, 3
 
 external_parameters = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 'tilt', 
@@ -56,7 +57,7 @@ for m, param in zip(dataframes, external_parameters):
 
 # merge them all and save to csv:
 coefficients = pd.concat(dataframes, axis = 1)
-coefficients.to_csv('coefficients/model_coefficients.csv', index_label = ('n', 'm'))
+coefficients.to_csv(os.path.join(basepath,'..','coefficients/model_coefficients.csv'), index_label = ('n', 'm'))
 
 # to read the file: pd.read_csv('coefficents/model_coefficients.csv', index_col=('n','m'))
 
