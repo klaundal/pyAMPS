@@ -1,7 +1,7 @@
 pyamps
 ======
 
-{Insert Description} 
+Calculate and plot maps of the model Average Magnetic field and Polar current System (AMPS)
 
 Dependencies
 ------------
