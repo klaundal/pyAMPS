@@ -1,4 +1,3 @@
-#general
 build/
 dist/
 *.egg-info/
@@ -8,6 +7,5 @@ __pycache__/
 *.so
 *~
 
-#testing
 .tox
 .cache
