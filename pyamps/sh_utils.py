@@ -31,9 +31,10 @@ SOFTWARE.
 """
 
 from __future__ import division
-from mlt_utils import mlon_to_mlt
 import numpy as np
 import apexpy
+from .mlt_utils import mlon_to_mlt
+
 d2r = np.pi/180
 
 DEFAULT = object()
