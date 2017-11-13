@@ -1,5 +1,5 @@
-pyamps
-======
+Overview
+========
 
 Python interface for the Average Magnetic field and Polar current System (AMPS) model
 
@@ -12,12 +12,21 @@ This module can be used to calculate and plot average magnetic field and current
 - total horizontal current (vector)
 - eastward or northward ground perturbation corresponding to equivalent current (scalars)
 
-Dependencies
+Installation
 ------------
-numpy
-matplotlib
-scipy.interpolate (for plotting purposes)
-pandas (for reading csv file containing the coefficients)
+
+Using pip::
+
+    pip install amps
+
+
+Dependencies:
+
+- numpy
+- dask
+- matplotlib
+- scipy.interpolate (for plotting purposes)
+- pandas (for reading csv file containing the coefficients)
 
 
 Coefficient file format
@@ -49,6 +58,3 @@ There are several missing entries: The *(n, 0)* terms for the ``_s`` coefficient
 References
 ----------
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
-
-
-
