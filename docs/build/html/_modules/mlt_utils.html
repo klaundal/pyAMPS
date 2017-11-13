@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>mlt_utils &#8212; pyAMPS 0 documentation</title>
-    
+    <title>mlt_utils &#8212; pyAMPS 1.0.0 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +21,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -34,7 +31,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">
+  <body>
   
 
     <div class="document">
@@ -44,10 +41,36 @@
             
   <h1>Source code for mlt_utils</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains functions which are used to calculate magnetic local time accurately and efficiently</span>
+<span class="sd">This module contains functions which are used to calculate magnetic local time accurately and efficiently.</span>
+
+<span class="sd">There are two reasons for using this instead of the apexpy version:</span>
+<span class="sd">    1) It is faster, since it handles lists of datetimes as input</span>
+<span class="sd">    2) It is more in line with the definition of MLT in Laundal &amp; Richmond (2017), </span>
+<span class="sd">       although the difference should be extremely small.</span>
 
 
 
+<span class="sd">MIT License</span>
+
+<span class="sd">Copyright (c) 2017 Karl M. Laundal</span>
+
+<span class="sd">Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="sd">of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="sd">in the Software without restriction, including without limitation the rights</span>
+<span class="sd">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="sd">copies of the Software, and to permit persons to whom the Software is</span>
+<span class="sd">furnished to do so, subject to the following conditions:</span>
+
+<span class="sd">The above copyright notice and this permission notice shall be included in all</span>
+<span class="sd">copies or substantial portions of the Software.</span>
+
+<span class="sd">THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="sd">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="sd">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="sd">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="sd">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="sd">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="sd">SOFTWARE.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span> <span class="c1"># because of the DatetimeIndex class and IGRF coefficient interpolation</span>
@@ -73,7 +96,7 @@
 
 
 
-<div class="viewcode-block" id="mlon2mlt"><a class="viewcode-back" href="../index.html#mlt_utils.mlon2mlt">[docs]</a><span class="k">def</span> <span class="nf">mlon2mlt</span><span class="p">(</span><span class="n">mlon</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
+<div class="viewcode-block" id="mlon_to_mlt"><a class="viewcode-back" href="../reference.html#mlt_utils.mlon_to_mlt">[docs]</a><span class="k">def</span> <span class="nf">mlon_to_mlt</span><span class="p">(</span><span class="n">mlon</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Calculate magnetic local time from magnetic longitude and time(s). </span>
 
 <span class="sd">    This is an implementation of the formula recommended in Laundal &amp; Richmond, 2017 [4]_. </span>
@@ -96,6 +119,8 @@
 <span class="sd">           https://doi.org/10.1007/s11214-016-0275-y</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># flatten the input</span>
+    <span class="n">mlon</span> <span class="o">=</span> <span class="n">mlon</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> 
 
     <span class="n">ssglat</span><span class="p">,</span> <span class="n">ssglon</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">subsol</span><span class="p">(</span><span class="n">times</span><span class="p">))</span>
     <span class="n">sqlat</span><span class="p">,</span> <span class="n">ssqlon</span> <span class="o">=</span> <span class="n">geo2mag</span><span class="p">(</span><span class="n">ssglat</span><span class="p">,</span> <span class="n">ssglon</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span>
@@ -109,7 +134,7 @@
     <span class="k">return</span> <span class="n">mlt</span></div>
 
 
-<div class="viewcode-block" id="sph_to_car"><a class="viewcode-back" href="../index.html#mlt_utils.sph_to_car">[docs]</a><span class="k">def</span> <span class="nf">sph_to_car</span><span class="p">(</span><span class="n">sph</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="sph_to_car"><a class="viewcode-back" href="../reference.html#mlt_utils.sph_to_car">[docs]</a><span class="k">def</span> <span class="nf">sph_to_car</span><span class="p">(</span><span class="n">sph</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Convert from spherical to cartesian coordinates</span>
 
 <span class="sd">    Parameters</span>
@@ -139,7 +164,8 @@
                       <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">conv</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span> <span class="o">*</span> <span class="n">conv</span><span class="p">),</span> 
                       <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span> <span class="o">*</span> <span class="n">conv</span><span class="p">)))</span></div>
 
-<div class="viewcode-block" id="car_to_sph"><a class="viewcode-back" href="../index.html#mlt_utils.car_to_sph">[docs]</a><span class="k">def</span> <span class="nf">car_to_sph</span><span class="p">(</span><span class="n">car</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+
+<div class="viewcode-block" id="car_to_sph"><a class="viewcode-back" href="../reference.html#mlt_utils.car_to_sph">[docs]</a><span class="k">def</span> <span class="nf">car_to_sph</span><span class="p">(</span><span class="n">car</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Convert from spherical to cartesian coordinates</span>
 
 <span class="sd">    Parameters</span>
@@ -171,9 +197,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">))</span></div>
 
 
-
-<span class="sd">&quot;&quot;&quot; function for computing subsolar point &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="subsol"><a class="viewcode-back" href="../index.html#mlt_utils.subsol">[docs]</a><span class="k">def</span> <span class="nf">subsol</span><span class="p">(</span><span class="n">datetimes</span><span class="p">):</span>
+<div class="viewcode-block" id="subsol"><a class="viewcode-back" href="../reference.html#mlt_utils.subsol">[docs]</a><span class="k">def</span> <span class="nf">subsol</span><span class="p">(</span><span class="n">datetimes</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">    calculate subsolar point at given datetime(s)</span>
 
@@ -188,6 +212,11 @@
 <span class="sd">        latitude(s) of the subsolar point</span>
 <span class="sd">    subsol_lon : ndarray</span>
 <span class="sd">        longiutde(s) of the subsolar point</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            if any datetime.year value provided is not within (1600,2100) </span>
 
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
@@ -290,8 +319,7 @@
     <span class="k">return</span> <span class="n">sbsllat</span><span class="p">,</span> <span class="n">sbsllon</span></div>
 
 
-
-<div class="viewcode-block" id="is_leapyear"><a class="viewcode-back" href="../index.html#mlt_utils.is_leapyear">[docs]</a><span class="k">def</span> <span class="nf">is_leapyear</span><span class="p">(</span><span class="n">year</span><span class="p">):</span>
+<div class="viewcode-block" id="is_leapyear"><a class="viewcode-back" href="../reference.html#mlt_utils.is_leapyear">[docs]</a><span class="k">def</span> <span class="nf">is_leapyear</span><span class="p">(</span><span class="n">year</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Return True if leapyear else False</span>
 
 <span class="sd">        Handles arrays and preserves shape</span>
@@ -331,7 +359,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="geo2mag"><a class="viewcode-back" href="../index.html#mlt_utils.geo2mag">[docs]</a><span class="k">def</span> <span class="nf">geo2mag</span><span class="p">(</span><span class="n">glat</span><span class="p">,</span> <span class="n">glon</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="geo2mag"><a class="viewcode-back" href="../reference.html#mlt_utils.geo2mag">[docs]</a><span class="k">def</span> <span class="nf">geo2mag</span><span class="p">(</span><span class="n">glat</span><span class="p">,</span> <span class="n">glon</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">deg</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Convert geographic to centered dipole coordinates</span>
 
 <span class="sd">    The conversion uses IGRF coefficients directly, interpolated</span>
@@ -416,7 +444,7 @@
       &copy;2017, Karl M. Laundal.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
