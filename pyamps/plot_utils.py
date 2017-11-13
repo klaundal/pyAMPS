@@ -4,35 +4,36 @@ from scipy.interpolate import griddata
 
 
 class Polarsubplot(object):
+    """ 
+    pax = Polarsubplot(axis, minlat = 50, plotgrid = True, **kwargs)
+    
+    **kwargs are the plot parameters for the grid 
+
+    this is a class which handles plotting in polar coordinates, specifically
+    an MLT/MLAT grid or similar
+
+    Example:
+    --------
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)   
+    pax = Polarsubplot(ax)
+    pax.MEMBERFUNCTION()
+    plt.show()
+
+
+    where memberfunctions include:
+    plotgrid()                                   - called by __init__
+    plot(mlat, mlt, **kwargs)                    - works like plt.plot
+    write(mlat, mlt, text, **kwargs)             - works like plt.text
+    scatter(mlat, mlt, **kwargs)                 - works like plt.scatter
+    writeMLTlabels(mlat = self.minlat, **kwargs) - writes MLT at given mlat - **kwargs to plt.text
+    plotarrows(mlats, mlts, north, east)         - works like plt.arrow (accepts **kwargs too)
+    contour(mlat, mlt, f)                        - works like plt.contour
+    contourf(mlat, mlt, f)                       - works like plt.contourf
+
+    """
     def __init__(self, ax, minlat = 60, plotgrid = True, **kwargs):
-        """ pax = Polarsubplot(axis, minlat = 50, plotgrid = True, **kwargs)
-            
-            **kwargs are the plot parameters for the grid 
-
-            this is a class which handles plotting in polar coordinates, specifically
-            an MLT/MLAT grid or similar
-
-            Example:
-            --------
-            import matplotlib.pyplot as plt
-            fig = plt.figure()
-            ax = fig.add_subplot(111)   
-            pax = Polarsubplot(ax)
-            pax.MEMBERFUNCTION()
-            plt.show()
-
-
-            where memberfunctions include:
-            plotgrid()                                   - called by __init__
-            plot(mlat, mlt, **kwargs)                    - works like plt.plot
-            write(mlat, mlt, text, **kwargs)             - works like plt.text
-            scatter(mlat, mlt, **kwargs)                 - works like plt.scatter
-            writeMLTlabels(mlat = self.minlat, **kwargs) - writes MLT at given mlat - **kwargs to plt.text
-            plotarrows(mlats, mlts, north, east)         - works like plt.arrow (accepts **kwargs too)
-            contour(mlat, mlt, f)                        - works like plt.contour
-            contourf(mlat, mlt, f)                       - works like plt.contourf
-
-        """
         self.minlat = minlat # the lower latitude boundary of the plot
         self.ax = ax
         self.ax.axis('equal')

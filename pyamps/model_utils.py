@@ -4,7 +4,7 @@ import os
 
 basepath = os.path.dirname(__file__)
 
-coeff_fn = os.path.join(basepath,'..','coefficients','model_coefficients.csv')
+coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','model_coefficients.csv'))
 
 def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
     """ tor_c, tor_s, pol_c, pol_s = get_model_vectors(v, By, Bz, tilt, F107)
@@ -12,7 +12,7 @@ def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
         returns column vectors ((K,1)-shaped) corresponding to the spherical harmonic coefficients of the toroidal
         and poloidal parts, with _c and _s denoting cos and sin terms, respectively.
 
-        This function is used by AMPS.AMSP class
+        This function is used by amps.AMPS class
     """
 
     # read coefficient file and store in pandas DataFrame:

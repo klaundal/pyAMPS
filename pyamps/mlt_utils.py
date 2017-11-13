@@ -122,6 +122,7 @@ def sph_to_car(sph, deg = True):
                       r * np.sin(theta * conv) * np.sin(phi * conv), 
                       r * np.cos(theta * conv)))
 
+
 def car_to_sph(car, deg = True):
     """ Convert from spherical to cartesian coordinates
 
@@ -154,8 +155,6 @@ def car_to_sph(car, deg = True):
     return np.vstack((r, theta, phi))
 
 
-
-""" function for computing subsolar point """
 def subsol(datetimes):
     """ 
     calculate subsolar point at given datetime(s)
@@ -171,6 +170,11 @@ def subsol(datetimes):
         latitude(s) of the subsolar point
     subsol_lon : ndarray
         longiutde(s) of the subsolar point
+    
+    Raises
+    ------
+        ValueError
+            if any datetime.year value provided is not within (1600,2100) 
 
     Note
     ----
@@ -271,7 +275,6 @@ def subsol(datetimes):
     sbsllon = sbsllon - 360.*nrot
 
     return sbsllat, sbsllon
-
 
 
 def is_leapyear(year):
