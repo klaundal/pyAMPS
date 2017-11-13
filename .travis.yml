@@ -1,0 +1,23 @@
+matrix:
+    fast_finish: true
+    include:
+        - os: linux
+          env: TOXENV=py27
+          language: python
+        - os: osx
+          env: TOXENV=py27
+          language: generic
+        
+    allow_failures:
+        - os: osx
+          env: TOXENV=py27
+          language: generic
+        
+
+
+install: pip install tox
+
+script: tox
+
+notifications:
+  email: false
