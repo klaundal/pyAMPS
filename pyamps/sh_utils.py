@@ -97,7 +97,7 @@ class SHkeys(object):
         return self
 
     def Mge(self, limit):
-        """ set m <= n """
+        """ set m >= limit  """
         self.keys = tuple([key for key in self.keys if abs(key[1]) >= limit])
         self.make_arrays()
         return self
