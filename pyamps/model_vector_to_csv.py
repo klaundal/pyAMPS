@@ -57,7 +57,7 @@ for m, param in zip(dataframes, external_parameters):
 
 # merge them all and save to csv:
 coefficients = pd.concat(dataframes, axis = 1)
-coefficients.to_csv(os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.csv'), index_label = ('n', 'm')
+coefficients.to_csv(os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.csv')), index_label = ('n', 'm'))
 
 # to read the file: pd.read_csv('coefficents/model_coefficients.csv', index_col=('n','m'))
 
