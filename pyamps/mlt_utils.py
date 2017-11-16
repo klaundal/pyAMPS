@@ -131,14 +131,14 @@ def car_to_sph(car, deg = True):
     car : 3 x N array
         3 x N array, where the rows are, from top to bottom:
         x, y, z, in ECEF coordinates
-
+    deg : bool, optional
+        set to True if output is wanted in degrees. False if radians
+    
     Returns
     -------
     sph : 3 x N array
         3 x N array, where the rows are, from top to bottom:
         radius, colatitude, and longitude
-    deg : bool, optional
-        set to True if output is wanted in degrees. False if radians
     """
 
     x, y, z = car
