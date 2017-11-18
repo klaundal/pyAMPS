@@ -41,12 +41,11 @@ SOFTWARE.
 from __future__ import division
 import dask.array as da
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, getG0, get_ground_field_G0, m_matrix, m_matrix_pol
-from model_utils import get_model_vectors
+from sh_utils import get_legendre, getG0, get_ground_field_G0
+from model_utils import get_model_vectors, m_matrix, m_matrix_pol
 
 
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
