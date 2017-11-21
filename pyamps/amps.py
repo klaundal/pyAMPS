@@ -1037,7 +1037,7 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
 
 
     # load model vector
-    m = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy'))
+    m = np.load(os.path.join(os.path.dirname(os.path.abspath(__file__)),'coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy'))
 
     # number of equations
     neq = nterms(0, 0, 45, 3)
