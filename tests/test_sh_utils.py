@@ -1,5 +1,6 @@
 from __future__ import division
 
+import datetime
 import pytest
 import numpy as np
 
@@ -171,12 +172,26 @@ def test_get_legendre(inp,out):
     assert_allclose(PdP[:,       inp[5]].sum(), out[2],rtol=1e-4,atol=1e-14)
     assert_allclose(PdP[inp[4], inp[1]:].sum(), out[3],rtol=1e-4,atol=1e-14)
  
-@pytest.mark.xfail(reason="unfinished")
 def test_getG0():
-    #glat, glon, time, height, epoch = 2015., h_R = 110.
-    pass
+    glat = np.array([90,0])
+    glon = np.array([90,180])
+    time = np.array([datetime.datetime(2000,1,2,3,4,5,6),datetime.datetime(2000,1,2,4,5,6,7)])
+    height = np.array([110,110])
+    G0 = getG0(glat,glon,time,height,epoch=2000)
+    
+    assert G0.shape == (3*2,758)
+    assert_allclose(G0[5,:450].sum(),-0.0836,atol=1e-4)
+    assert_allclose(G0[3,:3],[1.7599e-01,8.4695e-01,-2.2772e-02],atol=1e-4)
 
-@pytest.mark.xfail(reason="unfinished")
+
 def test_get_ground_field_G0():
-    #qdlat, mlt, height, current_height
-    pass
+    
+    qdlat = np.array([90,0])
+    mlt = np.array([0,24])
+    height = 30
+    current_height = 110
+    G0 = get_ground_field_G0(qdlat,mlt,height,current_height)
+    
+    assert G0.shape == (3*2,309)
+    assert_allclose(G0[0],np.zeros(309),atol=1e-15)
+    assert_allclose(G0[4,:8], [1.8999,0.0000,2.7669,0.0000,0.0000,3.5818,0.0000,0.0000],atol=1e-4)

@@ -76,8 +76,6 @@ def test_car_to_sph(r,theta,phi,deg,xyz):
                     rtol=rtol,atol=atol)
 
 
-
-
 @pytest.mark.xfail(reason="wrong return type")
 def test_subsol():
     atol = 0.025

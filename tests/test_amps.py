@@ -9,7 +9,7 @@ import pyamps
 
 
 
-class Test_AMPS(object)
+class Test_AMPS(object):
 
     def test_init(self):
         pass
@@ -55,7 +55,7 @@ class Test_AMPS(object)
         pass
 
 
-    def test_get_divergence_free_current(self)
+    def test_get_divergence_free_current(self):
         pass
 
 
