@@ -17,7 +17,7 @@ Installation
 
 Using pip::
 
-    pip install amps
+    pip install pyamps
 
 
 Dependencies:
