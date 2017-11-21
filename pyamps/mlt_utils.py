@@ -78,7 +78,7 @@ def mlon_to_mlt(mlon, times, epoch):
 
     """
     # flatten the input
-    mlon = mlon.flatten() 
+    mlon = np.asarray(mlon).flatten() 
 
     ssglat, ssglon = map(np.array, subsol(times))
     sqlat, ssqlon = geo2mag(ssglat, ssglon, epoch)
@@ -274,7 +274,7 @@ def subsol(datetimes):
     nrot = np.round(sbsllon/360.)
     sbsllon = sbsllon - 360.*nrot
 
-    return sbsllat, sbsllon
+    return sbsllat.values, sbsllon.values
 
 
 def is_leapyear(year):
@@ -343,6 +343,8 @@ def geo2mag(glat, glon, epoch, deg = True):
         array of centered dipole longitudes [degrees]
 
     """
+    glat = np.asarray(glat)
+    glon = np.asarray(glon)
 
     # Find IGRF parameters for given epoch:
     dipole = igrf_dipole.reindex(list(igrf_dipole.index) + [epoch]).sort_index().interpolate().drop_duplicates() 
@@ -357,7 +359,7 @@ def geo2mag(glat, glon, epoch, deg = True):
     Rgeo_to_cd = np.vstack((Xcd, Ycd, Zcd))
 
     # convert input to ECEF:
-    colat = 90 - glat.flatten()
+    colat = 90 - glat.flatten() if deg else np.pi/2 - glat.flatten()
     glon  = glon.flatten()
     r_geo = sph_to_car(np.vstack((np.ones_like(colat), colat, glon)), deg = deg)
 
