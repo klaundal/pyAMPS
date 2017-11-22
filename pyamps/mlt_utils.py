@@ -78,7 +78,7 @@ def mlon_to_mlt(mlon, times, epoch):
 
     """
     # flatten the input
-    mlon = mlon.flatten() 
+    mlon = np.asarray(mlon).flatten() 
 
     ssglat, ssglon = map(np.array, subsol(times))
     sqlat, ssqlon = geo2mag(ssglat, ssglon, epoch)
@@ -122,6 +122,7 @@ def sph_to_car(sph, deg = True):
                       r * np.sin(theta * conv) * np.sin(phi * conv), 
                       r * np.cos(theta * conv)))
 
+
 def car_to_sph(car, deg = True):
     """ Convert from spherical to cartesian coordinates
 
@@ -130,14 +131,14 @@ def car_to_sph(car, deg = True):
     car : 3 x N array
         3 x N array, where the rows are, from top to bottom:
         x, y, z, in ECEF coordinates
-
+    deg : bool, optional
+        set to True if output is wanted in degrees. False if radians
+    
     Returns
     -------
     sph : 3 x N array
         3 x N array, where the rows are, from top to bottom:
         radius, colatitude, and longitude
-    deg : bool, optional
-        set to True if output is wanted in degrees. False if radians
     """
 
     x, y, z = car
@@ -154,8 +155,6 @@ def car_to_sph(car, deg = True):
     return np.vstack((r, theta, phi))
 
 
-
-""" function for computing subsolar point """
 def subsol(datetimes):
     """ 
     calculate subsolar point at given datetime(s)
@@ -171,6 +170,11 @@ def subsol(datetimes):
         latitude(s) of the subsolar point
     subsol_lon : ndarray
         longiutde(s) of the subsolar point
+    
+    Raises
+    ------
+        ValueError
+            if any datetime.year value provided is not within (1600,2100) 
 
     Note
     ----
@@ -270,8 +274,7 @@ def subsol(datetimes):
     nrot = np.round(sbsllon/360.)
     sbsllon = sbsllon - 360.*nrot
 
-    return sbsllat, sbsllon
-
+    return sbsllat.values, sbsllon.values
 
 
 def is_leapyear(year):
@@ -340,6 +343,8 @@ def geo2mag(glat, glon, epoch, deg = True):
         array of centered dipole longitudes [degrees]
 
     """
+    glat = np.asarray(glat)
+    glon = np.asarray(glon)
 
     # Find IGRF parameters for given epoch:
     dipole = igrf_dipole.reindex(list(igrf_dipole.index) + [epoch]).sort_index().interpolate().drop_duplicates() 
@@ -354,7 +359,7 @@ def geo2mag(glat, glon, epoch, deg = True):
     Rgeo_to_cd = np.vstack((Xcd, Ycd, Zcd))
 
     # convert input to ECEF:
-    colat = 90 - glat.flatten()
+    colat = 90 - glat.flatten() if deg else np.pi/2 - glat.flatten()
     glon  = glon.flatten()
     r_geo = sph_to_car(np.vstack((np.ones_like(colat), colat, glon)), deg = deg)
 

@@ -1,4 +1,5 @@
-""" Python interface for the Average Magnetic field and Polar current System (AMPS) model
+""" 
+Python interface for the Average Magnetic field and Polar current System (AMPS) model
 
 This module can be used to 
 1) Calculate and plot average magnetic field and current parameters 
@@ -40,12 +41,11 @@ SOFTWARE.
 from __future__ import division
 import dask.array as da
 import numpy as np
-import os
 import matplotlib.pyplot as plt
-from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, getG0, get_ground_field_G0, nterms
-from model_utils import get_model_vectors
 from matplotlib import rc
+from plot_utils import equalAreaGrid, Polarsubplot
+from sh_utils import get_legendre, getG0, get_ground_field_G0
+from model_utils import get_model_vectors, m_matrix, m_matrix_pol
 
 
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
@@ -78,7 +78,7 @@ class AMPS(object):
     maxlat : float, optional
         low latitude boundary of grids  (default 89.99)
     height : float, optional
-        altitude of the ionospheric currents (default 110 km)
+        altitude of the ionospheric currents in km (default 110)
     dr : int, optional
         latitudinal spacing between equal area grid points (default 2 degrees)
     M0 : int, optional
@@ -98,20 +98,23 @@ class AMPS(object):
     >>> # make summary plot:
     >>> m.plot_currents()
         
-    >>> # extract map of field-aligned currents in north and south:
-    >>> Jun, Jus = m.get_upward_current()
+    >>> # calculate field-aligned currents on a pre-defined grid
+    >>> Ju = m.get_upward_current()
 
-    >>> # Jus.flatten() will be evaluated at the following coords:
-    >>> mlat = np.split(m.scalargrid[0], 2)[1]
-    >>> mlt  = np.split(m.scalargrid[1], 2)[1]
+    >>> # Ju will be evaluated at the following coords:
+    >>> mlat, mlt = m.scalargrid
 
-    >>> # get map of total height-integrated horizontal currents:
-    >>> je_n, je_s, jn_n, jn_s = m.get_total_current()
+    >>> # It is also possible to specify coordinates (can be slow with 
+    >>> # repeated calls)
+    >>> Ju = m.get_upward_current(mlat = my_mlats, mlt = my_mlts)
 
-    >>> # je_n, the eastward current in northern hemisphere, will
-    >>> # be evaluated at the following coords:
-    >>> mlat = np.split(m.vectorgrid[0], 2)[0]
-    >>> mlt  = np.split(m.vectorgrid[1], 2)[0]
+    >>> # get components of the total height-integrated horizontal current,
+    >>> # calculated on a pre-defined grid
+    >>> j_east, j_north = m.get_total_current()
+
+    >>> # j_east, and j_north will be evaluated at the following coords 
+    >>> # (default grids are different with vector quantities)
+    >>> mlat, mlt = m.vectorgrid
 
     >>> # update model vectors (tor_c, tor_s, etc.) without 
     >>> # recalculating the other matrices:
@@ -119,13 +122,13 @@ class AMPS(object):
 
     Attributes
     ----------
-    tor_c : np.array
+    tor_c : numpy.ndarray
         vector of cos term coefficents in the toroidal field expansion
-    tor_s : np.array
+    tor_s : numpy.ndarray
         vector of sin term coefficents in the toroidal field expansion
-    pol_c : np.array
+    pol_c : numpy.ndarray
         vector of cos term coefficents in the poloidal field expansion
-    pol_s : np.array
+    pol_s : numpy.ndarray
         vector of sin term coefficents in the poloidal field expansion
     keys_P : list
         list of spherical harmonic wave number pairs (n,m) corresponding to elements of pol_c and pol_s 
@@ -140,8 +143,7 @@ class AMPS(object):
         (np.hstack((mlat_north, mlat_south)), np.hstack((mlt_north, mlt_south)))
         
         The grids can be changed directly, but member function calculate_matrices() 
-        must then be called for the change to take effect. Also the grid format
-        described above should be used.
+        must then be called for the change to take effect. 
 
     """
 
@@ -190,6 +192,7 @@ class AMPS(object):
 
         self.calculate_matrices()
 
+
     def update_model(self, v, By, Bz, tilt, F107):
         """
         Update the model vectors without updating all the other matrices. This leads to better
@@ -231,7 +234,6 @@ class AMPS(object):
         self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, F107)
 
 
-
     def _get_vectorgrid(self, **kwargs):
         """ 
         Make grid for plotting vectors
@@ -270,6 +272,7 @@ class AMPS(object):
 
         return mlat[:, np.newaxis], mlt[:, np.newaxis] + 12 # reshape to column vectors and return
 
+
     def calculate_matrices(self):
         """ 
         Calculate the matrices that are needed to calculate currents and potentials 
@@ -305,77 +308,119 @@ class AMPS(object):
         self.tor_dP_scalar = -np.array([scalar_dP[key] for key in self.keys_T ]).squeeze().T
 
 
-
-    def get_toroidal_scalar(self):
+    def get_toroidal_scalar(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the toroidal scalar values (unit is nT). 
 
+        Parameters
+        ----------
+        mlat : numpy.ndarray, optional
+            array of mlats at which to calculate the toroidal scalar. Will be ignored if mlt is not 
+            also specified. If not specified, the calculations will be done using the coords of the 
+            `scalargrid` attribute.
+        mlt : numpy.ndarray, optional
+            array of mlts at which to calculate the toroidal scalar. Will be ignored if mlat is not
+            also specified. If not specified, the calculations will be done using the coords of the 
+            `scalargrid` attribute.
+
         Returns
         -------
-        T_n : numpy.array
-            Toroidal scalar in the northern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        T_s : numpy.array
-            Toroidal scalar in the southern hemisphere.
-            Shape: (self.resolution, self.resolution)
+        T : numpy.ndarray
+            Toroidal scalar evaluated at self.scalargrid, or, if specified, mlat/mlt 
         """
 
-        T = (  np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c)
-             + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) 
+        if mlat is DEFAULT or mlt is DEFAULT:
+            T = (  np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c)
+                 + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) 
 
-        _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-        return map( _reshape, np.split(T, 2)) # north, south 
+        else: # calculate at custom coordinates
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[:, np.newaxis]
 
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+            T = (  np.dot(P * cosmphi, self.tor_c)
+                 + np.dot(P * sinmphi, self.tor_s) ) 
 
-    def get_poloidal_scalar(self):
+        return T
+
+    def get_poloidal_scalar(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the poloidal scalar potential values (unit is microTm).
 
+        Parameters
+        ----------
+        mlat : numpy.ndarray, optional
+            array of mlats at which to calculate the poloidal scalar. Will be ignored if mlt is not 
+            also specified. If not specified, the calculations will be done using the coords of the 
+            `scalargrid` attribute.
+        mlt : numpy.ndarray, optional
+            array of mlts at which to calculate the poloidal scalar. Will be ignored if mlat is not
+            also specified. If not specified, the calculations will be done using the coords of the 
+            `scalargrid` attribute.
+
         Returns
         -------
-        V_n : numpy.array
-            Poloidal scalar potential in the northern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        V_s : numpy.array
-            Poloidal scalar potential in the southern hemisphere.
-            Shape: (self.resolution, self.resolution)
+        V : numpy.ndarray
+            Poloidal scalar evalulated at self.scalargrid, or, if specified, mlat/mlt
         """
 
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 1)
-        P = REFRE * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
-                     + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) )
 
-        _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-        return map( _reshape, np.split(P, 2)) # north, south 
+        if mlat is DEFAULT or mlt is DEFAULT:
+            V = REFRE * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
+                         + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) )
+        else: # calculate at custom coordinates
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[:, np.newaxis]
+
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
+            cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
+            V = REFRE * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
+                         + np.dot(rtor * P * sinmphi, self.pol_s ) )
 
 
-    def get_equivalent_current_function(self):
+        return V
+
+
+    def get_divergence_free_current_function(self, mlat = DEFAULT, mlt = DEFAULT):
         """
-        Calculate the equivalent current function (unit is kA). Isocontours of the
-        equivalent current function indicates the alignment of the divergence-free
-        part of the horizontal current. Its direction is given by the cross product between
-        a vertical vector and the gradient of the equivalent current function. 
+        Calculate the divergence-free current function
+
+        Isocontours of the divergence-free current function indicates the alignment of the 
+        divergence-free part of the horizontal current. Its direction is given by the cross
+        product between a vertical vector and the gradient of the divergence-free current function. 
         A fixed amount of current flows between isocontours. The calculations refer to 
-        the height chosen upon initialization of the AMPS object (default 110 km).
+        the height chosen upon initialization of the AMPS object (default 110 km). Divergence-free
+        current function unit is kA.
 
         Note
         ----
-        Normally, the term `equivalent current` signifies a horizontal current in space which is 
-        equivalent with observed ground magnetic field perturbations. The present `equivalent current` 
-        is derived from measurements above the ionosphere, and thus it contains signal both from 
+        The divergence-free current is similar to what is often termed the `equivalent current`, that
+        is derived from ground based magnetic field measurements. However, the present divergence-free 
+        current is derived from measurements above the ionosphere, and thus it contains signal both from 
         ionospheric currents below low Earth orbit, and from subsurface induced currents. 
         See Laundal et al. (2016) [1]_ where this current is called
         `Psi` for more detail.
 
 
+        Parameters
+        ----------
+        mlat : numpy.ndarray, optional
+            array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
+            not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+        mlt : numpy.ndarray, optional
+            array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
+            not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+
         Returns
         -------
-        Psi_n : numpy.array
-            Equivalent current function in the northern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        Psi_s : numpy.array
-            Equivalent current function in the southern hemisphere.
-            Shape: (self.resolution, self.resolution)
+        Psi : numpy.ndarray
+            Divergence-free current function evaluated at self.scalargrid, or, if specified, mlat/mlt
 
         References
         ----------
@@ -385,33 +430,25 @@ class AMPS(object):
         """
 
         rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 1.) * (2.*self.n_P + 1.)/self.n_P
-        Psi = - REFRE / MU0 * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
-                               + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) ) * 1e-9  # kA
+
+        if mlat is DEFAULT or mlt is DEFAULT:
+            Psi = - REFRE / MU0 * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
+                                   + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) ) * 1e-9  # kA
+        else: # calculate at custom coordinates
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[:, np.newaxis]
+
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
+            cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
+            Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
+                                   + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
+
+
         
-        _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-        return map( _reshape, np.split(Psi, 2)) # north, south 
+        return Psi
 
-    def get_equivalent_current_laplacian(self):
-        """ 
-        Calculate the Laplacian of the equivalent current function. In some circumstances, this
-        quantity is similar to the upward current.
-
-        Returns
-        -------
-        d2P_n : numpy.array
-            Laplacian of the equivalent current function in the northern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        d2P_s : numpy.array
-            Laplacian of the equivalent current function in the southern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        """
-        
-        rtor = (REFRE/(REFRE + self.height))**(self.n_P + 2)
-        Ju = 1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot((self.n_P + 1)* (2*self.n_P + 1) * rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c) 
-                                                     + np.dot((self.n_P + 1)* (2*self.n_P + 1) * rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s) )
-
-        _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-        return map( _reshape, np.split(Ju, 2)) # north, south 
 
     def get_upward_current(self, mlat = DEFAULT, mlt = DEFAULT):
         """
@@ -419,23 +456,25 @@ class AMPS(object):
         calculations refer to the height chosen upon initialization of the 
         AMPS object (default 110 km).
 
+        Parameters
+        ----------
+        mlat : numpy.ndarray, optional
+            array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
+            not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+        mlt : numpy.ndarray, optional
+            array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
+            not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+
 
         Returns
         -------
-        Ju_n : numpy.array
-            Upward current in the northern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        Ju_s : numpy.array
-            Upward current in the southern hemisphere.
-            Shape: (self.resolution, self.resolution)
+        Ju : numpy.ndarray
+            Upward current evaulated at self.scalargrid, or, if specified, mlat/mlt
         """
 
         if mlat is DEFAULT or mlt is DEFAULT:
             Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
-                                                      + np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) )
-
-            _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-            return map( _reshape, np.split(Ju, 2)) # north, south 
+                                                          + np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) )
 
         else: # calculate at custom coordinates
             mlat = mlat.flatten()[:, np.newaxis]
@@ -443,15 +482,14 @@ class AMPS(object):
 
             P, dP = get_legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
-            dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
             Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
                                                           + np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
-            return Ju
+        return Ju
 
 
-    def get_curl_free_current_potential(self):
+    def get_curl_free_current_potential(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the curl-free current potential (unit is kA). The curl-free
         current potential is a scalar alpha which relates to the curl-free part
@@ -459,22 +497,40 @@ class AMPS(object):
         refer to the height chosen upon initialization of the AMPS object (default 
         110 km). 
 
+        Parameters
+        ----------
+        mlat : numpy.ndarray, optional
+            array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
+            not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+        mlt : numpy.ndarray, optional
+            array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
+            not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+
         Returns
         -------
-        alpha_n : numpy.array
-            Curl-free current potential in the northern hemisphere.
-            Shape: (self.resolution, self.resolution)
-        alpha_s : numpy.array
-            Curl-free current potential in the southern hemisphere.
-            Shape: (self.resolution, self.resolution)
+        alpha : numpy.ndarray
+            Curl-free current potential evaulated at self.scalargrid, or, if specified, mlat/mlt
 
         """
-        alpha = -(REFRE + self.height) / MU0 * (   np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
-                                                 + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
 
-        _reshape = lambda x: np.reshape(x, (self.scalar_resolution, self.scalar_resolution))
-        return map( _reshape, np.split(alpha, 2)) # north, south 
+        if mlat is DEFAULT or mlt is DEFAULT:
+            alpha = -(REFRE + self.height) / MU0 * (   np.dot(self.tor_P_scalar * self.tor_cosmphi_scalar, self.tor_c) 
+                                                     + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
 
+        else: # calculate at custom coordinates
+            mlat = mlat.flatten()[:, np.newaxis]
+            mlt  = mlt.flatten()[:, np.newaxis]
+
+            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+
+            alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
+                                                     + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
+
+
+        return alpha
 
 
     def get_divergence_free_current(self, mlat = DEFAULT, mlt = DEFAULT):
@@ -485,19 +541,19 @@ class AMPS(object):
 
         Parameters
         ----------
-        mlat : numpy.array, optional
+        mlat : numpy.ndarray, optional
             array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
-        mlt : numpy.array, optional
+        mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
 
 
         Return
         ------
-        jdf_eastward : numpy.array, float
+        jdf_eastward : numpy.ndarray, float
             eastward component of the divergence-free current evalulated at the coordinates given by the `vectorgrid` attribute
-        jdf_northward : numpy.array, float
+        jdf_northward : numpy.ndarray, float
             northward component of the divergence-free current evalulated at the coordinates given by the `vectorgrid` attribute
 
         See Also
@@ -536,7 +592,6 @@ class AMPS(object):
         return east.flatten(), north.flatten()
 
 
-
     def get_curl_free_current(self, mlat = DEFAULT, mlt = DEFAULT):
         """ 
         Calculate the curl-free part of the horizontal current, in units of mA/m.
@@ -546,19 +601,19 @@ class AMPS(object):
 
         Parameters
         ----------
-        mlat : numpy.array, optional
+        mlat : numpy.ndarray, optional
             array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
-        mlt : numpy.array, optional
+        mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
 
 
         Return
         ------
-        jcf_eastward : numpy.array, float
+        jcf_eastward : numpy.ndarray, float
             eastward component of the curl-free current evalulated at the coordinates given by the `vectorgrid` attribute
-        jcf_northward : numpy.array, float
+        jcf_northward : numpy.ndarray, float
             northward component of the curl-free current evalulated at the coordinates given by the `vectorgrid` attribute
 
         See Also
@@ -604,19 +659,19 @@ class AMPS(object):
 
         Parameters
         ----------
-        mlat : numpy.array, optional
+        mlat : numpy.ndarray, optional
             array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
-        mlt : numpy.array, optional
+        mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
 
 
         Return
         ------
-        j_eastward : numpy.array, float
+        j_eastward : numpy.ndarray, float
             eastward component of the horizontal current evalulated at the coordinates given by the `vectorgrid` attribute
-        j_northward : numpy.array, float
+        j_northward : numpy.ndarray, float
             northward component of the horizontal current evalulated at the coordinates given by the `vectorgrid` attribute
 
 
@@ -633,7 +688,14 @@ class AMPS(object):
     def get_integrated_upward_current(self):
         """ 
         Calculate the integrated upward and downward current, poleward of `minlat`,
-        in units of MA.
+        in units of MA. 
+
+        Note
+        ----
+        This calculation uses the scalargrid attribute. By default this is a *regular* grid, 
+        with coordinates from north and south tiled side-by-side (equal number of coords,
+        with north first). If scalargrid has been changed, and has a different structure,
+        this function will return wrong values.
 
         Return
         ------
@@ -647,20 +709,19 @@ class AMPS(object):
             Total downward current in the southern hemisphere
         """
 
-        jun, jus = self.get_upward_current()
-        jun, jus = jun * 1e-6, jus * 1e-6 # convert to A/m^2
+        ju = self.get_upward_current() * 1e-6 # unit A/m^2
 
         # get surface area element in each cell:
-        mlat, mlt = np.split(self.scalargrid[0], 2)[0], np.split(self.scalargrid[1], 2)[0]
-        mlat, mlt = mlat.reshape((self.scalar_resolution, self.scalar_resolution)), mlt.reshape((self.scalar_resolution, self.scalar_resolution))
-        mltres  = (mlt[1] - mlt[0])[0] * np.pi/12
-        mlatres = (mlat[:, 1] - mlat[:, 0])[0] * np.pi/180
+        mlat, mlt = self.scalargrid
+        mlt_sorted = np.sort(np.unique(mlt))
+        mltres = (mlt_sorted[1] - mlt_sorted[0]) * np.pi / 12
+        mlat_sorted = np.sort(np.unique(mlat))
+        mlatres = (mlat_sorted[1] - mlat_sorted[0]) * np.pi / 180
         R = (REFRE + self.height) * 1e3  # radius in meters
         dS = R**2 * np.cos(mlat * np.pi/180) * mlatres * mltres
 
 
-        J_n = dS * jun * 1e-6 # convert to MA
-        J_s = dS * jus * 1e-6 # 
+        J_n, J_s = np.split(dS * ju * 1e-6, 2) # convert to MA and split to north and south
 
         #      J_up_north            J_down_north          J_up_south            J_down_south
         return np.sum(J_n[J_n > 0]), np.sum(J_n[J_n < 0]), np.sum(J_s[J_s > 0]), np.sum(J_s[J_s < 0])
@@ -669,20 +730,20 @@ class AMPS(object):
     def get_ground_perturbation(self, mlat, mlt):
         """ 
         Calculate magnetic field perturbations on ground, in units of nT, that corresponds 
-        to the equivalent current function.
+        to the divergence-free current function.
 
         Parameters
         ----------
-        mlat : np.array, float
+        mlat : numpy.ndarray, float
             magnetic latitude of the output. The array shape will not be preserved, and 
             the results will be returned as a 1-dimensional array
-        mlt : np.array, float
+        mlt : numpy.ndarray, float
             magnetic local time of the output. The array shape will not be preserved, and 
             the results will be returned as a 1-dimensional array
 
         Note
         ----
-        These calculations are made by assuming that the equivalent current function calculated
+        These calculations are made by assuming that the divergende-free current function calculated
         with the AMPS model correspond to the equivalent current function of an external 
         magnetic potential, as described by Chapman & Bartels 1940 [2]_. Induced components are 
         thus ignored. The height of the current function also becomes important when propagating
@@ -697,9 +758,9 @@ class AMPS(object):
 
         Return
         ------
-        dB_east : np.array
+        dB_east : numpy.ndarray
             Eastward component of the magnetic field disturbance on ground
-        dB_north : np.array
+        dB_north : numpy.ndarray
             Northward component of the magnetic field disurubance on ground
 
         References
@@ -745,7 +806,7 @@ class AMPS(object):
         Note
         ----
         Here, AL and AU are defined as the lower/upper envelope curves for the northward component
-        of the ground magnetic field perturbation that is equivalent with the equivalent current,
+        of the ground magnetic field perturbation that is equivalent with the divergence-free current,
         evaluated on `scalargrid`. Thus all the caveats for the `get_ground_perturbation()` function
         applies to these calculations as well. An additional caveat is that we have in principle
         perfect coverage with the model, while the true AE indices are derived using a small set of
@@ -777,7 +838,6 @@ class AMPS(object):
         Bn_n, Bn_s = np.split(Bn, 2)
 
         return Bn_n.min(), Bn_s.min(), Bn_n.max(), Bn_s.max()
-
 
 
     def plot_currents(self, vector_scale = 200):
@@ -822,7 +882,7 @@ class AMPS(object):
         pax_s.write(self.minlat-5, 12, r'South' , ha = 'center', va = 'center', size = 18)
 
         # calculate and plot FAC
-        Jun, Jus = self.get_upward_current()
+        Jun, Jus = np.split(self.get_upward_current(), 2)
         faclevels = np.r_[-.925:.926:.05]
         pax_n.contourf(mlats, mlts, Jun, levels = faclevels, cmap = plt.cm.bwr, extend = 'both')
         pax_s.contourf(mlats, mlts, Jus, levels = faclevels, cmap = plt.cm.bwr, extend = 'both')
@@ -848,6 +908,8 @@ class AMPS(object):
         # print AL index values and integrated up/down currents
         AL_n, AL_s, AU_n, AU_s = self.get_AE_indices()
         ju_n, jd_n, ju_s, jd_s = self.get_integrated_upward_current()
+
+        ### TODO: \uparrow uses \u python3 interprets as unicode identifier
         pax_n.ax.text(pax_n.ax.get_xlim()[0], pax_n.ax.get_ylim()[0], 
                       'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_\uparrow$:\t ${jn_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n), ha = 'left', va = 'bottom', size = 14)
         pax_s.ax.text(pax_s.ax.get_xlim()[0], pax_s.ax.get_ylim()[0], 
@@ -858,9 +920,11 @@ class AMPS(object):
         plt.show()
 
 
-
 def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000):
     """ Calculate model magnetic field in space 
+
+    This function uses dask to parallelize computations. That means that it is quite
+    fast and that the memory consumption will not explode unless `chunksize` is too large.
 
     Parameters
     ----------
@@ -870,7 +934,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
         array of geographic longitudes (degrees)
     height : array_like
         array of geodetic heights (km)
-    time : array'_like
+    time : array_like
         list/array of datetimes, needed to calculate magnetic local time
     v : array_like
         array of solar wind velocities in GSM/GSE x direction (km/s)
@@ -887,8 +951,8 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     h_R : float, optional
         referene height (km) used when calculating modified apex coordinates. Default = 110. 
     chunksize : int, optional
-        the size of the chunks that are calculated in parallel using the dask module. 
-        Default 15000
+        the input arrays will be split in chunks in order to parallelize
+        computations. Larger chunks consumes more memory, but might be faster. Default is 15000.
 
     Returns
     -------
@@ -906,22 +970,15 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
     Note
     ----
-    Inputs should have the same dimensions.
-
-    This function makes use of the dask module to parallelize computations. Performance can be 
-    tuned by changing the chunksize keyword. Increasing it may speed things up but it will 
-    also use more memory. If memory is an issue, decrease chunksize.
-
+    Array inputs should have the same dimensions.
 
     """
 
     # TODO: ADD CHECKS ON INPUT (?)
 
-    # load model vector
-    m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
 
     # number of equations
-    neq = nterms(65, 3, 45, 3)
+    neq = m_matrix.shape[0]
 
     # turn coordinates/times into dask arrays
     glat   = da.from_array(glat  , chunks = chunksize)
@@ -936,7 +993,6 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     G0 = da.map_blocks(_getG0, glat, glon, time, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float32)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
-    m_matrix = np.vstack(np.split(m, 19)).T
     B_matrix  = G0.dot(  m_matrix ).compute()
 
     # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
@@ -982,14 +1038,13 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     return np.split(B, 3)
 
 
-
 def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1., chunksize = 25000):
     """ Calculate model magnetic field on ground 
-
+    
     This function uses dask to parallelize computations. That means that it is quite
-    fast and that the memory consumption will not explode unless chunksize is too large.
+    fast and that the memory consumption will not explode unless `chunksize` is too large.
 
-
+    
     Parameters
     ----------
     qdlat : array_like or float
@@ -1010,12 +1065,12 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     f107 : array_like
         array of F10.7 index values (SFU)
     current_height : float, optional
-        height (km) of the current sheet. Default is 110 km
+        height (km) of the current sheet. Default is 110.
     epsilon_multiplier: float, optional
         multiplier for the epsilon parameter. Default is 1.
     chunksize : int
         the input arrays will be split in chunks in order to parallelize
-        computations. Larger chunks consumes more memory, but might be faster
+        computations. Larger chunks consumes more memory, but might be faster. Default is 25000.
 
 
     Returns
@@ -1032,18 +1087,12 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     We assume that there are no induced currents. The error in this assumption will be larger
     for the radial component than for the horizontal components
 
+    Array inputs should have the same dimensions.
     """
 
 
-    # load model vector
-    m = np.load(os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
-
     # number of equations
-    neq = nterms(0, 0, 45, 3)
-
-    # remove toroidal coefficients from model vector, by splitting it in 19 parts, and keeping the last 
-    # n_terms coefficients in each part, which corresponds to the number of coefficients of the poloidal field
-    m = reduce(lambda x, y: np.hstack((x, y)), [m_part[-neq:].flatten() for m_part in np.split(m, 19)])
+    neq = m_matrix_pol.shape[0]
 
     # convert input to dask arrays - qdlat is converted to np.float32 to make sure it has the flatten function
     qdlat = da.from_array(np.float32(qdlat).flatten(), chunks = chunksize)
@@ -1056,8 +1105,7 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     G0 = da.map_blocks(_getG0, qdlat, mlt, chunks = (3*chunksize, neq), new_axis = 1)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
-    m_matrix = np.vstack(np.split(m, 19)).T
-    B_matrix  = G0.dot(  m_matrix ).compute()
+    B_matrix  = G0.dot(  m_matrix_pol ).compute()
 
     # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
     # reorganized so that we have only three large partitions: (east, north, up). Split and recombine:

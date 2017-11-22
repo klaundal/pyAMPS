@@ -99,9 +99,10 @@ class Polarsubplot(object):
             featherplot(mlats, mlts, north, east, ...)
                 for plotting vector fields, where the vectors are represented by
                 a circular marker and a line (see funciton docstring for more details)
+    """
 
-
-        """
+    
+    def __init__(self, ax, minlat = 60, plotgrid = True, **kwargs):
         self.minlat = minlat # the lower latitude boundary of the plot
         self.ax = ax
         self.ax.axis('equal')

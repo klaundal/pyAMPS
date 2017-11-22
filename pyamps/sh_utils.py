@@ -31,30 +31,30 @@ SOFTWARE.
 """
 
 from __future__ import division
-from mlt_utils import mlon_to_mlt
 import numpy as np
 import apexpy
+from mlt_utils import mlon_to_mlt
+
 d2r = np.pi/180
 
 DEFAULT = object()
 refre = 6371.2 # reference radius
 
 class SHkeys(object):
+    """ container for n and m in spherical harmonics
+
+        keys = SHkeys(Nmax, Mmax)
+
+        keys will behave as a tuple of tuples, more or less
+        keys['n'] will return a list of the n's
+        keys['m'] will return a list of the m's
+        keys[3] will return the fourth n,m tuple
+
+        keys is also iterable
+
+    """
 
     def __init__(self, Nmax, Mmax):
-        """ container for n and m in spherical harmonics
-
-            keys = SHkeys(Nmax, Mmax)
-
-            keys will behave as a tuple of tuples, more or less
-            keys['n'] will return a list of the n's
-            keys['m'] will return a list of the m's
-            keys[3] will return the fourth n,m tuple
-
-            keys is also iterable
-
-        """
-
         keys = []
         for n in range(Nmax + 1):
             for m in range(Mmax + 1):
@@ -97,7 +97,7 @@ class SHkeys(object):
         return self
 
     def Mge(self, limit):
-        """ set m <= n """
+        """ set m >= limit  """
         self.keys = tuple([key for key in self.keys if abs(key[1]) >= limit])
         self.make_arrays()
         return self

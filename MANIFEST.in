@@ -1,0 +1,7 @@
+include LICENSE
+include README.rst
+
+graft docs
+graft tests
+
+global-exclude *.py[cod] __pycache__ *.so

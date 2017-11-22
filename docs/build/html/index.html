@@ -1,20 +1,17 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Welcome to pyAMPS’s documentation! &#8212; pyAMPS 0 documentation</title>
-    
+    <title>pyAMPS’s documentation &#8212; pyAMPS 1.0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,9 +21,10 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Overview" href="readme.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,7 +32,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">
+  <body>
   
 
     <div class="document">
@@ -42,740 +40,29 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-pyamps-s-documentation">
-<h1>Welcome to pyAMPS&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyamps-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pyamps-s-documentation">
+<h1>pyAMPS’s documentation<a class="headerlink" href="#pyamps-s-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#coefficient-file-format">Coefficient file format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="readme.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference.html#module-pyamps">Core functionality (<cite>pyamps</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference.html#module-mlt_utils">Magnetic local time (<cite>pyamps.mlt_utils</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference.html#module-sh_utils">Spherical harmonics (<cite>pyamps.sh_utils</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference.html#module-model_utils">AMPS model parameters (<cite>model_utils</cite>)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
 </div>
-<span class="target" id="module-pyAMPS"></span><dl class="class">
-<dt id="pyAMPS.AMPS">
-<em class="property">class </em><code class="descclassname">pyAMPS.</code><code class="descname">AMPS</code><span class="sig-paren">(</span><em>v</em>, <em>By</em>, <em>Bz</em>, <em>tilt</em>, <em>F107</em>, <em>minlat=60</em>, <em>maxlat=89.99</em>, <em>height=110.0</em>, <em>dr=2</em>, <em>M0=4</em>, <em>resolution=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate and plot maps of the model Average Magnetic field and Polar current System (AMPS)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>v</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; solar wind velocity in km/s</li>
-<li><strong>By</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; IMF GSM y component in nT</li>
-<li><strong>Bz</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; IMF GSM z component in nT</li>
-<li><strong>tilt</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; dipole tilt angle in degrees</li>
-<li><strong>F107</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; F10.7 index in s.f.u.</li>
-<li><strong>minlat</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) &#8211; low latitude boundary of grids  (default 60)</li>
-<li><strong>maxlat</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) &#8211; low latitude boundary of grids  (default 89.99)</li>
-<li><strong>height</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a><em>, </em><em>optional</em>) &#8211; altitude of the ionospheric currents (default 110 km)</li>
-<li><strong>dr</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) &#8211; latitudinal spacing between equal area grid points (default 2 degrees)</li>
-<li><strong>M0</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) &#8211; number of grid points in the most poleward circle of equal area grid points (default 4)</li>
-<li><strong>resolution</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>, </em><em>optional</em>) &#8211; resolution in both directions of the scalar field grids (default 100)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># initialize by supplying a set of external conditions:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">AMPS</span><span class="p">(</span><span class="n">solar_wind_velocity_in_km_per_s</span><span class="p">,</span>
-<span class="go">             IMF_By_in_nT, IMF_Bz_in_nT,</span>
-<span class="go">             dipole_tilt_in_deg,</span>
-<span class="go">             F107_index)</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># make summary plot:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">plot_currents</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># extract map of field-aligned currents in north and south:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Jun</span><span class="p">,</span> <span class="n">Jus</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_upward_current</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Jus.flatten() will be evaluated at the following coords:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">scalargrid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mlt</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">scalargrid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># get map of total height-integrated horizontal currents:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">je_n</span><span class="p">,</span> <span class="n">je_s</span><span class="p">,</span> <span class="n">jn_n</span><span class="p">,</span> <span class="n">jn_s</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_total_current</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># je_n, the eastward current in northern hemisphere, will</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># be evaluated at the following coords:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mlat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">vectorgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mlt</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">vectorgrid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># update model vectors (tor_c, tor_s, etc.) without</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># recalculating the other matrices:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">update_model</span><span class="p">(</span><span class="n">new_v</span><span class="p">,</span> <span class="n">new_By</span><span class="p">,</span> <span class="n">new_Bz</span><span class="p">,</span> <span class="n">new_tilt</span><span class="p">,</span> <span class="n">new_F107</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.tor_c">
-<code class="descname">tor_c</code><a class="headerlink" href="#pyAMPS.AMPS.tor_c" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.array</em> &#8211; vector of cos term coefficents in the toroidal field expansion</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.tor_s">
-<code class="descname">tor_s</code><a class="headerlink" href="#pyAMPS.AMPS.tor_s" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.array</em> &#8211; vector of sin term coefficents in the toroidal field expansion</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.pol_c">
-<code class="descname">pol_c</code><a class="headerlink" href="#pyAMPS.AMPS.pol_c" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.array</em> &#8211; vector of cos term coefficents in the poloidal field expansion</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.pol_s">
-<code class="descname">pol_s</code><a class="headerlink" href="#pyAMPS.AMPS.pol_s" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>np.array</em> &#8211; vector of sin term coefficents in the poloidal field expansion</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.keys_P">
-<code class="descname">keys_P</code><a class="headerlink" href="#pyAMPS.AMPS.keys_P" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list</em> &#8211; list of spherical harmonic wave number pairs (n,m) corresponding to elements of pol_c and pol_s</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.keys_T">
-<code class="descname">keys_T</code><a class="headerlink" href="#pyAMPS.AMPS.keys_T" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>list</em> &#8211; list of spherical harmonic wave number pairs (n,m) corresponding to elements of tor_c and tor_s</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.vectorgrid">
-<code class="descname">vectorgrid</code><a class="headerlink" href="#pyAMPS.AMPS.vectorgrid" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em> &#8211; grid used to calculate and plot vector fields</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pyAMPS.AMPS.scalargrid">
-<code class="descname">scalargrid</code><a class="headerlink" href="#pyAMPS.AMPS.scalargrid" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>tuple</em> &#8211; grid used to calculate and plot scalar fields</p>
-<p>The grid formats are as follows (see also example below):
-(np.hstack((mlat_north, mlat_south)), np.hstack((mlt_north, mlt_south)))</p>
-<p>The grids can be changed directly, but member function calculate_matrices()
-must then be called for the change to take effect. Also the grid format
-described above should be used.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.calculate_matrices">
-<code class="descname">calculate_matrices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.calculate_matrices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.calculate_matrices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the matrices that are needed to calculate currents and potentials</p>
-<p>Call this function if and only if the grid has been changed manually</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_AE_indices">
-<code class="descname">get_AE_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_AE_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_AE_indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate model synthetic auroral electrojet (AE) indices: AL and AU. The unit is nT</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Here, AL and AU are defined as the lower/upper envelope curves for the northward component
-of the ground magnetic field perturbation that is equivalent with the equivalent current,
-evaluated on <cite>scalargrid</cite>. Thus all the caveats for the <cite>get_ground_perturbation()</cite> function
-applies to these calculations as well. An additional caveat is that we have in principle
-perfect coverage with the model, while the true AE indices are derived using a small set of
-magnetometers in the auroral zone. The model values are also based on QD northward component,
-instead of the &#8220;H component&#8221;, which is used in the official measured AL index. It is possible
-to calculate model AE indices that are more directly comparable to the measured indices.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>AL_n</strong> (<em>float</em>) &#8211; Model AL index in the northerm hemisphere</li>
-<li><strong>AL_s</strong> (<em>float</em>) &#8211; Model AL index in the southern hemisphere</li>
-<li><strong>AU_n</strong> (<em>float</em>) &#8211; Model AU index in the northerm hemisphere</li>
-<li><strong>AU_s</strong> (<em>float</em>) &#8211; Model AU index in the southern hemisphere</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_curl_free_current">
-<code class="descname">get_curl_free_current</code><span class="sig-paren">(</span><em>mlat=&lt;object object&gt;</em>, <em>mlt=&lt;object object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_curl_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_curl_free_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the curl-free part of the horizontal current, in units of mA/m.
-The calculations refer to the height chosen upon initialization of the AMPS
-object (default 110 km).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mlat</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If
-not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
-<li><strong>mlt</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If
-not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>jcf_eastward</strong> (<em>numpy.array, float</em>) &#8211; eastward component of the curl-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jcf_northward</strong> (<em>numpy.array, float</em>) &#8211; northward component of the curl-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-</ul>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#pyAMPS.AMPS.get_divergence_free_current" title="pyAMPS.AMPS.get_divergence_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_divergence_free_current()</span></code></a></dt>
-<dd>Calculate divergence-free part of the horizontal current</dd>
-<dt><a class="reference internal" href="#pyAMPS.AMPS.get_total_current" title="pyAMPS.AMPS.get_total_current"><code class="xref py py-meth docutils literal"><span class="pre">get_total_current()</span></code></a></dt>
-<dd>Calculate total horizontal current</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_curl_free_current_potential">
-<code class="descname">get_curl_free_current_potential</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_curl_free_current_potential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_curl_free_current_potential" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the curl-free current potential (unit is kA). The curl-free
-current potential is a scalar alpha which relates to the curl-free part
-of the horizontal current by J_{cf} = grad(alpha). The calculations
-refer to the height chosen upon initialization of the AMPS object (default
-110 km).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>alpha_n</strong> (<em>numpy.array</em>) &#8211; Curl-free current potential in the northern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-<li><strong>alpha_s</strong> (<em>numpy.array</em>) &#8211; Curl-free current potential in the southern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_divergence_free_current">
-<code class="descname">get_divergence_free_current</code><span class="sig-paren">(</span><em>mlat=&lt;object object&gt;</em>, <em>mlt=&lt;object object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_divergence_free_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_divergence_free_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the divergence-free part of the horizontal current, in units of mA/m.
-The calculations refer to the height chosen upon initialization of the AMPS
-object (default 110 km).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mlat</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If
-not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
-<li><strong>mlt</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If
-not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>jdf_eastward</strong> (<em>numpy.array, float</em>) &#8211; eastward component of the divergence-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>jdf_northward</strong> (<em>numpy.array, float</em>) &#8211; northward component of the divergence-free current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-</ul>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#pyAMPS.AMPS.get_curl_free_current" title="pyAMPS.AMPS.get_curl_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_curl_free_current()</span></code></a></dt>
-<dd>Calculate curl-free part of the current</dd>
-<dt><a class="reference internal" href="#pyAMPS.AMPS.get_total_current" title="pyAMPS.AMPS.get_total_current"><code class="xref py py-meth docutils literal"><span class="pre">get_total_current()</span></code></a></dt>
-<dd>Calculate total horizontal current</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_equivalent_current_function">
-<code class="descname">get_equivalent_current_function</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_equivalent_current_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_equivalent_current_function" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the equivalent current function (unit is kA). Isocontours of the
-equivalent current function indicates the alignment of the divergence-free
-part of the horizontal current. Its direction is given by the cross product between
-a vertical vector and the gradient of the equivalent current function.
-A fixed amount of current flows between isocontours. The calculations refer to
-the height chosen upon initialization of the AMPS object (default 110 km).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Normally, the term <cite>equivalent current</cite> signifies a horizontal current in space which is
-equivalent with observed ground magnetic field perturbations. The present <cite>equivalent current</cite>
-is derived from measurements above the ionosphere, and thus it contains signal both from
-ionospheric currents below low Earth orbit, and from subsurface induced currents.
-See Laundal et al. (2016) <a class="footnote-reference" href="#id2" id="id1">[1]</a> where this current is called
-<cite>Psi</cite> for more detail.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>Psi_n</strong> (<em>numpy.array</em>) &#8211; Equivalent current function in the northern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-<li><strong>Psi_s</strong> (<em>numpy.array</em>) &#8211; Equivalent current function in the southern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">References</p>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>K. M. Laundal, C. C. Finlay, and N. Olsen, &#8220;Sunlight effects on the 3D polar current
-system determined from low Earth orbit measurements&#8221; Earth, Planets and Space, 2016,
-<a class="reference external" href="https://doi.org/10.1186/s40623-016-0518-x">https://doi.org/10.1186/s40623-016-0518-x</a></td></tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_equivalent_current_laplacian">
-<code class="descname">get_equivalent_current_laplacian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_equivalent_current_laplacian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_equivalent_current_laplacian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the Laplacian of the equivalent current function. In some circumstances, this
-quantity is similar to the upward current.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>d2P_n</strong> (<em>numpy.array</em>) &#8211; Laplacian of the equivalent current function in the northern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-<li><strong>d2P_s</strong> (<em>numpy.array</em>) &#8211; Laplacian of the equivalent current function in the southern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_ground_perturbation">
-<code class="descname">get_ground_perturbation</code><span class="sig-paren">(</span><em>mlat</em>, <em>mlt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_ground_perturbation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_ground_perturbation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate magnetic field perturbations on ground, in units of nT, that corresponds
-to the equivalent current function.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mlat</strong> (<em>np.array</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; magnetic latitude of the output. The array shape will not be preserved, and
-the results will be returned as a 1-dimensional array</li>
-<li><strong>mlt</strong> (<em>np.array</em><em>, </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; magnetic local time of the output. The array shape will not be preserved, and
-the results will be returned as a 1-dimensional array</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>These calculations are made by assuming that the equivalent current function calculated
-with the AMPS model correspond to the equivalent current function of an external
-magnetic potential, as described by Chapman &amp; Bartels 1940 <a class="footnote-reference" href="#id5" id="id3">[2]</a>. Induced components are
-thus ignored. The height of the current function also becomes important when propagating
-the model values to the ground.</p>
-<p>Also note that the output parameters will be QD components, and that they can be converted
-to geographic by use of QD base vectors <a class="footnote-reference" href="#id6" id="id4">[3]</a></p>
-<p class="last">This function is not optimized for calculating long time series of model ground
-magnetic field perturbations, although it is possible to use for that.</p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>dB_east</strong> (<em>np.array</em>) &#8211; Eastward component of the magnetic field disturbance on ground</li>
-<li><strong>dB_north</strong> (<em>np.array</em>) &#8211; Northward component of the magnetic field disurubance on ground</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">References</p>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><ol class="first last upperalpha simple" start="19">
-<li>Chapman &amp; J. Bartels &#8220;Geomagnetism Vol 2&#8221; Oxford University Press 1940</li>
-</ol>
-</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>A. D. Richmond, &#8220;Ionospheric Electrodynamics Using Magnetic Apex Coordinates&#8221;,
-Journal of geomagnetism and geoelectricity Vol. 47, 1995, <a class="reference external" href="http://doi.org/10.5636/jgg.47.191">http://doi.org/10.5636/jgg.47.191</a></td></tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_integrated_upward_current">
-<code class="descname">get_integrated_upward_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_integrated_upward_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_integrated_upward_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the integrated upward and downward current, poleward of <cite>minlat</cite>,
-in units of MA.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>J_up_n</strong> (<em>float</em>) &#8211; Total upward current in the northern hemisphere</li>
-<li><strong>J_down_n</strong> (<em>float</em>) &#8211; Total downward current in the northern hemisphere</li>
-<li><strong>J_up_s</strong> (<em>float</em>) &#8211; Total upward current in the southern hemisphere</li>
-<li><strong>J_down_s</strong> (<em>float</em>) &#8211; Total downward current in the southern hemisphere</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_poloidal_scalar">
-<code class="descname">get_poloidal_scalar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_poloidal_scalar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_poloidal_scalar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the poloidal scalar potential values (unit is microTm).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>V_n</strong> (<em>numpy.array</em>) &#8211; Poloidal scalar potential in the northern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-<li><strong>V_s</strong> (<em>numpy.array</em>) &#8211; Poloidal scalar potential in the southern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_toroidal_scalar">
-<code class="descname">get_toroidal_scalar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_toroidal_scalar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_toroidal_scalar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the toroidal scalar values (unit is nT).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>T_n</strong> (<em>numpy.array</em>) &#8211; Toroidal scalar in the northern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-<li><strong>T_s</strong> (<em>numpy.array</em>) &#8211; Toroidal scalar in the southern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_total_current">
-<code class="descname">get_total_current</code><span class="sig-paren">(</span><em>mlat=&lt;object object&gt;</em>, <em>mlt=&lt;object object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_total_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_total_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the total horizontal current, in units of mA/m. This is calculated as
-the sum of the curl-free and divergence-free parts. The calculations refer to
-the height chosen upon initialization of the AMPS object (default 110 km).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>mlat</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlats at which to calculate the current. Will be ignored if mlt is not also specified. If
-not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
-<li><strong>mlt</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) &#8211; array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If
-not specified, the calculations will be done using the coords of the <cite>vectorgrid</cite> attribute.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>j_eastward</strong> (<em>numpy.array, float</em>) &#8211; eastward component of the horizontal current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-<li><strong>j_northward</strong> (<em>numpy.array, float</em>) &#8211; northward component of the horizontal current evalulated at the coordinates given by the <cite>vectorgrid</cite> attribute</li>
-</ul>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><a class="reference internal" href="#pyAMPS.AMPS.get_divergence_free_current" title="pyAMPS.AMPS.get_divergence_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_divergence_free_current()</span></code></a></dt>
-<dd>Calculate divergence-free part of the horizontal current</dd>
-<dt><a class="reference internal" href="#pyAMPS.AMPS.get_curl_free_current" title="pyAMPS.AMPS.get_curl_free_current"><code class="xref py py-meth docutils literal"><span class="pre">get_curl_free_current()</span></code></a></dt>
-<dd>Calculate curl-free part of the horizontal current</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.get_upward_current">
-<code class="descname">get_upward_current</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.get_upward_current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.get_upward_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the upward current (unit is microAmps per square meter). The
-calculations refer to the height chosen upon initialization of the
-AMPS object (default 110 km).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>Ju_n</strong> (<em>numpy.array</em>) &#8211; Upward current in the northern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-<li><strong>Ju_s</strong> (<em>numpy.array</em>) &#8211; Upward current in the southern hemisphere.
-Shape: (self.resolution, self.resolution)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.plot_currents">
-<code class="descname">plot_currents</code><span class="sig-paren">(</span><em>vector_scale=200</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.plot_currents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.plot_currents" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a summary plot of the current fields</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vector_scale</strong> (<em>optional</em>) &#8211; Current vector lengths will be shown relative to a template. This parameter determines
-the magnitude of that template, in mA/m. Default is 200 mA/m</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># initialize by supplying a set of external conditions:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">AMPS</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="c1"># solar wind velocity in km/s</span>
-<span class="go">             -4, # IMF By in nT</span>
-<span class="go">             -3, # IMF Bz in nT</span>
-<span class="go">             20, # dipole tilt angle in degrees</span>
-<span class="go">             150) # F10.7 index in s.f.u.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># make summary plot:</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">plot_currents</span><span class="p">()</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="pyAMPS.AMPS.update_model">
-<code class="descname">update_model</code><span class="sig-paren">(</span><em>v</em>, <em>By</em>, <em>Bz</em>, <em>tilt</em>, <em>F107</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyAMPS/AMPS.html#AMPS.update_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyAMPS.AMPS.update_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the model vectors without updating all the other matrices. This leads to better
-performance than just making a new AMPS object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>v</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; solar wind velocity in km/s</li>
-<li><strong>By</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; IMF GSM y component in nT</li>
-<li><strong>Bz</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; IMF GSM z component in nT</li>
-<li><strong>tilt</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; dipole tilt angle in degrees</li>
-<li><strong>F107</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; F10.7 index in s.f.u.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<p>If model currents shall be calculated on the same grid for a range of
-external conditions, it is faster to do this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">m1</span> <span class="o">=</span> <span class="n">AMPS</span><span class="p">(</span><span class="n">solar_wind_velocity_in_km_per_s</span><span class="p">,</span> <span class="n">IMF_By_in_nT</span><span class="p">,</span> <span class="n">IMF_Bz_in_nT</span><span class="p">,</span> <span class="n">dipole_tilt_in_deg</span><span class="p">,</span> <span class="n">F107_index</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ... current calculations ...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">m1</span><span class="o">.</span><span class="n">update_model</span><span class="p">(</span><span class="n">new_v</span><span class="p">,</span> <span class="n">new_By</span><span class="p">,</span> <span class="n">new_Bz</span><span class="p">,</span> <span class="n">new_tilt</span><span class="p">,</span> <span class="n">new_F107</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ... new current calcuations ...</span>
-</pre></div>
-</div>
-<p>than to make a new object:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">m2</span> <span class="o">=</span> <span class="n">AMPS</span><span class="p">(</span><span class="n">new_v</span><span class="p">,</span> <span class="n">new_By</span><span class="p">,</span> <span class="n">new_Bz</span><span class="p">,</span> <span class="n">new_tilt</span><span class="p">,</span> <span class="n">new_F107</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ... new current calculations ...</span>
-</pre></div>
-</div>
-<p>Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
-by allowing the inputs to be arrays. That is not yet implemented.</p>
-</dd></dl>
-
-</dd></dl>
-
-<span class="target" id="module-mlt_utils"></span><p>This module contains functions which are used to calculate magnetic local time accurately and efficiently</p>
-<dl class="function">
-<dt id="mlt_utils.car_to_sph">
-<code class="descclassname">mlt_utils.</code><code class="descname">car_to_sph</code><span class="sig-paren">(</span><em>car</em>, <em>deg=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#car_to_sph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.car_to_sph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert from spherical to cartesian coordinates</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>car</strong> (<em>3 x N array</em>) &#8211; 3 x N array, where the rows are, from top to bottom:
-x, y, z, in ECEF coordinates</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>sph</strong> (<em>3 x N array</em>) &#8211; 3 x N array, where the rows are, from top to bottom:
-radius, colatitude, and longitude</li>
-<li><strong>deg</strong> (<em>bool, optional</em>) &#8211; set to True if output is wanted in degrees. False if radians</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="mlt_utils.geo2mag">
-<code class="descclassname">mlt_utils.</code><code class="descname">geo2mag</code><span class="sig-paren">(</span><em>glat</em>, <em>glon</em>, <em>epoch</em>, <em>deg=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#geo2mag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.geo2mag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert geographic to centered dipole coordinates</p>
-<p>The conversion uses IGRF coefficients directly, interpolated
-to the provided epoch. The construction of the rotation matrix
-follows Laundal &amp; Richmond (2017) <a class="footnote-reference" href="#id9" id="id7">[4]</a> quite directly.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>glat</strong> (<em>array_like</em>) &#8211; array of geographic latitudes</li>
-<li><strong>glon</strong> (<em>array_like</em>) &#8211; array of geographic longitudes</li>
-<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; epoch (year) for the dipole used in the conversion</li>
-<li><strong>deg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) &#8211; true if input is in degrees, False otherwise</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>cdlat</strong> (<em>ndarray</em>) &#8211; array of centered dipole latitudes [degrees]</li>
-<li><strong>cdlon</strong> (<em>ndarray</em>) &#8211; array of centered dipole longitudes [degrees]</li>
-</ul>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="mlt_utils.is_leapyear">
-<code class="descclassname">mlt_utils.</code><code class="descname">is_leapyear</code><span class="sig-paren">(</span><em>year</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#is_leapyear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.is_leapyear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if leapyear else False</p>
-<p>Handles arrays and preserves shape</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>year</strong> (<em>array_like</em>) &#8211; array of years</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>is_leapyear</strong> &#8211; True where input is leapyear, False elsewhere</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">ndarray of bools</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="mlt_utils.mlon2mlt">
-<code class="descclassname">mlt_utils.</code><code class="descname">mlon2mlt</code><span class="sig-paren">(</span><em>mlon</em>, <em>times</em>, <em>epoch</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#mlon2mlt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.mlon2mlt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate magnetic local time from magnetic longitude and time(s).</p>
-<p>This is an implementation of the formula recommended in Laundal &amp; Richmond, 2017 <a class="footnote-reference" href="#id9" id="id8">[4]</a>.
-It uses the subsolar point geomagnetic (centered dipole) longitude to define
-the noon meridian.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mlon</strong> (<em>array_like</em>) &#8211; array of magnetic longitudes</li>
-<li><strong>times</strong> (<a class="reference external" href="https://docs.python.org/2/library/datetime.html#module-datetime" title="(in Python v2.7)"><em>datetime</em></a><em> or </em><em>list of datetimes</em>) &#8211; datetime object, or list of datetimes with equal number of elements
-as mlon</li>
-<li><strong>epoch</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; the epoch (year, ) used for geo-&gt;mag conversion</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">References</p>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[4]</td><td><em>(<a class="fn-backref" href="#id7">1</a>, <a class="fn-backref" href="#id8">2</a>)</em> Laundal, K.M. &amp; Richmond, A.D. Space Sci Rev (2017) 206: 27.
-<a class="reference external" href="https://doi.org/10.1007/s11214-016-0275-y">https://doi.org/10.1007/s11214-016-0275-y</a></td></tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="mlt_utils.sph_to_car">
-<code class="descclassname">mlt_utils.</code><code class="descname">sph_to_car</code><span class="sig-paren">(</span><em>sph</em>, <em>deg=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#sph_to_car"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.sph_to_car" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert from spherical to cartesian coordinates</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sph</strong> (<em>3 x N array</em>) &#8211; 3 x N array, where the rows are, from top to bottom:
-radius, colatitude, and longitude</li>
-<li><strong>deg</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><em>optional</em>) &#8211; set to True if input is given in degrees. False if radians</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>car</strong> &#8211; 3 x N array, where the rows are, from top to bottom:
-x, y, z, in ECEF coordinates</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">3 x N array</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="mlt_utils.subsol">
-<code class="descclassname">mlt_utils.</code><code class="descname">subsol</code><span class="sig-paren">(</span><em>datetimes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlt_utils.html#subsol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mlt_utils.subsol" title="Permalink to this definition">¶</a></dt>
-<dd><p>calculate subsolar point at given datetime(s)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>datetimes</strong> (<a class="reference external" href="https://docs.python.org/2/library/datetime.html#module-datetime" title="(in Python v2.7)"><em>datetime</em></a><em> or </em><em>list of datetimes</em>) &#8211; datetime or list (or other iterable) of datetimes</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><strong>subsol_lat</strong> (<em>ndarray</em>) &#8211; latitude(s) of the subsolar point</li>
-<li><strong>subsol_lon</strong> (<em>ndarray</em>) &#8211; longiutde(s) of the subsolar point</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>The code is vectorized, so it should be fast.</p>
-<p>After Fortran code by: 961026 A. D. Richmond, NCAR</p>
-<p class="last">Documentation from original code:
-Find subsolar geographic latitude and longitude from date and time.
-Based on formulas in Astronomical Almanac for the year 1996, p. C24.
-(U.S. Government Printing Office, 1994).
-Usable for years 1601-2100, inclusive.  According to the Almanac,
-results are good to at least 0.01 degree latitude and 0.025 degree
-longitude between years 1950 and 2050.  Accuracy for other years
-has not been tested.  Every day is assumed to have exactly
-86400 seconds; thus leap seconds that sometimes occur on December
-31 are ignored:  their effect is below the accuracy threshold of
-the algorithm.</p>
-</div>
-</dd></dl>
-
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -794,13 +81,14 @@ the algorithm.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to pyAMPS&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#">pyAMPS’s documentation</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="readme.html" title="next chapter">Overview</a></li>
   </ul></li>
 </ul>
 </div>
@@ -829,7 +117,7 @@ the algorithm.</p>
       &copy;2017, Karl M. Laundal.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |

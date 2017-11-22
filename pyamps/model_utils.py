@@ -2,7 +2,28 @@ import numpy as np
 import pandas as pd
 import os
 
-coeff_fn = os.path.dirname(os.path.abspath(__file__)) + '/coefficients/model_coefficients.csv'
+basepath = os.path.dirname(__file__)
+
+coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','model_coefficients.csv'))
+
+# read coefficient file and store in pandas DataFrame (this line will be replaced when 
+# there is a decision on new format, but the dataframe should be the same):
+coeffs = pd.read_csv(coeff_fn, index_col=('n','m'))
+
+# organize the coefficients in arrays that are used to calculate magnetic field values
+names = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 
+         'tilt', 'tilt_sinca', 'tilt_cosca', 'tilt_epsilon', 'tilt_epsilon_sinca', 
+         'tilt_epsilon_cosca', 'tau', 'tau_sinca', 'tau_cosca', 'tilt_tau', 
+         'tilt_tau_sinca', 'tilt_tau_cosca', 'f107']
+
+m_matrix = np.array([np.hstack((coeffs['tor_c_' + ss].dropna().values,
+                                coeffs['tor_s_' + ss].dropna().values,
+                                coeffs['pol_c_' + ss].dropna().values,
+                                coeffs['pol_s_' + ss].dropna().values)) for ss in names]).T
+
+m_matrix_pol = np.array([np.hstack((coeffs['pol_c_' + ss].dropna().values,
+                                    coeffs['pol_s_' + ss].dropna().values)) for ss in names]).T
+
 
 def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
     """ tor_c, tor_s, pol_c, pol_s = get_model_vectors(v, By, Bz, tilt, F107)
@@ -10,11 +31,9 @@ def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1.):
         returns column vectors ((K,1)-shaped) corresponding to the spherical harmonic coefficients of the toroidal
         and poloidal parts, with _c and _s denoting cos and sin terms, respectively.
 
-        This function is used by AMPS.AMSP class
+        This function is used by amps.AMPS class
     """
 
-    # read coefficient file and store in pandas DataFrame:
-    coeffs = pd.read_csv(coeff_fn, index_col=('n','m'))
 
     ca = np.arctan2(By, Bz)
     epsilon = v**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 * epsilon_multiplier # Newell coupling           
