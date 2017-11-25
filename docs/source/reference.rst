@@ -23,3 +23,11 @@ AMPS model parameters (`model_utils`)
 -------------------------------------
 .. automodule:: model_utils
     :members:
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

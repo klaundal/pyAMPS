@@ -120,7 +120,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># flatten the input</span>
-    <span class="n">mlon</span> <span class="o">=</span> <span class="n">mlon</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> 
+    <span class="n">mlon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mlon</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> 
 
     <span class="n">ssglat</span><span class="p">,</span> <span class="n">ssglon</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">subsol</span><span class="p">(</span><span class="n">times</span><span class="p">))</span>
     <span class="n">sqlat</span><span class="p">,</span> <span class="n">ssqlon</span> <span class="o">=</span> <span class="n">geo2mag</span><span class="p">(</span><span class="n">ssglat</span><span class="p">,</span> <span class="n">ssglon</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span>
@@ -173,14 +173,14 @@
 <span class="sd">    car : 3 x N array</span>
 <span class="sd">        3 x N array, where the rows are, from top to bottom:</span>
 <span class="sd">        x, y, z, in ECEF coordinates</span>
-
+<span class="sd">    deg : bool, optional</span>
+<span class="sd">        set to True if output is wanted in degrees. False if radians</span>
+<span class="sd">    </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    sph : 3 x N array</span>
 <span class="sd">        3 x N array, where the rows are, from top to bottom:</span>
 <span class="sd">        radius, colatitude, and longitude</span>
-<span class="sd">    deg : bool, optional</span>
-<span class="sd">        set to True if output is wanted in degrees. False if radians</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">car</span>
@@ -316,7 +316,7 @@
     <span class="n">nrot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">sbsllon</span><span class="o">/</span><span class="mf">360.</span><span class="p">)</span>
     <span class="n">sbsllon</span> <span class="o">=</span> <span class="n">sbsllon</span> <span class="o">-</span> <span class="mf">360.</span><span class="o">*</span><span class="n">nrot</span>
 
-    <span class="k">return</span> <span class="n">sbsllat</span><span class="p">,</span> <span class="n">sbsllon</span></div>
+    <span class="k">return</span> <span class="n">sbsllat</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">sbsllon</span><span class="o">.</span><span class="n">values</span></div>
 
 
 <div class="viewcode-block" id="is_leapyear"><a class="viewcode-back" href="../reference.html#mlt_utils.is_leapyear">[docs]</a><span class="k">def</span> <span class="nf">is_leapyear</span><span class="p">(</span><span class="n">year</span><span class="p">):</span>
@@ -385,6 +385,8 @@
 <span class="sd">        array of centered dipole longitudes [degrees]</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">glat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">glat</span><span class="p">)</span>
+    <span class="n">glon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">glon</span><span class="p">)</span>
 
     <span class="c1"># Find IGRF parameters for given epoch:</span>
     <span class="n">dipole</span> <span class="o">=</span> <span class="n">igrf_dipole</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">igrf_dipole</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">epoch</span><span class="p">])</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span><span class="o">.</span><span class="n">interpolate</span><span class="p">()</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span> 
@@ -399,7 +401,7 @@
     <span class="n">Rgeo_to_cd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">Xcd</span><span class="p">,</span> <span class="n">Ycd</span><span class="p">,</span> <span class="n">Zcd</span><span class="p">))</span>
 
     <span class="c1"># convert input to ECEF:</span>
-    <span class="n">colat</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="n">glat</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">colat</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="n">glat</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">if</span> <span class="n">deg</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span> <span class="o">-</span> <span class="n">glat</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">glon</span>  <span class="o">=</span> <span class="n">glon</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">r_geo</span> <span class="o">=</span> <span class="n">sph_to_car</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">colat</span><span class="p">),</span> <span class="n">colat</span><span class="p">,</span> <span class="n">glon</span><span class="p">)),</span> <span class="n">deg</span> <span class="o">=</span> <span class="n">deg</span><span class="p">)</span>
 
@@ -417,7 +419,18 @@
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table Of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference.html#indices-and-tables">Indices and tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model_coefficients.html">Coefficient file format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
