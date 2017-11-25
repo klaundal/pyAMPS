@@ -17,8 +17,8 @@ class Test_SHkeys(object):
         assert k.keys[idx] == (idx//(M+1),idx%(M+1))
 
 
-    def test_getitem(self,N,M,idx):
-        k = SHkeys(N,M)
+    def test_getitem(self, N, M, idx):
+        k = SHkeys(N, M)
         
         assert k['n'] == [n for n in range(N+1) for m in range(M+1)]
         assert k['m'] == [m for n in range(N+1) for m in range(M+1)]

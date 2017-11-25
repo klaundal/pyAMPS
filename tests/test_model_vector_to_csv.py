@@ -11,8 +11,16 @@ import pyamps
 def test_get_model_vectors():
     basepath = os.path.join(os.path.dirname(__file__),"..","pyamps")
     model_vector = np.load(os.path.abspath(os.path.join(basepath,'coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')))
-    coeffs = np.genfromtxt(os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.csv')), delimiter=",", filling_values=0, skip_header=1, unpack=True)
+
+    path_txt = os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.txt'))
+    if os.path.exists(path_txt):
+        coeffs = np.nan_to_num(np.genfromtxt(path_txt, skip_header=5, unpack=True),False)#[ for col in ]
+    else:
+        path_csv = os.path.splitext(path_txt)[0]+'.csv'
+        coeffs = np.genfromtxt(path_csv, delimiter=",", filling_values=0, skip_header=1, unpack=True)
+        
     model_vectors = np.split(model_vector,19)
-    assert_allclose(model_vectors[0][:len(coeffs[0])],coeffs[2])
-    assert_allclose(model_vector.sum(),coeffs[2:].sum())
+    assert_allclose(model_vectors[0][:len(coeffs[0])],coeffs[2],atol=1e-6)
+    assert_allclose(model_vector.sum(),coeffs[2:].sum(),atol=1e-5)
+    
     pass
