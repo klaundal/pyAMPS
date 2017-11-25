@@ -14,7 +14,7 @@ def pytest_cmdline_preparse(args):
     """use #cpu's-1 for testing if pytest-xdist installed"""
     if 'xdist' in sys.modules:
         import multiprocessing
-        num = max(multiprocessing.cpu_count()-1, 1)
+        num = max(multiprocessing.cpu_count() - 1, 1)
         args[:] = ["-n", str(num)] + args
 
 
