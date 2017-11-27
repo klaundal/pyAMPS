@@ -81,9 +81,9 @@ class Test_SHkeys(object):
         k = SHkeys(N, M)
         nm = np.c_[k.n[0], k.m[0]]
         k.NminusModd()
-
+        print(k.n[0], nm.sum(1) % 2 == (1, 0),nm)
         assert k.n.shape[1] == (nm.sum(1) % 2).sum()
-        assert_array_equal(k.n[0], nm[nm.sum(1) % 2 == (1, 0)])
+        assert_array_equal(k.n[0], nm[(nm.sum(1) % 2 == 1), 0])
 
     def test_NminusMeven(self, N, M, idx):
         k = SHkeys(N, M)
@@ -91,7 +91,7 @@ class Test_SHkeys(object):
         k.NminusMeven()
 
         assert k.n.shape[1] == ((nm.sum(1) + 1) % 2).sum()
-        assert_array_equal(k.n[0], nm[nm.sum(1) % 2 == (0, 0)])
+        assert_array_equal(k.n[0], nm[(nm.sum(1) % 2 == 0), 0])
 
     def test_negative_m(self, N, M, idx):
         k = SHkeys(N, M).negative_m()
