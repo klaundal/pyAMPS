@@ -1,9 +1,11 @@
 Overview
 ========
 
-Python interface for the Average Magnetic field and Polar current System (AMPS) model
+Python interface for the Average Magnetic field and Polar current System (AMPS) model.
 
-This module can be used to calculate and plot average magnetic field and current parameters on a grid. The parameters that are available for calculation/plotting are:
+[insert AMPS model description]
+
+pyAMPS can be used to calculate and plot average magnetic field and current parameters on a grid. The parameters that are available for calculation/plotting are:
 
 - field aligned current (scalar)
 - equivalent current function (scalar)
@@ -25,9 +27,14 @@ Dependencies:
 - numpy
 - dask
 - matplotlib
-- scipy.interpolate (for plotting purposes)
-- pandas (for reading csv file containing the coefficients)
+- scipy (scipy.interpolate for plotting purposes)
+- pandas (for reading csv file containing model coefficients)
 
+
+Example usage
+-------------
+
+[insert simple example from amps package describing core functionality]
 
 References
 ----------
