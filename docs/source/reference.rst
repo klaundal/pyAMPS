@@ -22,13 +22,13 @@ Spherical harmonics (`pyamps.sh_utils`)
 
 
 AMPS model parameters (`pyamps.model_utils`)
--------------------------------------
+--------------------------------------------
 .. automodule:: model_utils
     :members:
 
 
 Polar coordinate plots (`pyamps.plot_utils`)
--------------------------------------
+--------------------------------------------
 .. automodule:: plot_utils
     :members:
 
