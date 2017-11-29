@@ -76,7 +76,6 @@ def test_car_to_sph(r, theta, phi, deg, xyz):
                     rtol=rtol, atol=atol)
 
 
-@pytest.mark.xfail(reason="wrong return type")
 def test_subsol():
     atol = 0.025
     times = datetime.datetime(2014, 10, 29, 10, 18, 1)
@@ -99,7 +98,6 @@ def test_is_leapyear():
     assert is_leapyear(np.arange(1600, 2010)).sum() == 100
 
 
-@pytest.mark.xfail(reason="radians returns wrong output")
 def test_geo2mag():
     time = 1925.0
 

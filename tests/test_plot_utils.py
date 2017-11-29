@@ -73,7 +73,6 @@ class Test_Polarsubplot(object):
 
         assert_allclose(xy4, xy5, atol=1e-15)
 
-    @pytest.mark.xfail(reason="return value reversed of expected from function name; scalar->non-scalar")
     def test__XYtomltMlat(self):
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -105,7 +104,6 @@ class Test_Polarsubplot(object):
         pass
 
 
-@pytest.mark.xfail(reason="np.linspace(0, 24 - 24./M, M) does not work for all M")
 @pytest.mark.parametrize("dr, K, M0, N", [(1.5, 1, 2, 6), (2, 0, 8, 20), (0.5, 1, 2, 3)])
 def test_equalAreaGrid(dr, K, M0, N):
 
@@ -117,8 +115,8 @@ def test_equalAreaGrid(dr, K, M0, N):
 
     assert mlat_values.shape[0] == N
     assert mlat_counts[-1] == M0
-    assert mlat_counts[-2] in [M0 * (1 + 1. / (K + 2)), M0 * int(1 + 1. / (K + 2))]  # problematic: one expression should be sufficient
-    assert_allclose(mltres.sum(), 24 * N)  # not satisfied
+    assert mlat_counts[-2] == M0 * int(1 + 1. / (K + 2)) 
+    assert_allclose(mltres.sum(), 24 * N)
     assert_allclose(mlats[-1], 90 - (dr + dr * (2 * K + 1) / 2))  # 90-(dr+r0)
 
     with pytest.raises(AssertionError):
