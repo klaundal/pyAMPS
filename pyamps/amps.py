@@ -43,9 +43,10 @@ import dask.array as da
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
-from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, getG0, get_ground_field_G0
-from model_utils import get_model_vectors, m_matrix, m_matrix_pol
+from .plot_utils import equalAreaGrid, Polarsubplot
+from .sh_utils import get_legendre, getG0, get_ground_field_G0
+from .model_utils import get_model_vectors, m_matrix, m_matrix_pol
+from functools import reduce
 
 
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
@@ -909,11 +910,10 @@ class AMPS(object):
         AL_n, AL_s, AU_n, AU_s = self.get_AE_indices()
         ju_n, jd_n, ju_s, jd_s = self.get_integrated_upward_current()
 
-        ### TODO: \uparrow uses \u python3 interprets as unicode identifier
         pax_n.ax.text(pax_n.ax.get_xlim()[0], pax_n.ax.get_ylim()[0], 
-                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_\uparrow$:\t ${jn_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n), ha = 'left', va = 'bottom', size = 14)
+                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_{uparrow:}$:\t ${jn_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 14)
         pax_s.ax.text(pax_s.ax.get_xlim()[0], pax_s.ax.get_ylim()[0], 
-                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_\uparrow$:\t ${js_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s), ha = 'left', va = 'bottom', size = 14)
+                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_{uparrow:}$:\t ${js_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 14)
 
 
         plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)

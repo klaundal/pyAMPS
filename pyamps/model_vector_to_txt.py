@@ -9,7 +9,7 @@
 import os.path
 import numpy as np
 import pandas as pd
-from sh_utils import SHkeys
+from .sh_utils import SHkeys
 
 basepath = os.path.dirname(__file__)
 
