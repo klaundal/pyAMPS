@@ -29,7 +29,7 @@ Dependencies:
 - matplotlib
 - scipy (scipy.interpolate for plotting purposes)
 - pandas (for reading csv file containing model coefficients)
-
+- apexpy (magnetic coordinate conversion)
 
 Example usage
 -------------
