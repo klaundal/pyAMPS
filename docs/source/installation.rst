@@ -14,6 +14,7 @@ pyAMPS has the following dependencies:
 - matplotlib
 - scipy (scipy.interpolate required for plotting purposes)
 - pandas (for reading csv file containing model coefficients)
+- apexpy (magnetic coordinate conversion)
 
 
 
