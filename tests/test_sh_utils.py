@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from numpy.testing import assert_array_equal, assert_allclose
-from pyamps.sh_utils import SHkeys, nterms, get_legendre, getG0, get_ground_field_G0
+from pyamps.sh_utils import SHkeys, nterms, legendre, getG0, get_ground_field_G0
 
 
 @pytest.mark.incremental
@@ -139,13 +139,13 @@ def test_nterms(N, M):
     [(2, 1, 180, False, 1, 0), (-1, 0, 2. / 3, -1)],
     [(20, 15, 31.5, True, 15, 14), (2.83735e-4, 6.30832e-3, 4.39178e-2, -1.27220)]
 ])
-def test_get_legendre(inp, out):
-    P, dP = get_legendre(
+def test_legendre(inp, out):
+    P, dP = legendre(
         nmax=inp[0],
         mmax=inp[1],
         theta=np.array(inp[2]),
         schmidtnormalize=inp[3])
-    PdP = get_legendre(
+    PdP = legendre(
         nmax=inp[0],
         mmax=inp[1],
         theta=np.array(inp[2]),
@@ -159,7 +159,7 @@ def test_get_legendre(inp, out):
     assert_allclose(P[inp[4], inp[5]], out[0], rtol=1e-4, atol=1e-14)
     assert_allclose(dP[inp[4], inp[5]], out[1], rtol=1e-4, atol=1e-14)
 
-    # Tests cannot be performed until clarification on get_legendre API 
+    # Tests cannot be performed until clarification on legendre API 
     # assert_allclose(PdP[inp[4], inp[5]].sum(), out[0], rtol=1e-4, atol=1e-14)
     # assert_allclose(PdP[inp[4], inp[1] + inp[5]].sum(), out[1], rtol=1e-4, atol=1e-14)
 

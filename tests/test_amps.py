@@ -66,7 +66,7 @@ class Test_AMPS(object):
 
         mlat, mlt = model._get_vectorgrid()
 
-        mlat_, mlt_, mlt_res = pyamps.plot_utils.equalAreaGrid(dr=model.dr, M0=model.M0)
+        mlat_, mlt_, mlt_res = pyamps.plot_utils.equal_area_grid(dr=model.dr, M0=model.M0)
         assert (np.abs(mlat) >= model.minlat).all()
         assert (-model.maxlat <= mlat).all() and (mlat <= model.maxlat).all()
         assert (0 <= mlt).all() and (mlt <= 24).all()
@@ -108,7 +108,7 @@ class Test_AMPS(object):
         model, _, m_kwargs = amps_model
         mlt2r = np.pi / 12
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         T = 0
         for i, (n, m) in enumerate(model.keys_T):
@@ -128,7 +128,7 @@ class Test_AMPS(object):
         mlt2r = pi / 12
         REFRE = 6371.2
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         V = 0
         for i, (n, m) in enumerate(model.keys_P):
@@ -150,7 +150,7 @@ class Test_AMPS(object):
         REFRE = 6371.2
         MU0 = pi * 4e-7
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         Psi = 0
         for i, (n, m) in enumerate(model.keys_P):
@@ -173,7 +173,7 @@ class Test_AMPS(object):
         REFRE = 6371.2
         MU0 = pi * 4e-7
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         Ju = 0
         for i, (n, m) in enumerate(model.keys_T):
@@ -195,7 +195,7 @@ class Test_AMPS(object):
         REFRE = 6371.2
         MU0 = pi * 4e-7
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         alpha = 0
         for i, (n, m) in enumerate(model.keys_T):
@@ -218,7 +218,7 @@ class Test_AMPS(object):
         REFRE = 6371.2
         MU0 = pi * 4e-7
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         east = 0
         north = 0
@@ -254,7 +254,7 @@ class Test_AMPS(object):
         REFRE = 6371.2
         MU0 = pi * 4e-7
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         east = 0
         north = 0
@@ -325,7 +325,7 @@ class Test_AMPS(object):
         REFRE = 6371.2
         MU0 = pi * 4e-7
 
-        P, dP = pyamps.sh_utils.get_legendre(model.N, model.M, 90 - mlat)
+        P, dP = pyamps.sh_utils.legendre(model.N, model.M, 90 - mlat)
 
         G_north = 0
         G_east = 0
