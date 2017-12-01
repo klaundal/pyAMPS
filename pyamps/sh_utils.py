@@ -3,7 +3,7 @@
     SHkeys       -- class to contain n and m - the indices of the spherical harmonic terms
     nterms       -- function which calculates the number of terms in a 
                     real expansion of a poloidal (internal + external) and toroidal expansion 
-    get_legendre -- calculate associated legendre functions - with option for Schmidt semi-normalization
+    legendre -- calculate associated legendre functions - with option for Schmidt semi-normalization
 
 
 
@@ -158,8 +158,8 @@ def nterms(NT = 0, MT = 0, NVi = 0, MVi = 0, NVe = 0, MVe = 0):
 
 
 
-def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
-    """ Calculate associated Legendre polynomials P and its derivative
+def legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
+    """ Calculate associated Legendre function P and its derivative
 
         Algorithm from "Spacecraft Attitude Determination and Control" by James Richard Wertz
 
@@ -182,11 +182,13 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
         Returns
         -------
         P : dict
-            dictionary of Legendre polynomial evalulated at theta. Keys are spherical harmonic
-            wave number tuples (n, m)
+            dictionary of Legendre function evalulated at theta. Dictionary keys are spherical harmonic
+            wave number tuples (n, m), and values will have shape (N, 1), where N is number of 
+            elements in theta. 
         dP : dict
-            dictionary of Legendre polynomial derivatives evaluated at theta. Keys are spherical
-            harmonic wave number tuples (n, m)
+            dictionary of Legendre function derivatives evaluated at theta. Dictionary keys are spherical
+            harmonic wave number tuples (n, m), and values will have shape (N, 1), where N is number of 
+            elements in theta. 
         PdP : array (only if keys != None)
             if keys != None, PdP is returned instaed of P and dP. PdP is an (N, 2M) array, where
             the first M columns represents a matrix of P values, and the last M columns represent
@@ -214,7 +216,7 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
     P[0, 0] = np.ones_like(theta, dtype = np.float64)
     for n in range(1, nmax +1):
         for m in range(0, min([n + 1, mmax + 1])):
-            # do the legendre polynomials and derivatives
+            # do the legendre functions and derivatives
             if n == m:
                 P[n, n]  = sinth * P[n - 1, m - 1]
                 dP[n, n] = sinth * dP[n - 1, m - 1] + costh * P[n - 1, n - 1]
@@ -336,8 +338,8 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
     nV = np.hstack((keys['cos_V'].n, keys['sin_V'].n))
 
     # generate Legendre matrices - first get dicts of arrays, and then stack them in the appropriate fashion
-    legendre_T = get_legendre(NT, MT, 90 - alat, keys = keys['cos_T'])
-    legendre_V = get_legendre(NV, MV, 90 - qlat, keys = keys['cos_V'])
+    legendre_T = legendre(NT, MT, 90 - alat, keys = keys['cos_T'])
+    legendre_V = legendre(NV, MV, 90 - qlat, keys = keys['cos_V'])
     P_cos_T  =  legendre_T[:, :len(keys['cos_T']) ] # split
     dP_cos_T = -legendre_T[:,  len(keys['cos_T']):]
     P_cos_V  =  legendre_V[:, :len(keys['cos_V']) ] # split
@@ -446,11 +448,11 @@ def get_ground_field_G0(qdlat, mlt, height, current_height):
     n = np.hstack((keys['cos'].n, keys['sin'].n))
 
     # generate Legendre matrices - first get dicts of arrays, and then stack them in the appropriate fashion
-    legendre = get_legendre(N, M, 90 - qdlat, keys = keys['cos'])
-    P_cos  =  legendre[: , :len(keys['cos']) ] # split
-    dP_cos = -legendre[: ,  len(keys['cos']):]
-    P_sin  =  P_cos   [: , keys['cos'].m.flatten() != 0]
-    dP_sin =  dP_cos  [: , keys['cos'].m.flatten() != 0]  
+    legendre_arr = legendre(N, M, 90 - qdlat, keys = keys['cos'])
+    P_cos  =  legendre_arr[: , :len(keys['cos']) ] # split
+    dP_cos = -legendre_arr[: ,  len(keys['cos']):]
+    P_sin  =  P_cos       [: , keys['cos'].m.flatten() != 0]
+    dP_sin =  dP_cos      [: , keys['cos'].m.flatten() != 0]  
 
     # trig matrices:
     cos  =  np.cos(phi * d2r * m_cos)
