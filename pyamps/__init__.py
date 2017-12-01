@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .amps import AMPS, get_B_ground, get_B_space
 from .mlt_utils import mlon_to_mlt
 import pyamps.plot_utils

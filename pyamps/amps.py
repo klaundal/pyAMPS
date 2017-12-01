@@ -38,15 +38,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from __future__ import division
+from __future__ import absolute_import, division
 import dask.array as da
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
-from .plot_utils import equalAreaGrid, Polarsubplot
-from .sh_utils import get_legendre, getG0, get_ground_field_G0
+from .plot_utils import equal_area_grid, Polarsubplot
+from .sh_utils import legendre, getG0, get_ground_field_G0
 from .model_utils import get_model_vectors, m_matrix, m_matrix_pol
 from functools import reduce
+
 
 
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
@@ -239,10 +240,10 @@ class AMPS(object):
         """ 
         Make grid for plotting vectors
 
-        kwargs are passed to equalAreaGrid(...)
+        kwargs are passed to equal_area_grid(...)
         """
 
-        grid = equalAreaGrid(dr = self.dr, M0 = self.M0, **kwargs)
+        grid = equal_area_grid(dr = self.dr, M0 = self.M0, **kwargs)
         mlt  = grid[1] + grid[2]/2. # shift to the center points of the bins
         mlat = grid[0] + (grid[0][1] - grid[0][0])/2  # shift to the center points of the bins
 
@@ -296,8 +297,8 @@ class AMPS(object):
         self.coslambda_vector = np.cos(self.vectorgrid[0] * np.pi/180)
 
         # P and dP ( shape  NEQ, NED):
-        vector_P, vector_dP = get_legendre(self.N, self.M, 90 - self.vectorgrid[0])
-        scalar_P, scalar_dP = get_legendre(self.N, self.M, 90 - self.scalargrid[0])
+        vector_P, vector_dP = legendre(self.N, self.M, 90 - self.vectorgrid[0])
+        scalar_P, scalar_dP = legendre(self.N, self.M, 90 - self.scalargrid[0])
 
         self.pol_P_vector  =  np.array([vector_P[ key] for key in self.keys_P ]).squeeze().T
         self.pol_dP_vector = -np.array([vector_dP[key] for key in self.keys_P ]).squeeze().T # change sign since we use lat - not colat
@@ -338,7 +339,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
@@ -377,7 +378,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
             cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
@@ -439,7 +440,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
             cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
@@ -481,7 +482,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
@@ -522,7 +523,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
@@ -578,7 +579,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
             dP = -np.array([dP[ key] for key in self.keys_P]).T.squeeze()
             cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
@@ -636,7 +637,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[ :, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
@@ -781,7 +782,7 @@ class AMPS(object):
         n = self.n_P
 
 
-        P, dP = get_legendre(self.N, self.M, 90 - mlat)
+        P, dP = legendre(self.N, self.M, 90 - mlat)
         P  = np.array([ P[ key] for key in self.keys_P]).T.squeeze()
         dP = np.array([dP[ key] for key in self.keys_P]).T.squeeze()
         cosmphi = np.cos(m * mlt * np.pi/12)
@@ -990,7 +991,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R)
 
     # use that wrapper to calculate G0 for each block
-    G0 = da.map_blocks(_getG0, glat, glon, time, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float32)
+    G0 = da.map_blocks(_getG0, glat, glon, time, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
     B_matrix  = G0.dot(  m_matrix ).compute()

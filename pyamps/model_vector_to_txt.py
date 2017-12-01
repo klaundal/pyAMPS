@@ -5,7 +5,7 @@
     This script is provided for transparency; when the txt file is made, it is
     no longer useful.
 """
-
+from __future__ import absolute_import
 import os.path
 import numpy as np
 import pandas as pd
