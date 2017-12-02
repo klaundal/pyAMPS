@@ -176,23 +176,24 @@ def legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
             True if Schmidth seminormalization is wanted, False otherwise. Default True
         keys : SHkeys, optional
             If this parameter is set, an array will be returned instead of a dict. 
-            The array will be (N, 2M), where the M first columns represent the matrix
-            of P values, and the last M columns represent values of dP/dtheta
+            The array will be (N, 2M), where N is the number of elements in `theta`, and 
+            M is the number of keys. The first M columns represents a matrix of P values, 
+            and the last M columns represent values of dP/dtheta
 
         Returns
         -------
         P : dict
             dictionary of Legendre function evalulated at theta. Dictionary keys are spherical harmonic
             wave number tuples (n, m), and values will have shape (N, 1), where N is number of 
-            elements in theta. 
+            elements in `theta`. 
         dP : dict
             dictionary of Legendre function derivatives evaluated at theta. Dictionary keys are spherical
             harmonic wave number tuples (n, m), and values will have shape (N, 1), where N is number of 
             elements in theta. 
         PdP : array (only if keys != None)
-            if keys != None, PdP is returned instaed of P and dP. PdP is an (N, 2M) array, where
-            the first M columns represents a matrix of P values, and the last M columns represent
-            values of dP/dtheta
+            if keys != None, PdP is returned instaed of P and dP. PdP is an (N, 2M) array, where N is 
+            the number of elements in `theta`, and M is the number of keys. The first M columns represents 
+            a matrix of P values, and the last M columns represent values of dP/dtheta
 
     """
 

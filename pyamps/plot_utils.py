@@ -343,7 +343,7 @@ def equal_area_grid(dr = 2, K = 0, M0 = 8, N = 20):
     M = M0
     grid[90 - r0 - dr] = np.linspace(0, 24 - 24./M, M) # these are the lower limits in MLT
 
-    for i in range(N):
+    for i in range(N - 1):
 
         M = M *  (1 + 1./(K + i + 1.)) # this is the partion for i + 1
 
