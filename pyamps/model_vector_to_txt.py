@@ -5,11 +5,11 @@
     This script is provided for transparency; when the txt file is made, it is
     no longer useful.
 """
-
+from __future__ import absolute_import
 import os.path
 import numpy as np
 import pandas as pd
-from sh_utils import SHkeys
+from .sh_utils import SHkeys
 
 basepath = os.path.dirname(__file__)
 

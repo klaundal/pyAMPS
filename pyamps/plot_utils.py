@@ -44,9 +44,10 @@ SOFTWARE.
 """
 
 
-from __future__ import division
+from __future__ import absolute_import, division
 import numpy as np
 from scipy.interpolate import griddata
+from builtins import range
 
 
 class Polarsubplot(object):
