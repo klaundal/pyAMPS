@@ -438,6 +438,7 @@ class AMPS(object):
             Psi = - REFRE / MU0 * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
                                    + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) ) * 1e-9  # kA
         else: # calculate at custom coordinates
+            shape = mlat.shape
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
@@ -447,6 +448,7 @@ class AMPS(object):
             sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
             Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
                                    + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
+            Psi = Psi.reshape(shape)
 
 
         
@@ -480,6 +482,7 @@ class AMPS(object):
                                                           + np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) )
 
         else: # calculate at custom coordinates
+            shape = mlat.shape
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
@@ -489,6 +492,8 @@ class AMPS(object):
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
             Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
                                                           + np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
+            Ju = Ju.reshape(shape)
+
         return Ju
 
 
@@ -521,6 +526,7 @@ class AMPS(object):
                                                      + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
 
         else: # calculate at custom coordinates
+            shape = mlat.shape
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
@@ -531,6 +537,7 @@ class AMPS(object):
 
             alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
                                                      + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
+            alpha = alpha.reshape(shape)
 
 
         return alpha

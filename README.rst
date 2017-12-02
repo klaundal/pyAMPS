@@ -33,29 +33,28 @@ Dependencies:
 
 Example usage
 -------------
-.. codeblock:: python
     >>> # initialize by supplying a set of external conditions:
     >>> from pyamps import AMPS
     >>> m = AMPS(350, # Solar wind velocity in km/s 
-                 -4, # IMF By (GSM) in nT
-                 -3, # IMF Bz (GSM) in nT, 
-                 20, # dipole tilt angle in degrees 
-                 80) # F107_index
+                  -4, # IMF By (GSM) in nT
+                  -3, # IMF Bz (GSM) in nT, 
+                  20, # dipole tilt angle in degrees 
+                  80) # F107_index
 
     >>> # make summary plot:
     >>> m.plot_currents()
 
-![output of plot_currents()](./example_plot.png "Example plot")
+.. image:: ./example_plot.png
 
-.. codeblock:: python
+.. code-block:: python
+
     >>> # All the different current functions can be calculated on
     >>> # a pre-defined or user-specified grid.
     >>> import numpy as np 
-    >>> mlat, mlt = np.array([70, -70]), np.array([12, 12])
+    >>> mlat, mlt = np.array([75, -75]), np.array([12, 12])
     >>> Ju = m.get_upward_current(mlat, mlt)
     >>> Ju
-    array([[-0.07517933],
-           [-0.02853777]])
+    array([ 0.25088252, -0.05726114])
 
 
 
