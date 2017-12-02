@@ -33,6 +33,8 @@ Dependencies:
 
 Example usage
 -------------
+.. code-block:: python
+
     >>> # initialize by supplying a set of external conditions:
     >>> from pyamps import AMPS
     >>> m = AMPS(350, # Solar wind velocity in km/s 
@@ -40,7 +42,6 @@ Example usage
                   -3, # IMF Bz (GSM) in nT, 
                   20, # dipole tilt angle in degrees 
                   80) # F107_index
-
     >>> # make summary plot:
     >>> m.plot_currents()
 
