@@ -30,10 +30,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from __future__ import division
+from __future__ import absolute_import, division
 import numpy as np
 import apexpy
-from mlt_utils import mlon_to_mlt
+from .mlt_utils import mlon_to_mlt
+from builtins import range
 
 d2r = np.pi/180
 
