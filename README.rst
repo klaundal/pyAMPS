@@ -3,12 +3,12 @@ Overview
 
 Python interface for the Average Magnetic field and Polar current System (AMPS) model.
 
-[insert AMPS model description]
+The AMPS model is an empirical model of the ionospheric current system and associated magnetic field. The model magnetic field and currents are continuous functions of solar wind velocity, the interplanetary magnetic field, the tilt of the Earth's dipole magnetic field with respect to the Sun, and the 10.7 cm solar radio flux index F10.7. Given these parameters, model values of the ionospheric magnetic field can be calculated anywhere in space, and, with certain assumptions, on ground. The full current system, horizontal + field-aligned, are defined everywhere in the polar regions. The model is based on magnetic field measurements from the low Earth orbiting Swarm and CHAMP satellites.
 
 pyAMPS can be used to calculate and plot average magnetic field and current parameters on a grid. The parameters that are available for calculation/plotting are:
 
 - field aligned current (scalar)
-- equivalent current function (scalar)
+- divergence-free current function (scalar)
 - divergence-free part of horizontal current (vector)
 - curl-free part of horizontal current (vector)
 - total horizontal current (vector)
@@ -33,8 +33,31 @@ Dependencies:
 
 Example usage
 -------------
+.. codeblock:: python
+    >>> # initialize by supplying a set of external conditions:
+    >>> from pyamps import AMPS
+    >>> m = AMPS(350, # Solar wind velocity in km/s 
+                 -4, # IMF By (GSM) in nT
+                 -3, # IMF Bz (GSM) in nT, 
+                 20, # dipole tilt angle in degrees 
+                 80) # F107_index
 
-[insert simple example from amps package describing core functionality]
+    >>> # make summary plot:
+    >>> m.plot_currents()
+
+![output of plot_currents()](./example_plot.png "Example plot")
+
+.. codeblock:: python
+    >>> # All the different current functions can be calculated on
+    >>> # a pre-defined or user-specified grid.
+    >>> import numpy as np 
+    >>> mlat, mlt = np.array([70, -70]), np.array([12, 12])
+    >>> Ju = m.get_upward_current(mlat, mlt)
+    >>> Ju
+    array([[-0.07517933],
+           [-0.02853777]])
+
+
 
 References
 ----------
