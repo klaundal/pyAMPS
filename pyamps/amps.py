@@ -999,7 +999,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R)
 
     # use that wrapper to calculate G0 for each block
-    G0 = da.map_blocks(_getG0, glat, glon, time, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
+    G0 = da.map_blocks(_getG0, glat, glon, height, time, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
     B_matrix  = G0.dot(  m_matrix ).compute()

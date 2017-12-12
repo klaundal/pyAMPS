@@ -261,7 +261,7 @@ def legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
 
 
 
-def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
+def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
     """ calculate the G matrix for the constant term in the AMPS model. The constant term is the 
         term that depends only on the spherical harmonic coefficients that are not scaled by 
         external parameters. This G matrix can be used to produce the full matrix.
@@ -278,11 +278,11 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
             Geodetic latitude (degrees)
         glon : array
             Geographic/geodetic longitude (degrees)
+        height : array
+            Geodetic heights, in km
         time : array
             Array of datetimes correspondign to each point. This is needed to calculate 
             magnetic local time.
-        height : array
-            Geodetic heights, in km
         epoch : float, optional
             The epoch used for conversion to apex coordinates. Default 2015.
         h_R : float, optional
