@@ -10,26 +10,26 @@ Core functionality (`pyamps`)
 
 Magnetic local time (`pyamps.mlt_utils`)
 ----------------------------------------
-.. automodule:: mlt_utils
+.. automodule:: pyamps.mlt_utils
     :members:
 
 
 Spherical harmonics (`pyamps.sh_utils`)
 ---------------------------------------
-.. automodule:: sh_utils
+.. automodule:: pyamps.sh_utils
     :members:
 
 
 
 AMPS model parameters (`pyamps.model_utils`)
 --------------------------------------------
-.. automodule:: model_utils
+.. automodule:: pyamps.model_utils
     :members:
 
 
 Polar coordinate plots (`pyamps.plot_utils`)
 --------------------------------------------
-.. automodule:: plot_utils
+.. automodule:: pyamps.plot_utils
     :members:
 
 
