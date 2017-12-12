@@ -1,6 +1,7 @@
 from __future__ import division
 
 import pytest
+import datetime
 import numpy as np
 from numpy import pi, cos, sin
 from numpy.testing import assert_array_equal, assert_allclose
@@ -89,12 +90,12 @@ class Test_AMPS(object):
     def test_calculate_matrices(self, amps_model):
         model, _, m_kwargs = amps_model
         assert model.tor_sinmphi_scalar.shape == (882, 5)
-        assert model.pol_dP_vector.shape == (112, 5)
+        assert model.pol_dP_vector.shape == (160, 5)
 
         assert_allclose(model.tor_sinmphi_vector[2],
-                        [0, np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 1])
+                        [0.000000, 0.471397, 0.000000, 0.471397, 0.831470],atol=1e-6)
         assert_allclose(model.pol_cosmphi_vector[0],
-                        [1.000000, 0.987688, 1.000000, 0.987688, 0.951056], atol=1e-6)
+                        [1.000000, 0.995185, 1.000000, 0.995185, 0.980785], atol=1e-6)
 
         assert_allclose(model.pol_P_scalar[1],
                         [0.950489, 0.310759, 0.855143, 0.511601, 0.083633], atol=1e-6)
@@ -142,8 +143,8 @@ class Test_AMPS(object):
                         model.get_poloidal_scalar(*model.plotgrid_scalar))
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_divergence_free_current_function(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
         mlt2r = pi / 12
@@ -161,12 +162,13 @@ class Test_AMPS(object):
         Psi *= -REFRE / MU0 * 1e-9
         assert_allclose(Psi, model.get_divergence_free_current_function(mlat, mlt))
 
-        assert_allclose(np.split(model.get_divergence_free_current_function(), 2)[0],
+        assert_allclose(np.split(model.get_divergence_free_current_function(), 2)[0].reshape(
+                            m_kwargs['resolution'],m_kwargs['resolution']),
                         model.get_divergence_free_current_function(*model.plotgrid_scalar))
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_upward_current(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
         mlt2r = pi / 12
@@ -183,12 +185,13 @@ class Test_AMPS(object):
         Ju *= -1 / MU0 / (REFRE + m_kwargs['height']) * 1e-6
         assert_allclose(Ju, model.get_upward_current(mlat, mlt))
 
-        assert_allclose(np.split(model.get_upward_current(), 2)[0],
+        assert_allclose(np.split(model.get_upward_current(), 2)[0].reshape(
+                            m_kwargs['resolution'],m_kwargs['resolution']),
                         model.get_upward_current(*model.plotgrid_scalar))
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_curl_free_current_potential(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
         mlt2r = pi / 12
@@ -205,12 +208,13 @@ class Test_AMPS(object):
         alpha *= -(REFRE + m_kwargs['height']) / MU0 * 1e-9
         assert_allclose(alpha, model.get_curl_free_current_potential(mlat, mlt))
 
-        assert_allclose(np.split(model.get_curl_free_current_potential(), 2)[0],
+        assert_allclose(np.split(model.get_curl_free_current_potential(), 2)[0].reshape(
+                            m_kwargs['resolution'],m_kwargs['resolution']),
                         model.get_curl_free_current_potential(*model.plotgrid_scalar))
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_divergence_free_current(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
         mlt2r = pi / 12
@@ -245,8 +249,8 @@ class Test_AMPS(object):
 
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_curl_free_current(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
         mlt2r = pi / 12
@@ -279,8 +283,8 @@ class Test_AMPS(object):
 
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_total_current(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
 
@@ -316,8 +320,8 @@ class Test_AMPS(object):
 
         pass
 
-    @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
-                                           (np.array([71.]), np.array([6.]))])
+    @pytest.mark.parametrize("mlat, mlt", [(np.array([[60.]]), np.array([[0.]])),
+                                           (np.array([[71.]]), np.array([[6.]]))])
     def test_get_ground_perturbation(self, amps_model, mlat, mlt):
         model, _, m_kwargs = amps_model
         mlt2r = pi / 12
@@ -358,18 +362,30 @@ class Test_AMPS(object):
         pass
 
 
-@pytest.mark.xfail(reason="Input requires (glat,glon) but is passed to getG0,which needs (qdlat,mlt)")
 def test_get_B_space():
-    assert 0
+    # params, input for get_B_ground: glat, glon, height, time, v, By, Bz, tilt, f107 
+    params = map(lambda x: np.array(x).reshape(-1), [
+        [90, 90],
+        [0, 0],
+        [110, 110],
+        [datetime.datetime(2015,1,2), datetime.datetime(2015,1,2)],
+        [0, 0],
+        [0, 0],
+        [1, 1],
+        [0.5, 0.5],
+        [0.3, 0.3]])
+    B_e, B_n, B_r = get_B_space(*params)
+    assert_allclose(B_e, [7.760, 7.760], atol=1e-3)
+    assert_allclose(B_n, [-16.462, -16.462], atol=1e-3)
+    assert_allclose(B_r, [10.697, 10.697], atol=1e-3)
     pass
 
 
 def test_get_B_ground():
+    # params, input for get_B_space: qdlat, mlt, height, v, By, Bz, tilt, f107
     params = map(lambda x: np.array(x), [90, 0, 110, 0, 0, 1, 0.5, 0.3])
-    qdlat, mlt, height, v, By, Bz, tilt, f107 = params
-    B_e, B_n, B_r = get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107)
-    print(B_e, B_n, B_r)
-    assert_allclose(B_e, 0, atol=1e-3)
-    assert_allclose(B_n, 5.609, atol=1e-3)
-    assert_allclose(B_r, 3.258, atol=1e-3)
+    Bqphi, Bqlambda, Bqr = get_B_ground(*params)
+    assert_allclose(Bqphi, 0, atol=1e-3)
+    assert_allclose(Bqlambda, 5.609, atol=1e-3)
+    assert_allclose(Bqr, 3.258, atol=1e-3)
     pass

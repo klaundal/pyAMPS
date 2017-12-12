@@ -173,7 +173,7 @@ def test_getG0():
     time = np.array([datetime.datetime(2000, 1, 2, 3, 4, 5, 6),
                      datetime.datetime(2000, 1, 2, 4, 5, 6, 7)])
     height = np.array([110, 110])
-    G0 = getG0(glat, glon, time, height, epoch=2000)
+    G0 = getG0(glat, glon, height, time, epoch=2000)
 
     assert G0.shape == (3 * 2, 758)
     assert_allclose(G0[5, :450].sum(), -0.0836, atol=1e-4)
