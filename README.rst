@@ -3,9 +3,11 @@ Overview
 
 Python interface for the Average Magnetic field and Polar current System (AMPS) model.
 
-.. image:: ./animation.gif
-   :align: left
-   
+.. image:: ../static/animation.gif
+    :align: left
+    :alt:
+
+
 The AMPS model is an empirical model of the ionospheric current system and associated magnetic field. The model magnetic field and currents are continuous functions of solar wind velocity, the interplanetary magnetic field, the tilt of the Earth's dipole magnetic field with respect to the Sun, and the 10.7 cm solar radio flux index F10.7. Given these parameters, model values of the ionospheric magnetic field can be calculated anywhere in space, and, with certain assumptions, on ground. The full current system, horizontal + field-aligned, are defined everywhere in the polar regions. The model is based on magnetic field measurements from the low Earth orbiting Swarm and CHAMP satellites.
 
 pyAMPS can be used to calculate and plot average magnetic field and current parameters on a grid. The parameters that are available for calculation/plotting are:
@@ -48,8 +50,9 @@ Example usage
     >>> # make summary plot:
     >>> m.plot_currents()
 
-.. image:: ./example_plot.png
-
+.. image:: ../static/example_plot.png
+    :alt:
+    
 .. code-block:: python
 
     >>> # All the different current functions can be calculated on
