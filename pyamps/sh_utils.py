@@ -297,23 +297,23 @@ def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
             is the number of terms in the spherical harmonic expansion of B
 
     """
-    glat   = glat.flatten()
-    glon   = glon.flatten()
-    height = height.flatten()
+    glat   = np.asarray(glat).flatten()
+    glon   = np.asarray(glon).flatten()
+    height = np.asarray(height).flatten()
 
     # convert to magnetic coords and get base vectors
     a = apexpy.Apex(epoch, refh = h_R)
     qlat, qlon = a.geo2qd(  glat.flatten(), glon.flatten(), height.flatten())
     alat, alon = a.geo2apex(glat.flatten(), glon.flatten(), height.flatten())
     f1, f2, f3, g1, g2, g3, d1, d2, d3, e1, e2, e3 = a.basevectors_apex(qlat, qlon, height, coords  = 'qd')
-    f1e = f1[0][:, np.newaxis] # base vector components as column vectors
-    f1n = f1[1][:, np.newaxis]
-    f2e = f2[0][:, np.newaxis]
-    f2n = f2[1][:, np.newaxis]
-    d1e = d1[0][:, np.newaxis]
-    d1n = d1[1][:, np.newaxis]
-    d2e = d2[0][:, np.newaxis]
-    d2n = d2[1][:, np.newaxis]
+    f1e = f1[0].reshape(-1, 1) # base vector components as column vectors
+    f1n = f1[1].reshape(-1, 1)
+    f2e = f2[0].reshape(-1, 1)
+    f2n = f2[1].reshape(-1, 1)
+    d1e = d1[0].reshape(-1, 1)
+    d1n = d1[1].reshape(-1, 1)
+    d2e = d2[0].reshape(-1, 1)
+    d2n = d2[1].reshape(-1, 1)
 
     # calculate magnetic local time
     phi = mlon_to_mlt(qlon, time, a.year)[:, np.newaxis]*15 # multiply by 15 to get degrees
