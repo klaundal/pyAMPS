@@ -10,14 +10,6 @@ from pandas.compat import StringIO
 import pyamps
 
 
-def pytest_cmdline_preparse(args):
-    """use #cpu's-1 for testing if pytest-xdist installed"""
-    if 'xdist' in sys.modules:
-        import multiprocessing
-        num = max(multiprocessing.cpu_count()-1, 1)
-        args[:] = ["-n", str(num)] + args
-
-
 def pytest_runtest_makereport(item, call):
     """determine if previous function under fixture pytest.mark.incremental failed"""
     if "incremental" in item.keywords:

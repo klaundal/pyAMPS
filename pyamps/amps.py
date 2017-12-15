@@ -38,14 +38,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from __future__ import division
+from __future__ import absolute_import, division
 import dask.array as da
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
-from plot_utils import equalAreaGrid, Polarsubplot
-from sh_utils import get_legendre, getG0, get_ground_field_G0
-from model_utils import get_model_vectors, m_matrix, m_matrix_pol
+from .plot_utils import equal_area_grid, Polarsubplot
+from .sh_utils import legendre, getG0, get_ground_field_G0
+from .model_utils import get_model_vectors, m_matrix, m_matrix_pol
+from functools import reduce
+from builtins import range
+
 
 
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
@@ -238,10 +241,10 @@ class AMPS(object):
         """ 
         Make grid for plotting vectors
 
-        kwargs are passed to equalAreaGrid(...)
+        kwargs are passed to equal_area_grid(...)
         """
 
-        grid = equalAreaGrid(dr = self.dr, M0 = self.M0, **kwargs)
+        grid = equal_area_grid(dr = self.dr, M0 = self.M0, **kwargs)
         mlt  = grid[1] + grid[2]/2. # shift to the center points of the bins
         mlat = grid[0] + (grid[0][1] - grid[0][0])/2  # shift to the center points of the bins
 
@@ -295,8 +298,8 @@ class AMPS(object):
         self.coslambda_vector = np.cos(self.vectorgrid[0] * np.pi/180)
 
         # P and dP ( shape  NEQ, NED):
-        vector_P, vector_dP = get_legendre(self.N, self.M, 90 - self.vectorgrid[0])
-        scalar_P, scalar_dP = get_legendre(self.N, self.M, 90 - self.scalargrid[0])
+        vector_P, vector_dP = legendre(self.N, self.M, 90 - self.vectorgrid[0])
+        scalar_P, scalar_dP = legendre(self.N, self.M, 90 - self.scalargrid[0])
 
         self.pol_P_vector  =  np.array([vector_P[ key] for key in self.keys_P ]).squeeze().T
         self.pol_dP_vector = -np.array([vector_dP[key] for key in self.keys_P ]).squeeze().T # change sign since we use lat - not colat
@@ -337,7 +340,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
@@ -376,7 +379,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
             cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
@@ -435,15 +438,17 @@ class AMPS(object):
             Psi = - REFRE / MU0 * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
                                    + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) ) * 1e-9  # kA
         else: # calculate at custom coordinates
+            shape = mlat.shape
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
             cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
             Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
                                    + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
+            Psi = Psi.reshape(shape)
 
 
         
@@ -477,15 +482,18 @@ class AMPS(object):
                                                           + np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) )
 
         else: # calculate at custom coordinates
+            shape = mlat.shape
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
             Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
                                                           + np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
+            Ju = Ju.reshape(shape)
+
         return Ju
 
 
@@ -518,16 +526,18 @@ class AMPS(object):
                                                      + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
 
         else: # calculate at custom coordinates
+            shape = mlat.shape
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
             sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
 
             alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
                                                      + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
+            alpha = alpha.reshape(shape)
 
 
         return alpha
@@ -577,7 +587,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[:, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
             dP = -np.array([dP[ key] for key in self.keys_P]).T.squeeze()
             cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
@@ -635,7 +645,7 @@ class AMPS(object):
             mlat = mlat.flatten()[:, np.newaxis]
             mlt  = mlt.flatten()[ :, np.newaxis]
 
-            P, dP = get_legendre(self.N, self.M, 90 - mlat)
+            P, dP = legendre(self.N, self.M, 90 - mlat)
             P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
             dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
             cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
@@ -780,7 +790,7 @@ class AMPS(object):
         n = self.n_P
 
 
-        P, dP = get_legendre(self.N, self.M, 90 - mlat)
+        P, dP = legendre(self.N, self.M, 90 - mlat)
         P  = np.array([ P[ key] for key in self.keys_P]).T.squeeze()
         dP = np.array([dP[ key] for key in self.keys_P]).T.squeeze()
         cosmphi = np.cos(m * mlt * np.pi/12)
@@ -909,11 +919,10 @@ class AMPS(object):
         AL_n, AL_s, AU_n, AU_s = self.get_AE_indices()
         ju_n, jd_n, ju_s, jd_s = self.get_integrated_upward_current()
 
-        ### TODO: \uparrow uses \u python3 interprets as unicode identifier
         pax_n.ax.text(pax_n.ax.get_xlim()[0], pax_n.ax.get_ylim()[0], 
-                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_\uparrow$:\t ${jn_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n), ha = 'left', va = 'bottom', size = 14)
+                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_{uparrow:}$:\t ${jn_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 14)
         pax_s.ax.text(pax_s.ax.get_xlim()[0], pax_s.ax.get_ylim()[0], 
-                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_\uparrow$:\t ${js_up:+.1f}$ MA\n $\int j_\downarrow$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s), ha = 'left', va = 'bottom', size = 14)
+                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_{uparrow:}$:\t ${js_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 14)
 
 
         plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)
@@ -990,7 +999,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R)
 
     # use that wrapper to calculate G0 for each block
-    G0 = da.map_blocks(_getG0, glat, glon, time, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float32)
+    G0 = da.map_blocks(_getG0, glat, glon, height, time, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
     B_matrix  = G0.dot(  m_matrix ).compute()

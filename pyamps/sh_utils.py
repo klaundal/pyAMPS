@@ -3,7 +3,7 @@
     SHkeys       -- class to contain n and m - the indices of the spherical harmonic terms
     nterms       -- function which calculates the number of terms in a 
                     real expansion of a poloidal (internal + external) and toroidal expansion 
-    get_legendre -- calculate associated legendre functions - with option for Schmidt semi-normalization
+    legendre -- calculate associated legendre functions - with option for Schmidt semi-normalization
 
 
 
@@ -30,10 +30,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from __future__ import division
+from __future__ import absolute_import, division
 import numpy as np
 import apexpy
-from mlt_utils import mlon_to_mlt
+from .mlt_utils import mlon_to_mlt
+from builtins import range
 
 d2r = np.pi/180
 
@@ -158,8 +159,8 @@ def nterms(NT = 0, MT = 0, NVi = 0, MVi = 0, NVe = 0, MVe = 0):
 
 
 
-def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
-    """ Calculate associated Legendre polynomials P and its derivative
+def legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
+    """ Calculate associated Legendre function P and its derivative
 
         Algorithm from "Spacecraft Attitude Determination and Control" by James Richard Wertz
 
@@ -176,21 +177,24 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
             True if Schmidth seminormalization is wanted, False otherwise. Default True
         keys : SHkeys, optional
             If this parameter is set, an array will be returned instead of a dict. 
-            The array will be (N, 2M), where the M first columns represent the matrix
-            of P values, and the last M columns represent values of dP/dtheta
+            The array will be (N, 2M), where N is the number of elements in `theta`, and 
+            M is the number of keys. The first M columns represents a matrix of P values, 
+            and the last M columns represent values of dP/dtheta
 
         Returns
         -------
         P : dict
-            dictionary of Legendre polynomial evalulated at theta. Keys are spherical harmonic
-            wave number tuples (n, m)
+            dictionary of Legendre function evalulated at theta. Dictionary keys are spherical harmonic
+            wave number tuples (n, m), and values will have shape (N, 1), where N is number of 
+            elements in `theta`. 
         dP : dict
-            dictionary of Legendre polynomial derivatives evaluated at theta. Keys are spherical
-            harmonic wave number tuples (n, m)
+            dictionary of Legendre function derivatives evaluated at theta. Dictionary keys are spherical
+            harmonic wave number tuples (n, m), and values will have shape (N, 1), where N is number of 
+            elements in theta. 
         PdP : array (only if keys != None)
-            if keys != None, PdP is returned instaed of P and dP. PdP is an (N, 2M) array, where
-            the first M columns represents a matrix of P values, and the last M columns represent
-            values of dP/dtheta
+            if keys != None, PdP is returned instaed of P and dP. PdP is an (N, 2M) array, where N is 
+            the number of elements in `theta`, and M is the number of keys. The first M columns represents 
+            a matrix of P values, and the last M columns represent values of dP/dtheta
 
     """
 
@@ -214,7 +218,7 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
     P[0, 0] = np.ones_like(theta, dtype = np.float64)
     for n in range(1, nmax +1):
         for m in range(0, min([n + 1, mmax + 1])):
-            # do the legendre polynomials and derivatives
+            # do the legendre functions and derivatives
             if n == m:
                 P[n, n]  = sinth * P[n - 1, m - 1]
                 dP[n, n] = sinth * dP[n - 1, m - 1] + costh * P[n - 1, n - 1]
@@ -257,7 +261,7 @@ def get_legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
 
 
 
-def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
+def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
     """ calculate the G matrix for the constant term in the AMPS model. The constant term is the 
         term that depends only on the spherical harmonic coefficients that are not scaled by 
         external parameters. This G matrix can be used to produce the full matrix.
@@ -274,11 +278,11 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
             Geodetic latitude (degrees)
         glon : array
             Geographic/geodetic longitude (degrees)
+        height : array
+            Geodetic heights, in km
         time : array
             Array of datetimes correspondign to each point. This is needed to calculate 
             magnetic local time.
-        height : array
-            Geodetic heights, in km
         epoch : float, optional
             The epoch used for conversion to apex coordinates. Default 2015.
         h_R : float, optional
@@ -293,23 +297,23 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
             is the number of terms in the spherical harmonic expansion of B
 
     """
-    glat   = glat.flatten()
-    glon   = glon.flatten()
-    height = height.flatten()
+    glat   = np.asarray(glat).flatten()
+    glon   = np.asarray(glon).flatten()
+    height = np.asarray(height).flatten()
 
     # convert to magnetic coords and get base vectors
     a = apexpy.Apex(epoch, refh = h_R)
     qlat, qlon = a.geo2qd(  glat.flatten(), glon.flatten(), height.flatten())
     alat, alon = a.geo2apex(glat.flatten(), glon.flatten(), height.flatten())
     f1, f2, f3, g1, g2, g3, d1, d2, d3, e1, e2, e3 = a.basevectors_apex(qlat, qlon, height, coords  = 'qd')
-    f1e = f1[0][:, np.newaxis] # base vector components as column vectors
-    f1n = f1[1][:, np.newaxis]
-    f2e = f2[0][:, np.newaxis]
-    f2n = f2[1][:, np.newaxis]
-    d1e = d1[0][:, np.newaxis]
-    d1n = d1[1][:, np.newaxis]
-    d2e = d2[0][:, np.newaxis]
-    d2n = d2[1][:, np.newaxis]
+    f1e = f1[0].reshape(-1, 1) # base vector components as column vectors
+    f1n = f1[1].reshape(-1, 1)
+    f2e = f2[0].reshape(-1, 1)
+    f2n = f2[1].reshape(-1, 1)
+    d1e = d1[0].reshape(-1, 1)
+    d1n = d1[1].reshape(-1, 1)
+    d2e = d2[0].reshape(-1, 1)
+    d2n = d2[1].reshape(-1, 1)
 
     # calculate magnetic local time
     phi = mlon_to_mlt(qlon, time, a.year)[:, np.newaxis]*15 # multiply by 15 to get degrees
@@ -336,8 +340,8 @@ def getG0(glat, glon, time, height, epoch = 2015., h_R = 110.):
     nV = np.hstack((keys['cos_V'].n, keys['sin_V'].n))
 
     # generate Legendre matrices - first get dicts of arrays, and then stack them in the appropriate fashion
-    legendre_T = get_legendre(NT, MT, 90 - alat, keys = keys['cos_T'])
-    legendre_V = get_legendre(NV, MV, 90 - qlat, keys = keys['cos_V'])
+    legendre_T = legendre(NT, MT, 90 - alat, keys = keys['cos_T'])
+    legendre_V = legendre(NV, MV, 90 - qlat, keys = keys['cos_V'])
     P_cos_T  =  legendre_T[:, :len(keys['cos_T']) ] # split
     dP_cos_T = -legendre_T[:,  len(keys['cos_T']):]
     P_cos_V  =  legendre_V[:, :len(keys['cos_V']) ] # split
@@ -446,11 +450,11 @@ def get_ground_field_G0(qdlat, mlt, height, current_height):
     n = np.hstack((keys['cos'].n, keys['sin'].n))
 
     # generate Legendre matrices - first get dicts of arrays, and then stack them in the appropriate fashion
-    legendre = get_legendre(N, M, 90 - qdlat, keys = keys['cos'])
-    P_cos  =  legendre[: , :len(keys['cos']) ] # split
-    dP_cos = -legendre[: ,  len(keys['cos']):]
-    P_sin  =  P_cos   [: , keys['cos'].m.flatten() != 0]
-    dP_sin =  dP_cos  [: , keys['cos'].m.flatten() != 0]  
+    legendre_arr = legendre(N, M, 90 - qdlat, keys = keys['cos'])
+    P_cos  =  legendre_arr[: , :len(keys['cos']) ] # split
+    dP_cos = -legendre_arr[: ,  len(keys['cos']):]
+    P_sin  =  P_cos       [: , keys['cos'].m.flatten() != 0]
+    dP_sin =  dP_cos      [: , keys['cos'].m.flatten() != 0]  
 
     # trig matrices:
     cos  =  np.cos(phi * d2r * m_cos)

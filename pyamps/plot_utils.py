@@ -44,9 +44,10 @@ SOFTWARE.
 """
 
 
-from __future__ import division
+from __future__ import absolute_import, division
 import numpy as np
 from scipy.interpolate import griddata
+from builtins import range
 
 
 class Polarsubplot(object):
@@ -101,8 +102,6 @@ class Polarsubplot(object):
                 a circular marker and a line (see funciton docstring for more details)
     """
 
-    
-    def __init__(self, ax, minlat = 60, plotgrid = True, **kwargs):
         self.minlat = minlat # the lower latitude boundary of the plot
         self.ax = ax
         self.ax.axis('equal')
@@ -118,19 +117,19 @@ class Polarsubplot(object):
     def plot(self, mlat, mlt, **kwargs):
         """ plot curve based on mlat, mlt. **kwargs are passed to `matplotlib`'s `plot`. """
 
-        x, y = self._mltMlatToXY(mlt, mlat)
+        x, y = self._mlat_mlt_to_xy(mlat, mlt)
         return self.ax.plot(x, y, **kwargs)
 
     def write(self, mlat, mlt, text, **kwargs):
         """ write text on specified mlat, mlt. **kwargs are passed to `matplotlib`'s `text`"""
         
-        x, y = self._mltMlatToXY(mlt, mlat) 
+        x, y = self._mlat_mlt_to_xy(mlat, mlt) 
         return self.ax.text(x, y, text, **kwargs)
 
     def scatter(self, mlat, mlt, **kwargs):
         """ scatterplot using mlat mlt. **kwargs go to `matplotlib`'s `scatter` """
 
-        x, y = self._mltMlatToXY(mlt, mlat)
+        x, y = self._mlat_mlt_to_xy(mlat, mlt)
         return self.ax.scatter(x, y, **kwargs)
 
     def plotgrid(self, **kwargs):
@@ -234,8 +233,8 @@ class Polarsubplot(object):
             mlt = mlts[i]
             mlat = mlats[i]
 
-            x, y = self._mltMlatToXY(mlt, mlat)
-            dx, dy = R.dot(self._northEastToCartesian(north[i], east[i], mlt).reshape((2, 1))).flatten()
+            x, y = self._mlat_mlt_to_xy(mlat, mlt)
+            dx, dy = R.dot(self._north_east_to_cartesian(north[i], east[i], mlt).reshape((2, 1))).flatten()
 
             self.ax.plot([x, x + dx*scale], [y, y + dy*scale], color = color, **kwargs)
             if markersize != 0:
@@ -245,7 +244,7 @@ class Polarsubplot(object):
     def contour(self, mlat, mlt, f, **kwargs):
         """ plot contour on grid, **kwargs are passed to `matplotlib`'s `contour` """
 
-        xea, yea = self._mltMlatToXY(mlt.flatten(), mlat.flatten())
+        xea, yea = self._mlat_mlt_to_xy(mlat.flatten(), mlt.flatten())
 
         # convert to cartesian uniform grid
         xx, yy = np.meshgrid(np.linspace(-1, 1, 150), np.linspace(-1, 1, 150))
@@ -259,7 +258,7 @@ class Polarsubplot(object):
     def contourf(self, mlat, mlt, f, **kwargs):
         """ plot filled contour on grid, **kwargs are passed to `matplotlib`'s `contourf` """
 
-        xea, yea = self._mltMlatToXY(mlt.flatten(), mlat.flatten())
+        xea, yea = self._mlat_mlt_to_xy(mlat.flatten(), mlt.flatten())
 
         # convert to cartesian uniform grid
         xx, yy = np.meshgrid(np.linspace(-1, 1, 150), np.linspace(-1, 1, 150))
@@ -270,14 +269,14 @@ class Polarsubplot(object):
         return self.ax.contourf(xx, yy, gridf, **kwargs)
 
 
-    def _mltMlatToXY(self, mlt, mlat):
+    def _mlat_mlt_to_xy(self, mlat, mlt):
         """ convert mlt and mlat to x and y """
         r = (90. - np.abs(mlat))/(90. - self.minlat)
         a = (np.array(mlt) - 6.)/12.*np.pi
 
         return r*np.cos(a), r*np.sin(a)
 
-    def _XYtomltMlat(self, x, y):
+    def _xy_to_mlat_mlt(self, x, y):
         """ convert x, y to mlt, mlat """
         x, y = np.array(x, ndmin = 1), np.array(y, ndmin = 1) # conver to array to allow item assignment
 
@@ -289,7 +288,7 @@ class Polarsubplot(object):
         return lat, mlt
 
 
-    def _northEastToCartesian(self, north, east, mlt):
+    def _north_east_to_cartesian(self, north, east, mlt):
         """ convert north, east to cartesian (adapted to plot axis) """
         a = (np.array(mlt) - 6)/12*np.pi # convert MLT to angle with x axis (pointing from pole towards dawn)
         
@@ -299,7 +298,7 @@ class Polarsubplot(object):
         return x1 + x2
 
 
-def equalAreaGrid(dr = 2, K = 0, M0 = 8, N = 20):
+def equal_area_grid(dr = 2, K = 0, M0 = 8, N = 20):
     """ function for calculating an equal area grid in polar coordinates
 
     Parameters
@@ -345,11 +344,11 @@ def equalAreaGrid(dr = 2, K = 0, M0 = 8, N = 20):
     M = M0
     grid[90 - r0 - dr] = np.linspace(0, 24 - 24./M, M) # these are the lower limits in MLT
 
-    for i in range(1, N):
+    for i in range(N - 1):
 
         M = M *  (1 + 1./(K + i + 1.)) # this is the partion for i + 1
 
-        grid[90 - (r0 + i*dr) - dr] = np.linspace(0, 24 - 24./M, M) # these are the lower limits in MLT
+        grid[90 - (r0 + (i + 1)*dr) - dr] = np.linspace(0, 24 - 24./M, M) # these are the lower limits in MLT
 
     mlats = []
     mlts = []

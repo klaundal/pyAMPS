@@ -11,7 +11,6 @@ pyAMPS's documentation
    
    readme
    installation
-   usage
    reference
    model_coefficients
    changelog

@@ -5,14 +5,16 @@
     This script is provided for transparency; when the txt file is made, it is
     no longer useful.
 """
-
+from __future__ import absolute_import
+import os.path
 import numpy as np
 import pandas as pd
-from sh_utils import SHkeys
+from .sh_utils import SHkeys
 
+basepath = os.path.dirname(__file__)
 
 # load model vector and define truncation levels and external parametrisation
-model_vector = np.load('coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')
+model_vector = np.load(os.path.abspath(os.path.join(basepath,'coefficients/model_vector_NT_MT_NV_MV_65_3_45_3.npy')))
 NT, MT, NV, MV = 65, 3, 45, 3
 
 external_parameters = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 'tilt', 
@@ -58,7 +60,7 @@ for m, param in zip(dataframes, external_parameters):
 coefficients = pd.concat(dataframes, axis = 1)
 
 # write txt file
-with open('coefficients/model_coefficients.txt', 'w') as file:
+with open(os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.txt')), 'w') as file:
     # header:
     file.write('# Sherical harmonic coefficients for the Average Magnetic field and Polar current System (AMPS) model\n')
     file.write('# unit: nT\n')
@@ -69,8 +71,4 @@ with open('coefficients/model_coefficients.txt', 'w') as file:
     coefficients.to_string(buf = file, float_format = lambda x: '{:.7f}'.format(x), 
                            header = False, sparsify = False,
                            index_names = False)
-
-
-# to read the file: pd.read_table('model_coefficients.txt', sep = ' ', skipinitialspace=True, index_col=[0, 1], comment = '#')
-
 
