@@ -74,7 +74,7 @@ The above functions return scalar quantities. There are also functions that retu
 In addition, the following functions are available:
 
 `get_ground_perturbation`
-  Calculate ground perturbations associated with an equivalent current that is equal to that returned by `get_divergence_free_current_function`. This function returns eastward and northward components, at a set of points provided by the user
+  Calculate ground magnetic field perturbations associated with an equivalent current that is equal to that returned by `get_divergence_free_current_function`. This function returns eastward and northward components, at a set of points provided by the user
 
 `get_integrated_upward_current`
   Integrate the upward currents poleward of `m.minlat`. The function returns the integral of upward and downward currents in both hemispheres. 
