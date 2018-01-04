@@ -1,4 +1,4 @@
-API Reference
+{API Reference
 =============
 To learn how to quickly get started with pyAMPS, we recommend that people start looking at :ref:`usage`, and use this page once a comprehensive listing of all functionality is needed. Documentation for each function and its arguments can be found using the `help` command.  
 

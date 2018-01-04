@@ -737,7 +737,7 @@ class AMPS(object):
         return np.sum(J_n[J_n > 0]), np.sum(J_n[J_n < 0]), np.sum(J_s[J_s > 0]), np.sum(J_s[J_s < 0])
 
 
-    def get_ground_perturbation(self, mlat, mlt):
+    def get_ground_perturbation(self, mlat, mlt, height = 0):
         """ 
         Calculate magnetic field perturbations on ground, in units of nT, that corresponds 
         to the divergence-free current function.
@@ -750,6 +750,9 @@ class AMPS(object):
         mlt : numpy.ndarray, float
             magnetic local time of the output. The array shape will not be preserved, and 
             the results will be returned as a 1-dimensional array
+        height: numpy.ndarray, optional
+            geodetic height at which the field should be evalulated. Should be < current height
+            set at initialization. Default 0 (ground)
 
         Note
         ----
@@ -785,6 +788,7 @@ class AMPS(object):
         mlt  = mlt. flatten()[:, np.newaxis]
         mlat = mlat.flatten()[:, np.newaxis]
         rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
+        hh   = REFRE + height
 
         m = self.m_P
         n = self.n_P
@@ -797,11 +801,11 @@ class AMPS(object):
         sinmphi = np.sin(m * mlt * np.pi/12)
 
         # G matrix for north component
-        G_cn   =  - rr ** (2 * n + 1) * (n + 1.)/n * dP
+        G_cn   =  - rr ** (2 * n + 1) * (hh / REFRE) ** n * (n + 1.)/n * dP
         Gn     =  np.hstack(( G_cn * cosmphi, G_cn * sinmphi))
         
         # G matrix for east component
-        G_ce   =  rr ** (2 * n + 1) * (n + 1.)/n * P * m / np.cos(mlat * np.pi / 180)
+        G_ce   =  rr ** (2 * n + 1) * (hh / REFRE) ** n * (n + 1.)/n * P * m / np.cos(mlat * np.pi / 180)
         Ge     =  np.hstack((-G_ce * sinmphi, G_ce * cosmphi))
 
         model = np.vstack((self.pol_c, self.pol_s))
