@@ -364,7 +364,7 @@ class Test_AMPS(object):
 
 def test_get_B_space():
     # params, input for get_B_ground: glat, glon, height, time, v, By, Bz, tilt, f107 
-    params = map(lambda x: np.array(x).reshape(-1), [
+    params = list(map(lambda x: np.array(x).reshape(-1), [
         [90, 90],
         [0, 0],
         [110, 110],
@@ -373,7 +373,7 @@ def test_get_B_space():
         [0, 0],
         [1, 1],
         [0.5, 0.5],
-        [0.3, 0.3]])
+        [0.3, 0.3]]))
     B_e, B_n, B_r = get_B_space(*params)
     assert_allclose(B_e, [7.760, 7.760], atol=1e-3)
     assert_allclose(B_n, [-16.462, -16.462], atol=1e-3)
@@ -383,7 +383,7 @@ def test_get_B_space():
 
 def test_get_B_ground():
     # params, input for get_B_space: qdlat, mlt, height, v, By, Bz, tilt, f107
-    params = map(lambda x: np.array(x), [90, 0, 110, 0, 0, 1, 0.5, 0.3])
+    params = list(map(lambda x: np.array(x), [90, 0, 110, 0, 0, 1, 0.5, 0.3]))
     Bqphi, Bqlambda, Bqr = get_B_ground(*params)
     assert_allclose(Bqphi, 0, atol=1e-3)
     assert_allclose(Bqlambda, 5.609, atol=1e-3)
