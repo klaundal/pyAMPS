@@ -47,39 +47,40 @@ User-defined grids can also be used:
 
 The following member functions work in the same way as `get_upward_current`:
 
-`get_divergence_free_current_function`
+
+:meth:`~pyamps.AMPS.get_divergence_free_current_function`
   The divergence-free part of the horizontal current, represented as a scalar function that is similar to the equivalent current function which is often derived from ground magnetometer measurements.
 
-`get_curl_free_current_potential`
+:meth:`~pyamps.AMPS.get_curl_free_current_potential`
   The field-aligned currents can be used to derive a curl-free horizontal current, by solving the current continuity equation. Since it is curl-free, it is the gradient of a potential. This function returns that potential.
 
-`get_toroidal_scalar`
+:meth:`~pyamps.AMPS.get_toroidal_scalar`
   The disturbance magnetic field is expressed as a sum of a poloidal and toroidal part, both of which relates to scalars. This function can be used to calculate the toroidal scalar (which relates to field-aligned currents). 
 
-`get_poloidal_scalar`
+:meth:`~pyamps.AMPS.get_poloidal_scalar`
   Same as above, only for the poloidal scalar (which relates to the divergence-free part of the horizontal currents). 
 
 The above functions return scalar quantities. There are also functions that return vector quantities. The default grid for vector quantities is given by the `m.vectorgrid` parameter. The functions that return vector quantities are:
 
-`get_divergence_free_current`
+:meth:`~pyamps.AMPS.get_divergence_free_current`
   The divergence-free part of the horizontal current, magnetic eastward and northward components
 
-`get_curl_free_current`
+:meth:`~pyamps.AMPS.get_curl_free_current`
   The curl-free part of the horizontal current, magnetic eastward and northward components
 
-`get_total_current`
+:meth:`~pyamps.AMPS.get_total_current`
   The total horizontal current, the sum of curl-free and divergence-free parts, magnetic eastward and northward components. 
 
 
 In addition, the following functions are available:
 
-`get_ground_perturbation`
+:meth:`~pyamps.AMPS.get_ground_perturbation`
   Calculate ground magnetic field perturbations associated with an equivalent current that is equal to that returned by `get_divergence_free_current_function`. This function returns eastward and northward components, at a set of points provided by the user
 
-`get_integrated_upward_current`
+:meth:`~pyamps.AMPS.get_integrated_upward_current`
   Integrate the upward currents poleward of `m.minlat`. The function returns the integral of upward and downward currents in both hemispheres. 
 
-`get_AE_indices`
+:meth:`~pyamps.AMPS.get_AE_indices`
   Calculate model auroral electrojet indices, AL and AU, in both hemispheres. This calculation is based on the same assumptions as in `get_ground_perturbation`
 
 

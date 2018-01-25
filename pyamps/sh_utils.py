@@ -281,7 +281,7 @@ def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
         height : array
             Geodetic heights, in km
         time : array
-            Array of datetimes correspondign to each point. This is needed to calculate 
+            Array of datetimes corresponding to each point. This is needed to calculate 
             magnetic local time.
         epoch : float, optional
             The epoch used for conversion to apex coordinates. Default 2015.

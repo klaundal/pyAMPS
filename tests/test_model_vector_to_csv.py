@@ -14,7 +14,7 @@ def test_get_model_vectors():
 
     path_txt = os.path.abspath(os.path.join(basepath, 'coefficients/model_coefficients.txt'))
     if os.path.exists(path_txt):
-        coeffs = np.nan_to_num(np.genfromtxt(path_txt, skip_header=4, unpack=True), False)
+        coeffs = np.nan_to_num(np.genfromtxt(path_txt, skip_header=4, unpack=True))
     else:
         path_csv = os.path.splitext(path_txt)[0] + '.csv'
         coeffs = np.genfromtxt(path_csv, delimiter=",", filling_values=0, skip_header=1, unpack=True)

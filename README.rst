@@ -3,7 +3,7 @@ Overview
 
 Python interface for the Average Magnetic field and Polar current System (AMPS) model.
 
-.. image:: ../static/animation.gif
+.. figure:: ../static/animation.gif
     :align: left
     :alt:
 
@@ -18,6 +18,7 @@ pyAMPS can be used to calculate and plot average magnetic field and current para
 - curl-free part of horizontal current (vector)
 - total horizontal current (vector)
 - eastward or northward ground perturbation corresponding to equivalent current (scalars)
+
 
 Installation
 ------------
@@ -36,8 +37,8 @@ Dependencies:
 - pandas (for reading csv file containing model coefficients)
 - apexpy (magnetic coordinate conversion)
 
-Example usage
--------------
+Quick Start
+-----------
 .. code-block:: python
 
     >>> # initialize by supplying a set of external conditions:
