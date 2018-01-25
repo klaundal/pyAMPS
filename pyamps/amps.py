@@ -962,7 +962,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     epoch : float, optional
         epoch (year) used in conversion to magnetic coordinates with the IGRF. Default = 2015.
     h_R : float, optional
-        referene height (km) used when calculating modified apex coordinates. Default = 110. 
+        reference height (km) used when calculating modified apex coordinates. Default = 110.
     chunksize : int, optional
         the input arrays will be split in chunks in order to parallelize
         computations. Larger chunks consumes more memory, but might be faster. Default is 15000.
