@@ -74,7 +74,7 @@ class AMPS(object):
         IMF GSM z component in nT
     tilt : float
         dipole tilt angle in degrees
-    F107 : float
+    f107 : float
         F10.7 index in s.f.u.
     minlat : float, optional
         low latitude boundary of grids  (default 60)
@@ -121,7 +121,7 @@ class AMPS(object):
 
     >>> # update model vectors (tor_c, tor_s, etc.) without 
     >>> # recalculating the other matrices:
-    >>> m.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+    >>> m.update_model(new_v, new_By, new_Bz, new_tilt, new_f107)
 
     Attributes
     ----------
@@ -152,11 +152,11 @@ class AMPS(object):
 
 
 
-    def __init__(self, v, By, Bz, tilt, F107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100):
+    def __init__(self, v, By, Bz, tilt, f107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100):
         """ __init__ function for class AMPS
         """
 
-        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, F107)
+        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107)
 
         self.height = height
 
@@ -196,7 +196,7 @@ class AMPS(object):
         self.calculate_matrices()
 
 
-    def update_model(self, v, By, Bz, tilt, F107):
+    def update_model(self, v, By, Bz, tilt, f107):
         """
         Update the model vectors without updating all the other matrices. This leads to better
         performance than just making a new AMPS object.
@@ -211,7 +211,7 @@ class AMPS(object):
             IMF GSM z component in nT
         tilt : float
             dipole tilt angle in degrees
-        F107 : float
+        f107 : float
             F10.7 index in s.f.u.
 
         Examples
@@ -221,12 +221,12 @@ class AMPS(object):
         
         >>> m1 = AMPS(solar_wind_velocity_in_km_per_s, IMF_By_in_nT, IMF_Bz_in_nT, dipole_tilt_in_deg, F107_index)
         >>> # ... current calculations ...
-        >>> m1.update_model(new_v, new_By, new_Bz, new_tilt, new_F107)
+        >>> m1.update_model(new_v, new_By, new_Bz, new_tilt, new_f107)
         >>> # ... new current calcuations ...
         
         than to make a new object:
         
-        >>> m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_F107)
+        >>> m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_f107)
         >>> # ... new current calculations ...
         
         Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
@@ -234,7 +234,7 @@ class AMPS(object):
 
         """
         
-        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, F107)
+        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107)
 
 
     def _get_vectorgrid(self, **kwargs):
