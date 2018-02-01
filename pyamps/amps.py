@@ -1006,7 +1006,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     G0 = da.map_blocks(_getG0, glat, glon, height, time, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
-    B_matrix  = G0.dot(  m_matrix ).compute()
+    B_matrix  = G0.dot( m_matrix ).compute()
 
     # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
     # reorganized so that we have only three large partitions: (east, north, up). Split and recombine:
