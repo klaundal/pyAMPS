@@ -19,6 +19,7 @@ install:
   - 'conda update -q conda'
   - 'conda create -q -n test python=%PYTHON_VERSION% pytest pip'
   - 'activate test'
+  - 'pip install -r requirements.txt'
   - 'pip install -q -e .'
 test_script:
   - 'py.test tests'
