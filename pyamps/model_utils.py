@@ -2,14 +2,13 @@ import numpy as np
 import pandas as pd
 import os
 from functools import reduce
-from string import strip
 
 basepath = os.path.dirname(__file__)
 
 coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','model_coefficients.txt'))
 
 # read coefficient file and store in pandas DataFrame - with column names from last row of header:
-names = strip([x for x in open(coeff_fn).readlines() if x.startswith('#')][-1][1:]).split(' ') 
+names = ([x for x in open(coeff_fn).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 
 coeffs = pd.read_table(coeff_fn, skipinitialspace = True, comment = '#', sep = ' ', names = names, index_col = [0, 1])
 
 
