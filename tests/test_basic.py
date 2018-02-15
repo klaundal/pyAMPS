@@ -25,6 +25,6 @@ def test_content():
 
 def test_imports():
     try:
-        import pyamps.model_vector_to_csv
+        import pyamps.model_vector_to_txt
     except ImportError:
         raise AssertionError("Module not found")

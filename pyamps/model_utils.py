@@ -3,14 +3,15 @@ import pandas as pd
 import os
 from functools import reduce
 
-
 basepath = os.path.dirname(__file__)
 
-coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','model_coefficients.csv'))
+coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','model_coefficients.txt'))
 
-# read coefficient file and store in pandas DataFrame (this line will be replaced when 
-# there is a decision on new format, but the dataframe should be the same):
-coeffs = pd.read_csv(coeff_fn, index_col=('n','m'))
+# read coefficient file and store in pandas DataFrame - with column names from last row of header:
+names = ([x for x in open(coeff_fn).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 
+coeffs = pd.read_table(coeff_fn, skipinitialspace = True, comment = '#', sep = ' ', names = names, index_col = [0, 1])
+
+
 
 # organize the coefficients in arrays that are used to calculate magnetic field values
 names = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 

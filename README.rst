@@ -68,4 +68,7 @@ Quick Start
 
 References
 ----------
+Laundal, K. M., Reistad, J. P., Finlay, C. C. & Olsen, N. (submitted 2018), Solar wind and seasonal influence on ionospheric currents, Journal of Geophysical Research - Space Physics
+
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
+

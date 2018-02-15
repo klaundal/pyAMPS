@@ -7,9 +7,31 @@
 """
 from __future__ import absolute_import
 import os.path
+import time
 import numpy as np
 import pandas as pd
 from .sh_utils import SHkeys
+
+# header
+t = time.ctime().split(' ')
+date = ' '.join([t[1], t[-1]])
+header = '# Sherical harmonic coefficients for the Average Magnetic field and Polar current System (AMPS) model\n'
+header = header + '# Produced ' + date
+header = header + """
+#
+# Based on magnetic field measurements from CHAMP (2001-08 to 2010-09) and Swarm (2013-12 to 2016-08) 
+# Reference: Laundal et al., "Solar wind and seasonal influence on ionospheric currents", submitted to Journal of Geophysical Research - Space Physics, 2018
+#
+# Coefficient unit: nT
+# Apex reference height: 110 km
+# Earth radius: 6371.2 km
+#
+# Spherical harmonic degree, order: 65, 3 (for T) and 45, 3 (for V)
+# 
+# column names:
+# n m tor_c_const tor_s_const pol_c_const pol_s_const tor_c_sinca tor_s_sinca pol_c_sinca pol_s_sinca tor_c_cosca tor_s_cosca pol_c_cosca pol_s_cosca tor_c_epsilon tor_s_epsilon pol_c_epsilon pol_s_epsilon tor_c_epsilon_sinca tor_s_epsilon_sinca pol_c_epsilon_sinca pol_s_epsilon_sinca tor_c_epsilon_cosca tor_s_epsilon_cosca pol_c_epsilon_cosca pol_s_epsilon_cosca tor_c_tilt tor_s_tilt pol_c_tilt pol_s_tilt tor_c_tilt_sinca tor_s_tilt_sinca pol_c_tilt_sinca pol_s_tilt_sinca tor_c_tilt_cosca tor_s_tilt_cosca pol_c_tilt_cosca pol_s_tilt_cosca tor_c_tilt_epsilon tor_s_tilt_epsilon pol_c_tilt_epsilon pol_s_tilt_epsilon tor_c_tilt_epsilon_sinca tor_s_tilt_epsilon_sinca pol_c_tilt_epsilon_sinca pol_s_tilt_epsilon_sinca tor_c_tilt_epsilon_cosca tor_s_tilt_epsilon_cosca pol_c_tilt_epsilon_cosca pol_s_tilt_epsilon_cosca tor_c_tau tor_s_tau pol_c_tau pol_s_tau tor_c_tau_sinca tor_s_tau_sinca pol_c_tau_sinca pol_s_tau_sinca tor_c_tau_cosca tor_s_tau_cosca pol_c_tau_cosca pol_s_tau_cosca tor_c_tilt_tau tor_s_tilt_tau pol_c_tilt_tau pol_s_tilt_tau tor_c_tilt_tau_sinca tor_s_tilt_tau_sinca pol_c_tilt_tau_sinca pol_s_tilt_tau_sinca tor_c_tilt_tau_cosca tor_s_tilt_tau_cosca pol_c_tilt_tau_cosca pol_s_tilt_tau_cosca tor_c_f107 tor_s_f107 pol_c_f107 pol_s_f107
+"""
+
 
 basepath = os.path.dirname(__file__)
 
@@ -62,11 +84,7 @@ coefficients = pd.concat(dataframes, axis = 1)
 # write txt file
 with open(os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.txt')), 'w') as file:
     # header:
-    file.write('# Sherical harmonic coefficients for the Average Magnetic field and Polar current System (AMPS) model\n')
-    file.write('# unit: nT\n')
-    file.write('# \n')
-    # columns:
-    file.write('n m ' + ' '.join(coefficients.columns) + '\n')
+    file.write(header)
     # data:
     coefficients.to_string(buf = file, float_format = lambda x: '{:.7f}'.format(x), 
                            header = False, sparsify = False,
