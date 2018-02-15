@@ -27,7 +27,11 @@ def pytest_runtest_setup(item):
 
 
 # Fixtures for test functions
-
+@pytest.fixture(scope="session")
+def mpl_backend():
+    import matplotlib as mpl
+    matplotlib.use('Agg')
+    mpl.rcParams['backend'] = 'Agg'
 @pytest.fixture(scope="function")
 def model_coeff():
     """Generate test data similar in form to AMPS model coefficients"""

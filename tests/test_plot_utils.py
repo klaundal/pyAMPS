@@ -3,15 +3,18 @@ from __future__ import division
 import pytest
 import numpy as np
 
+
 import matplotlib.pyplot as plt
 from numpy.testing import assert_array_equal, assert_allclose
 
 from pyamps.plot_utils import Polarsubplot, equal_area_grid
 
+plt.switch_backend('Agg')  
 
 class Test_Polarsubplot(object):
 
     def test_init(self):
+
         fig = plt.figure()
         ax = fig.add_subplot(111)
         pax = Polarsubplot(ax, minlat=65)

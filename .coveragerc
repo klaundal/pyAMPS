@@ -1,2 +1,6 @@
 [run]
 source=pyamps
+
+[report]
+exclude_lines = 
+  def plot_currents
