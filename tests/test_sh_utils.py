@@ -166,7 +166,7 @@ def test_legendre(inp, out):
     # assert_allclose(PdP[:, inp[5]].sum(), out[2], rtol=1e-4, atol=1e-14)
     # assert_allclose(PdP[inp[4], inp[1]:].sum(), out[3], rtol=1e-4, atol=1e-14)
 
-
+@pytest.mark.apex_dep
 def test_getG0():
     glat = np.array([90, 0])
     glon = np.array([90, 180])

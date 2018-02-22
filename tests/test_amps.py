@@ -361,7 +361,7 @@ class Test_AMPS(object):
     def test_plot_currents(self, amps_model):
         pass
 
-
+@pytest.mark.apex_dep
 def test_get_B_space():
     # params, input for get_B_ground: glat, glon, height, time, v, By, Bz, tilt, f107 
     params = list(map(lambda x: np.array(x).reshape(-1), [

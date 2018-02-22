@@ -25,6 +25,16 @@ def pytest_runtest_setup(item):
         if previousfailed is not None:
             pytest.xfail("previous test failed (%s)" % previousfailed.name)
 
+def pytest_addoption(parser):
+    parser.addoption("--skip_apex", action="store_true",
+                     default=False, help="run tests dependent on apexpy")
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--skip_apex"):
+        skip_apex = pytest.mark.skip(reason="need --run_apex option to run")
+        for item in items:
+            if "apex_dep" in item.keywords:
+                item.add_marker(skip_apex)
+
 
 # Fixtures for test functions
 @pytest.fixture(scope="session")
@@ -32,6 +42,7 @@ def mpl_backend():
     import matplotlib as mpl
     matplotlib.use('Agg')
     mpl.rcParams['backend'] = 'Agg'
+
 @pytest.fixture(scope="function")
 def model_coeff():
     """Generate test data similar in form to AMPS model coefficients"""
