@@ -19,11 +19,11 @@ before_install:
 - cd tmp
 
 install: 
-  pip install tox-travis setuptools>=30.3.0 future>=0.16 numpy>=1.14 matplotlib scipy>=0.9 toolz>=0.8 dask pandas>=0.20 apexpy>=1.0
+  pip install tox-travis -r requirements.txt
 
 before_script:
   cd ..
-  
+
 script: tox
 
 notifications:
