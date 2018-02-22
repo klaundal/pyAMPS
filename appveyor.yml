@@ -5,11 +5,11 @@ environment:
   matrix:
     - TESTENV: 'py27-64'
       PYTHON_VERSION: '2.7'
-      PYTHON: C:\Miniconda36-x64
+      PYTHON: C:\Miniconda27-x64
 
     - TESTENV: 'py27-32'
       PYTHON_VERSION: '2.7'
-      PYTHON: C:\Miniconda36
+      PYTHON: C:\Miniconda27
 
 
 #init:
