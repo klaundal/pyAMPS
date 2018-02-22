@@ -14,7 +14,7 @@ environment:
 
 #init:
 install:
-  - 'SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH'
+  - 'SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%'
   - 'conda config --set always_yes yes'
   - 'conda update -q conda'
   - 'conda create -q -n test python=%PYTHON_VERSION% pytest pip'
