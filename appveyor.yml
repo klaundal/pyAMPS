@@ -2,8 +2,6 @@ version: '{branch}-{build}'
 build: off
 configuration: Release
 environment:
-  global:
-    WITH_COMPILER: 'cmd /E:ON /V:ON /C .\ci\appveyor-with-compiler.cmd'
 
   matrix:
     - TESTENV: 'py27-64'
@@ -22,7 +20,7 @@ install:
 
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
-  
+
   - 'pip install --disable-pip-version-check --user --upgrade pip'
 
   - "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
@@ -31,5 +29,6 @@ install:
   - 'pip install pytest'
 
 test_script:
-  - 'pytest tests'
+  - 'pytest tests --skip-apex'
+
 
