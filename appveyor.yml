@@ -5,16 +5,20 @@ environment:
   matrix:
     - TESTENV: 'py27-64'
       PYTHON_VERSION: '2.7'
-      PYTHON: C:\Miniconda27-x64
+      PYTHON: "C:\\Miniconda27-x64"
 
     - TESTENV: 'py27-32'
       PYTHON_VERSION: '2.7'
-      PYTHON: C:\Miniconda27
+      PYTHON: "C:\\Miniconda27"
 
 
 #init:
 install:
-  - 'SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%'
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+  
   - 'conda config --set always_yes yes'
   - 'conda update -q conda'
   - 'conda create -q -n test python=%PYTHON_VERSION% pytest pip'
