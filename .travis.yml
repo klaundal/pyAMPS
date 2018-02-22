@@ -14,17 +14,19 @@ env:
     LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
 
 before_install:
-- python --version
-- mkdir tmp
-- cd tmp
+  - python --version
+  - mkdir tmp
+  - cd tmp
 
 install: 
-  pip install tox-travis -r ../requirements.txt 
+  -  pip install tox-travis -r ../requirements.txt 
 
 before_script:
   cd ..
 
-script: tox
+script:
+  - python setup.py install 
+  - tox
 
 notifications:
   email: false
