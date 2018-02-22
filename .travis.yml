@@ -19,7 +19,7 @@ before_install:
 - cd tmp
 
 install: 
-  pip install tox-travis -r requirements.txt
+  pip install tox-travis -r ../requirements.txt 
 
 before_script:
   cd ..
