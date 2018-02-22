@@ -3,6 +3,19 @@ python:
   - "2.7"
   - "3.6"
 
+
+addons:
+  apt:
+    packages:
+    - gfortran
+env:
+
+  global:
+    LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+
+before_install:
+- python --version
+
 install: 
   pip install tox-travis -r requirements.txt
 

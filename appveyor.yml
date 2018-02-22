@@ -2,6 +2,9 @@ version: '{branch}-{build}'
 build: off
 configuration: Release
 environment:
+  global:
+    WITH_COMPILER: 'cmd /E:ON /V:ON /C .\ci\appveyor-with-compiler.cmd'
+
   matrix:
     - TESTENV: 'py27-64'
       PYTHON_VERSION: '2.7'
@@ -14,17 +17,18 @@ environment:
 
 #init:
 install:
+
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   
-  - 'conda config --set always_yes yes'
-  - 'conda update -q conda'
-  - 'conda create -q -n test python=%PYTHON_VERSION% pytest pip'
-  - 'activate test'
+  - 'pip install --disable-pip-version-check --user --upgrade pip'
+
   - 'pip install -r requirements.txt'
   - 'pip install -q -e .'
+  - 'pip install pytest'
+
 test_script:
-  - 'py.test tests'
+  - 'pytest tests'
 
