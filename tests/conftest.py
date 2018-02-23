@@ -40,7 +40,7 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(scope="session")
 def mpl_backend():
     import matplotlib as mpl
-    matplotlib.use('Agg')
+    mpl.use('Agg')
     mpl.rcParams['backend'] = 'Agg'
 
 @pytest.fixture(scope="function")
@@ -57,6 +57,12 @@ def model_coeff():
     fake_name = os.path.abspath("test_fake_model.txt")
 
     coeff_names = ([x for x in open(true_name).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 
-    pyamps.model_utils.coeffs = pd.read_csv(StringIO(fake_data), skipinitialspace = True, comment = '#', sep = ' ', names = coeff_names, index_col = [0, 1])
+    pyamps.model_utils.coeffs = pd.read_csv(
+        StringIO(fake_data), skipinitialspace=True, comment='#',
+        sep=' ', names=coeff_names, index_col=[0, 1]
+    )
     yield true_name, fake_name
-    pyamps.model_utils.coeffs = pd.read_csv(true_name, skipinitialspace = True, comment = '#', sep = ' ', names = coeff_names, index_col = [0, 1])
+    pyamps.model_utils.coeffs = pd.read_csv(
+        true_name, skipinitialspace=True, comment='#',
+        sep=' ', names=coeff_names, index_col=[0, 1]
+    )
