@@ -30,7 +30,11 @@ before_script:
 script:
   - python setup.py check -m -r
   - pytest tests --cov 
-  - flake8 tests pyamps --ignore E128,E201,E202,E221,E222,E226,E241,E251,E291,W503 --exclude coefficients/
+  
+  # Check style with below command
+  #- flake8 tests pyamps --ignore E128,E201,E202,E221,E222,E226,E241,E251,W291,W503 --exclude coefficients/
+
+  # Descrpition of ignored rules
         # E128,  # continuation line under-indented for visual indent
         # E201,  # whitespace after ‘(‘
         # E202,  # whitespace before ‘(‘
