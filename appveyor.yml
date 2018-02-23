@@ -12,22 +12,6 @@ environment:
       PYTHON_VERSION: '2.7'
       PYTHON: "C:\\Miniconda27"
 
-    - TESTENV: 'py35-64'
-      PYTHON_VERSION: '3.5'
-      PYTHON: "C:\\Miniconda35-x64"
-
-    - TESTENV: 'py35-32'
-      PYTHON_VERSION: '3.5'
-      PYTHON: "C:\\Miniconda35"
-
-    - TESTENV: 'py36-64'
-      PYTHON_VERSION: '3.6'
-      PYTHON: "C:\\Miniconda36-x64"
-
-    - TESTENV: 'py36-32'
-      PYTHON_VERSION: '3.6'
-      PYTHON: "C:\\Miniconda36"
-
 
 #init:
 install:
@@ -39,7 +23,9 @@ install:
 
   - 'pip install --disable-pip-version-check --user --upgrade pip'
 
+  #- "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - 'pip install -r requirements.txt'
+  - 'pip install -q -e .'
   - 'pip install pytest'
 
 test_script:
