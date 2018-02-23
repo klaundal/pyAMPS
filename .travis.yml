@@ -1,7 +1,9 @@
 language: python
 python:
   - "3.6"
-#  - "2.7"
+  - "3.5"
+  - "3.4"
+  - "2.7"
 
 
 addons:
@@ -19,14 +21,29 @@ before_install:
   - cd tmp
 
 install: 
-  -  pip install tox-travis -r ../requirements.txt 
+  - pip install -r ../requirements.txt 
+  - pip install flake8 pytest pytest-cov
 
 before_script:
   cd ..
 
 script:
-  - python setup.py install 
-  - tox
+  - python setup.py check -m -r
+  - pytest tests --cov 
+  - flake8 tests pyamps --ignore E128,E201,E202,E221,E222,E226,E241,E251,E291,W503 --exclude coefficients/
+        # E128,  # continuation line under-indented for visual indent
+        # E201,  # whitespace after ‘(‘
+        # E202,  # whitespace before ‘(‘
+        # E203,  # whitespace before ':'
+        # E221,  # multiple spaces before operator
+        # E222,  # multiple spaces after operator
+        # E226,  # missing whitespace around arithmetic operator
+        # E241,  # multiple spaces after ','
+        # E251,  # unexpected spaces around keyword / parameter equals
+        # W291,  # trailing whitespace
+        # W503,  # line break before binary operator
+        
+        
 
 notifications:
   email: false
