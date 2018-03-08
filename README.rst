@@ -64,7 +64,7 @@ Quick Start
     >>> Ju
     array([ 0.25088252, -0.05726114])
 
-
+`Documentation http://pyamps.readthedocs.io/en/latest/readme.html` 
 
 References
 ----------
