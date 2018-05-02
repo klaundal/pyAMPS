@@ -15,6 +15,7 @@ pyAMPS can be used to calculate and plot average magnetic field and current para
 - total horizontal current (vector)
 - eastward or northward ground perturbation corresponding to equivalent current (scalars)
 
+For questions and comments, please contact karl.laundal at ift.uib.no
 
 Installation
 ------------
@@ -29,7 +30,7 @@ Dependencies:
 - numpy
 - pandas
 - dask
-- matplotlib (with LaTeX support, see [link](https://matplotlib.org/users/usetex.html))
+- matplotlib (with LaTeX support, see https://matplotlib.org/users/usetex.html)
 - scipy (scipy.interpolate for plotting purposes)
 - apexpy (magnetic coordinate conversion)
 
@@ -60,7 +61,7 @@ Quick Start
     >>> Ju
     array([ 0.25088252, -0.05726114])
 
-`Documentation http://pyamps.readthedocs.io/en/latest/readme.html` 
+`Documentation http://pyamps.readthedocs.io` 
 
 References
 ----------
@@ -68,6 +69,9 @@ Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (submitted 2018), Sola
 
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
 
+Acknowledgments
+---------------
+The code is produced with support from ESA through the Swarm Data Innovation and Science Cluster (Swarm DISC). For more information on Swarm DISC, please visit https://earth.esa.int/web/guest/missions/esa-eo-missions/swarm/disc
 
 
 Badges
@@ -79,8 +83,7 @@ Badges
     * - docs
       - |docs|
     * - tests
-      - | |travis| |appveyor| |requires|
-        | |coveralls| 
+      - | |travis| |appveyor| |requires| 
     * - package
       - | |version|
 

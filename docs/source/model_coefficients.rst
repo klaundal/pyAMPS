@@ -1,11 +1,13 @@
 Coefficient file format
 -----------------------
-The coefficients used in the model can be found in `pyamps/coefficients/model_coefficients.csv`.
+The coefficients used in the model can be found in `pyamps/coefficients/SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0101.txt`.
 
-Below is a description of the coefficient file. This information is not needed to use the present software, but it can be useful if you want to do something more advanced and write new/modify the code.
+Below is a description of the coefficient file. This information is not needed to use pyAMPS, but it can be useful if you want to do something more advanced and write new/modify the code.
 
-The coefficient file, 'model_coefficients.csv', is a comma-separated .csv file. It can be read with the Python pandas library by the following command: 
-``pandas.read_csv('model_coefficients.csv', index_col=('n','m'))``. It can also be loaded directly in LibreOffice, and presumably Excel, Google Sheets etc.
+The coefficient file is a .txt file with fixed width columns. It can be read with the Python pandas library by the following code: 
+``coeff_fn = 'SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0101.txt'
+names = ([x for x in open(coeff_fn).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 
+coeffs = pd.read_table(coeff_fn, skipinitialspace = True, comment = '#', sep = ' ', names = names, index_col = [0, 1])``
 
 The first two columns contain the spherical harmonic wave numbers n and m. The other 76 columns are named
 
