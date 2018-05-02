@@ -5,5 +5,5 @@ matplotlib
 scipy>=0.9
 toolz>=0.8
 pandas>=0.20
-dask
+"dask[array]"
 apexpy>=1.0
