@@ -4,6 +4,6 @@ numpy>=1.14
 matplotlib
 scipy>=0.9
 toolz>=0.8
-dask
 pandas>=0.20
+dask
 apexpy>=1.0

@@ -1,5 +1,6 @@
 Overview
 ========
+|docs| |version| |doi|
 
 Python interface for the Average Magnetic field and Polar current System (AMPS) model.
 
@@ -31,10 +32,10 @@ Using pip::
 Dependencies:
 
 - numpy
+- pandas
 - dask
-- matplotlib
+- matplotlib (with LaTeX support, see [link](https://matplotlib.org/users/usetex.html))
 - scipy (scipy.interpolate for plotting purposes)
-- pandas (for reading csv file containing model coefficients)
 - apexpy (magnetic coordinate conversion)
 
 Quick Start
@@ -51,8 +52,8 @@ Quick Start
     >>> # make summary plot:
     >>> m.plot_currents()
 
-.. image:: ../static/example_plot.png
-    :alt:
+.. image:: ..docs/static/example_plot.png
+    :alt: Field-aligned (colour) and horizontal (pins) currents
     
 .. code-block:: python
 
@@ -72,3 +73,45 @@ Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (submitted 2018), Sola
 
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
 
+
+
+Badges
+------
+
+.. list-table::
+    :stub-columns: 1
+
+    * - docs
+      - |docs|
+    * - tests
+      - | |travis| |appveyor| |requires|
+        | |coveralls| 
+    * - package
+      - | |version|
+
+.. |docs| image:: https://readthedocs.org/projects/pyamps/badge/?version=latest
+    :target: http://pyamps.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. |version| image:: https://badge.fury.io/py/pyamps.svg
+    :alt: PyPI Package latest release
+    :target: https://badge.fury.io/py/pyamps
+
+.. |coveralls| image:: https://coveralls.io/repos/github/klaundal/pyAMPS/badge.svg
+    :target: https://coveralls.io/github/klaundal/pyAMPS
+    :alt: Coverage Status
+
+.. |requires| image:: https://requires.io/github/klaundal/pyAMPS/requirements.svg?branch=master
+    :target: https://requires.io/github/klaundal/pyAMPS/requirements/?branch=master
+    :alt: Requirements Status
+
+.. |travis| image:: https://travis-ci.org/klaundal/pyAMPS.svg?branch=master
+    :alt: Travis CI Build Status
+    :target: https://travis-ci.org/klaundal/pyAMPS
+
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/gyh9ognf7qbpsos7?svg=true
+    :alt: AppVeyor Build Status
+    :target: https://ci.appveyor.com/project/klaundal/pyamps              
+
+.. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1182931.svg
+   :target: https://doi.org/10.5281/zenodo.1182931
