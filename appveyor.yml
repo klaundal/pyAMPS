@@ -24,7 +24,7 @@ install:
   #- 'pip install --disable-pip-version-check --user --upgrade pip'
   - 'python -m pip install --upgrade pip'   
 
-  #- "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
+  - 'pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy'
   - 'pip install numpy>=1.14'
   - 'pip install -r requirements.txt'
   - 'pip install -q -e .'
