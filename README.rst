@@ -61,11 +61,13 @@ Quick Start
     >>> Ju
     array([ 0.25088252, -0.05726114])
 
-`Documentation http://pyamps.readthedocs.io` 
+Documentation
+-------------
+See `http://pyamps.readthedocs.io` 
 
 References
 ----------
-Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (submitted 2018), Solar wind and seasonal influence on ionospheric currents from Swarm and CHAMP measurements, Journal of Geophysical Research - Space Physics
+Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (submitted 2018), Solar wind and seasonal influence on ionospheric currents from Swarm and CHAMP measurements, Journal of Geophysical Research - Space Physics. `doi:10.1029/2018JA025387 <https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018JA025387>`_
 
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
 
