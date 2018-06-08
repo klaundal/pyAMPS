@@ -116,9 +116,9 @@ class Test_AMPS(object):
             T += P[n, m] * (model.tor_c[i] * cos(m * mlt * mlt2r) +
                             model.tor_s[i] * sin(m * mlt * mlt2r))
 
-        assert_allclose(T, model.get_toroidal_scalar(mlat, mlt))
+        assert_allclose(T.reshape(mlat.shape), model.get_toroidal_scalar(mlat, mlt))
 
-        assert_allclose(np.split(model.get_toroidal_scalar(), 2)[0],
+        assert_allclose(np.split(model.get_toroidal_scalar(), 2)[0].reshape(model.plotgrid_scalar[0].shape),
                         model.get_toroidal_scalar(*model.plotgrid_scalar))
         pass
 
@@ -137,9 +137,9 @@ class Test_AMPS(object):
                 model.pol_c[i] * cos(m * mlt * mlt2r) +
                 model.pol_s[i] * sin(m * mlt * mlt2r))
         V *= REFRE
-        assert_allclose(V, model.get_poloidal_scalar(mlat, mlt))
+        assert_allclose(V.reshape(mlat.shape), model.get_poloidal_scalar(mlat, mlt))
 
-        assert_allclose(np.split(model.get_poloidal_scalar(), 2)[0],
+        assert_allclose(np.split(model.get_poloidal_scalar(), 2)[0].reshape(model.plotgrid_scalar[0].shape),
                         model.get_poloidal_scalar(*model.plotgrid_scalar))
         pass
 
@@ -239,12 +239,12 @@ class Test_AMPS(object):
         east *= 1 / MU0 * 1e-6
         north *= 1 / MU0 * 1e-6
 
-        out = np.array([east, north]).reshape(-1, 1)
+        out = np.array([east, north]).reshape(-1, 1, 1)
         assert_allclose(out, model.get_divergence_free_current(mlat, mlt))
 
-        assert_allclose(np.split(model.get_divergence_free_current()[0], 2)[0],
+        assert_allclose(np.split(model.get_divergence_free_current()[0], 2)[0].reshape(model.plotgrid_vector[0].shape),
                         model.get_divergence_free_current(*model.plotgrid_vector)[0])
-        assert_allclose(np.split(model.get_divergence_free_current()[1], 2)[0],
+        assert_allclose(np.split(model.get_divergence_free_current()[1], 2)[0].reshape(model.plotgrid_vector[0].shape),
                         model.get_divergence_free_current(*model.plotgrid_vector)[1])
 
         pass
@@ -273,12 +273,12 @@ class Test_AMPS(object):
         east *= -1 / MU0 * 1e-6
         north *= -1 / MU0 * 1e-6
 
-        out = np.array([east, north]).reshape(-1, 1)
+        out = np.array([east, north]).reshape(-1, 1, 1)
         assert_allclose(out, model.get_curl_free_current(mlat, mlt))
 
-        assert_allclose(np.split(model.get_curl_free_current()[0], 2)[0],
+        assert_allclose(np.split(model.get_curl_free_current()[0], 2)[0].reshape(model.plotgrid_vector[0].shape),
                         model.get_curl_free_current(*model.plotgrid_vector)[0])
-        assert_allclose(np.split(model.get_curl_free_current()[1], 2)[0],
+        assert_allclose(np.split(model.get_curl_free_current()[1], 2)[0].reshape(model.plotgrid_vector[0].shape),
                         model.get_curl_free_current(*model.plotgrid_vector)[1])
 
         pass
@@ -291,9 +291,9 @@ class Test_AMPS(object):
         assert_allclose(np.array(model.get_curl_free_current(mlat, mlt)) +
                         np.array(model.get_divergence_free_current(mlat, mlt)),
                         model.get_total_current(mlat, mlt))
-        assert_allclose(np.split(model.get_total_current()[0], 2)[0],
+        assert_allclose(np.split(model.get_total_current()[0], 2)[0].reshape(model.plotgrid_vector[0].shape),
                         model.get_total_current(*model.plotgrid_vector)[0])
-        assert_allclose(np.split(model.get_total_current()[1], 2)[0],
+        assert_allclose(np.split(model.get_total_current()[1], 2)[0].reshape(model.plotgrid_vector[0].shape),
                         model.get_total_current(*model.plotgrid_vector)[1])
 
         pass
