@@ -311,7 +311,7 @@ class AMPS(object):
         self.tor_dP_scalar = -np.array([scalar_dP[key] for key in self.keys_T ]).squeeze().T
 
 
-    def get_toroidal_scalar(self, mlat = DEFAULT, mlt = DEFAULT):
+    def get_toroidal_scalar(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """ 
         Calculate the toroidal scalar values (unit is nT). 
 
@@ -325,6 +325,10 @@ class AMPS(object):
             array of mlts at which to calculate the toroidal scalar. Will be ignored if mlat is not
             also specified. If not specified, the calculations will be done using the coords of the 
             `scalargrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
         Returns
         -------
@@ -337,19 +341,43 @@ class AMPS(object):
                  + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) 
 
         else: # calculate at custom coordinates
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[:, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
-            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
-            T = (  np.dot(P * cosmphi, self.tor_c)
-                 + np.dot(P * sinmphi, self.tor_s) ) 
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
+                mlt = mlt.reshape(1,-1,1)
+                m_T = self.m_T[np.newaxis, ...] # (1, 1, 257)
+
+                cosmphi = np.cos(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+                sinmphi = np.sin(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+
+                T = np.dot(P * cosmphi, self.tor_c) + \
+                    np.dot(P * sinmphi, self.tor_s)
+
+                T = T.squeeze()
+
+            else:
+                shape = mlat.shape
+
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[:, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+                cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+
+                T = np.dot(P * cosmphi, self.tor_c) + \
+                    np.dot(P * sinmphi, self.tor_s) 
+
+                T = T.reshape(shape)
+
 
         return T
 
-    def get_poloidal_scalar(self, mlat = DEFAULT, mlt = DEFAULT):
+
+    def get_poloidal_scalar(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """ 
         Calculate the poloidal scalar potential values (unit is microTm).
 
@@ -363,6 +391,10 @@ class AMPS(object):
             array of mlts at which to calculate the poloidal scalar. Will be ignored if mlat is not
             also specified. If not specified, the calculations will be done using the coords of the 
             `scalargrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
         Returns
         -------
@@ -376,21 +408,42 @@ class AMPS(object):
             V = REFRE * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
                          + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) )
         else: # calculate at custom coordinates
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[:, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
-            cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
-            V = REFRE * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
-                         + np.dot(rtor * P * sinmphi, self.pol_s ) )
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
+                mlt = mlt.reshape(1,-1,1)
+                m_P, n_P = self.m_P[np.newaxis, ...], self.n_P[np.newaxis, ...] # (1, 1, 177)
+
+                cosmphi = np.cos(m_P *  mlt * np.pi/12 ) # (1, nmlt, 177)
+                sinmphi = np.sin(m_P *  mlt * np.pi/12 ) # (1, nmlt, 177)
+
+                rtor = (REFRE / (REFRE + self.height)) ** (n_P + 1)
+
+                V = REFRE * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
+                             + np.dot(rtor * P * sinmphi, self.pol_s ) )
+                V = V.squeeze()
+
+            else:
+                shape = mlat.shape
+
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[:, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
+                cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
+                V = REFRE * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
+                             + np.dot(rtor * P * sinmphi, self.pol_s ) )
+                V = V.reshape(shape)
 
 
         return V
 
 
-    def get_divergence_free_current_function(self, mlat = DEFAULT, mlt = DEFAULT):
+    def get_divergence_free_current_function(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """
         Calculate the divergence-free current function
 
@@ -419,6 +472,10 @@ class AMPS(object):
         mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
         Returns
         -------
@@ -438,24 +495,42 @@ class AMPS(object):
             Psi = - REFRE / MU0 * (  np.dot(rtor * self.pol_P_scalar * self.pol_cosmphi_scalar, self.pol_c ) 
                                    + np.dot(rtor * self.pol_P_scalar * self.pol_sinmphi_scalar, self.pol_s ) ) * 1e-9  # kA
         else: # calculate at custom coordinates
-            shape = mlat.shape
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[:, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
-            cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
-            Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
-                                   + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
-            Psi = Psi.reshape(shape)
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
+                mlt = mlt.reshape(1,-1,1)
+                m_P, n_P = self.m_P[np.newaxis, ...], self.n_P[np.newaxis, ...] # (1, 1, 177)
+
+                rtor = (REFRE / (REFRE + self.height)) ** (n_P + 1.) * (2.*n_P + 1.)/n_P
+ 
+                cosmphi = np.cos(m_P *  mlt * np.pi/12 ) # (1, nmlt, 177)
+                sinmphi = np.sin(m_P *  mlt * np.pi/12 ) # (1, nmlt, 177)
+
+                Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
+                                       + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
+                Psi = Psi.squeeze()
+ 
+            else:
+                shape = mlat.shape
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[:, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
+                cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
+                Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
+                                       + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
+                Psi = Psi.reshape(shape)
 
 
         
         return Psi
 
 
-    def get_upward_current(self, mlat = DEFAULT, mlt = DEFAULT):
+    def get_upward_current(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """
         Calculate the upward current (unit is microAmps per square meter). The 
         calculations refer to the height chosen upon initialization of the 
@@ -469,7 +544,10 @@ class AMPS(object):
         mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `scalargrid` attribute.
-
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
         Returns
         -------
@@ -482,22 +560,38 @@ class AMPS(object):
                                                           + np.dot(self.n_T * (self.n_T + 1) * self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) )
 
         else: # calculate at custom coordinates
-            shape = mlat.shape
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[:, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
-            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
-            Ju = -1e-6/(MU0 * (REFRE + self.height) ) * (   np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
-                                                          + np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
-            Ju = Ju.reshape(shape)
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
+                mlt = mlt.reshape(1,-1,1)
+                n_T, m_T = self.n_T[np.newaxis, ...], self.m_T[np.newaxis, ...] # (1, 1, 257)
+                
+                cosmphi = np.cos(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+                sinmphi = np.sin(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+                Ju = -1e-6/(MU0 * (REFRE + self.height) ) * ( np.dot(n_T * (n_T + 1) * P * cosmphi, self.tor_c) 
+                                                          +   np.dot(n_T * (n_T + 1) * P * sinmphi, self.tor_s) )
+
+                Ju = Ju.squeeze() # (nmlat, nmlt), transpose of original  
+    
+            else:    
+                shape = mlat.shape
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[:, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+                cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+                Ju = -1e-6/(MU0 * (REFRE + self.height) ) * ( np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
+                                                          +   np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
+                Ju = Ju.reshape(shape)
 
         return Ju
 
 
-    def get_curl_free_current_potential(self, mlat = DEFAULT, mlt = DEFAULT):
+    def get_curl_free_current_potential(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """ 
         Calculate the curl-free current potential (unit is kA). The curl-free
         current potential is a scalar alpha which relates to the curl-free part
@@ -513,6 +607,10 @@ class AMPS(object):
         mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `scalargrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
         Returns
         -------
@@ -526,24 +624,42 @@ class AMPS(object):
                                                      + np.dot(self.tor_P_scalar * self.tor_sinmphi_scalar, self.tor_s) ) * 1e-9
 
         else: # calculate at custom coordinates
-            shape = mlat.shape
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[:, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
-            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
+                mlt = mlt.reshape(1,-1,1)
+                n_T, m_T = self.n_T[np.newaxis, ...], self.m_T[np.newaxis, ...] # (1, 1, 257)
 
-            alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
-                                                     + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
-            alpha = alpha.reshape(shape)
+                
+                cosmphi = np.cos(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+                sinmphi = np.sin(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+
+                alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
+                                                         + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
+                alpha = alpha.squeeze()
+                
+
+            else:
+                shape = mlat.shape
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[:, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+                cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+
+                alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
+                                                         + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
+                alpha = alpha.reshape(shape)
 
 
         return alpha
 
 
-    def get_divergence_free_current(self, mlat = DEFAULT, mlt = DEFAULT):
+    def get_divergence_free_current(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """ 
         Calculate the divergence-free part of the horizontal current, in units of mA/m.
         The calculations refer to the height chosen upon initialization of the AMPS 
@@ -557,6 +673,10 @@ class AMPS(object):
         mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
 
         Return
@@ -582,27 +702,56 @@ class AMPS(object):
             north =  - (  np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_cosmphi_vector, self.pol_s)
                         - np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_sinmphi_vector, self.pol_c) ) / self.coslambda_vector
 
+            return east.flatten(), north.flatten()
+
 
         else: # calculate at custom mlat, mlt
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[:, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
-            dP = -np.array([dP[ key] for key in self.keys_P]).T.squeeze()
-            cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
-            coslambda = np.cos(           mlat * np.pi/180)
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
+                dP = -np.transpose(np.array([dP[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
+                mlt = mlt.reshape(1, -1, 1)
+                mlat = mlat.reshape(-1, 1, 1)
+                m_P, n_P = self.m_P[np.newaxis, ...], self.n_P[np.newaxis, ...] # (1, 1, 177)
 
-            east  = (  np.dot(rtor * dP            * cosmphi, self.pol_c) \
-                     + np.dot(rtor * dP            * sinmphi, self.pol_s) )
-            north = (- np.dot(rtor *  P * self.m_P * cosmphi, self.pol_s) \
-                     + np.dot(rtor *  P * self.m_P * sinmphi, self.pol_c) ) / coslambda
+                rtor = (REFRE / (REFRE + self.height)) ** (n_P + 2.) * (2.*n_P + 1.)/n_P /MU0 * 1e-6
 
-        return east.flatten(), north.flatten()
+                coslambda = np.cos(      mlat * np.pi/180) # (nmlat, 1   , 177)
+                cosmphi   = np.cos(m_P * mlt  * np.pi/12 ) # (1    , nmlt, 177)
+                sinmphi   = np.sin(m_P * mlt  * np.pi/12 ) # (1    , nmlt, 177)
+
+                east  = (  np.dot(rtor * dP       * cosmphi, self.pol_c) \
+                         + np.dot(rtor * dP       * sinmphi, self.pol_s) )
+                north = (- np.dot(rtor *  P * m_P * cosmphi, self.pol_s) \
+                         + np.dot(rtor *  P * m_P * sinmphi, self.pol_c) ) / coslambda
+
+                return east.squeeze(), north.squeeze()
 
 
-    def get_curl_free_current(self, mlat = DEFAULT, mlt = DEFAULT):
+            else:
+                shape = mlat.shape
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[:, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_P]).T.squeeze()
+                dP = -np.array([dP[ key] for key in self.keys_P]).T.squeeze()
+                cosmphi   = np.cos(self.m_P *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
+                coslambda = np.cos(           mlat * np.pi/180)
+
+                east  = (  np.dot(rtor * dP            * cosmphi, self.pol_c) \
+                         + np.dot(rtor * dP            * sinmphi, self.pol_s) )
+                north = (- np.dot(rtor *  P * self.m_P * cosmphi, self.pol_s) \
+                         + np.dot(rtor *  P * self.m_P * sinmphi, self.pol_c) ) / coslambda
+
+                return east.reshape(shape), north.reshape(shape)
+
+
+
+    def get_curl_free_current(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """ 
         Calculate the curl-free part of the horizontal current, in units of mA/m.
         The calculations refer to the height chosen upon initialization of the AMPS 
@@ -617,6 +766,10 @@ class AMPS(object):
         mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
 
         Return
@@ -641,27 +794,52 @@ class AMPS(object):
             north = rtor * (   np.dot(self.tor_dP_vector * self.tor_cosmphi_vector, self.tor_c)
                              + np.dot(self.tor_dP_vector * self.tor_sinmphi_vector, self.tor_s))
 
+            return east.flatten(), north.flatten()
+
         else: # calculate at custom mlat, mlt
-            mlat = mlat.flatten()[:, np.newaxis]
-            mlt  = mlt.flatten()[ :, np.newaxis]
+            if grid:
+                assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
 
-            P, dP = legendre(self.N, self.M, 90 - mlat)
-            P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
-            dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
-            cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
-            sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
-            coslambda = np.cos(           mlat * np.pi/180)
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
+                dP = -np.transpose(np.array([dP[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
+                mlt = mlt.reshape(1,-1,1)
+                mlat = mlat.reshape(-1, 1, 1)
+                n_T, m_T = self.n_T[np.newaxis, ...], self.m_T[np.newaxis, ...] # (1, 1, 257)
 
-            east  = (  np.dot(rtor *  P * self.m_T * cosmphi, self.tor_s) \
-                     - np.dot(rtor *  P * self.m_T * sinmphi, self.tor_c) ) / coslambda
-            north = (  np.dot(rtor * dP            * cosmphi, self.tor_c) \
-                     + np.dot(rtor * dP            * sinmphi, self.tor_s) ) 
+                coslambda = np.cos(      mlat * np.pi/180) # (nmlat, 1   , 177)                
+                cosmphi   = np.cos(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+                sinmphi   = np.sin(m_T *  mlt * np.pi/12 ) # (1, nmlt, 257)
+
+                east  = (  np.dot(rtor *  P * m_T * cosmphi, self.tor_s) \
+                         - np.dot(rtor *  P * m_T * sinmphi, self.tor_c) ) / coslambda
+                north = (  np.dot(rtor * dP       * cosmphi, self.tor_c) \
+                         + np.dot(rtor * dP       * sinmphi, self.tor_s) ) 
+
+                return east.squeeze(), north.squeeze()
+
+            else:
+                shape = mlat.shape
+                mlat = mlat.flatten()[:, np.newaxis]
+                mlt  = mlt.flatten()[ :, np.newaxis]
+
+                P, dP = legendre(self.N, self.M, 90 - mlat)
+                P  =  np.array([ P[ key] for key in self.keys_T]).T.squeeze()
+                dP = -np.array([dP[ key] for key in self.keys_T]).T.squeeze()
+                cosmphi   = np.cos(self.m_T *  mlt * np.pi/12 )
+                sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
+                coslambda = np.cos(           mlat * np.pi/180)
+
+                east  = (  np.dot(rtor *  P * self.m_T * cosmphi, self.tor_s) \
+                         - np.dot(rtor *  P * self.m_T * sinmphi, self.tor_c) ) / coslambda
+                north = (  np.dot(rtor * dP            * cosmphi, self.tor_c) \
+                         + np.dot(rtor * dP            * sinmphi, self.tor_s) ) 
+                return east.reshape(shape), north.reshape(shape)
 
 
-        return east.flatten(), north.flatten()
 
 
-    def get_total_current(self, mlat = DEFAULT, mlt = DEFAULT):
+    def get_total_current(self, mlat = DEFAULT, mlt = DEFAULT, grid = False):
         """ 
         Calculate the total horizontal current, in units of mA/m. This is calculated as 
         the sum of the curl-free and divergence-free parts. The calculations refer to 
@@ -675,6 +853,10 @@ class AMPS(object):
         mlt : numpy.ndarray, optional
             array of mlts at which to calculate the current. Will be ignored if mlat is not also specified. If 
             not specified, the calculations will be done using the coords of the `vectorgrid` attribute.
+        grid : bool, optional, default False
+            if True, mlat and mlt are interpreted as coordinates in a regular grid. They must be 
+            1-dimensional, and the output will have dimensions len(mlat) x len(mlt). If mlat and mlt 
+            are not set, this keyword is ignored.
 
 
         Return
@@ -691,8 +873,8 @@ class AMPS(object):
         get_curl_free_current : Calculate curl-free part of the horizontal current
         """
         
-        return [x + y for x, y in zip(self.get_curl_free_current(      mlat = mlat, mlt = mlt), 
-                                      self.get_divergence_free_current(mlat = mlat, mlt = mlt))]
+        return [x + y for x, y in zip(self.get_curl_free_current(      mlat = mlat, mlt = mlt, grid = grid), 
+                                      self.get_divergence_free_current(mlat = mlat, mlt = mlt, grid = grid))]
 
 
     def get_integrated_upward_current(self):
