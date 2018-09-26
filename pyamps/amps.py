@@ -296,6 +296,7 @@ class AMPS(object):
         self.tor_sinmphi_scalar = np.sin(self.m_T * self.scalargrid[1] * mlt2r)
 
         self.coslambda_vector = np.cos(self.vectorgrid[0] * np.pi/180)
+        self.coslambda_scalar = np.cos(self.scalargrid[0] * np.pi/180)
 
         # P and dP ( shape  NEQ, NED):
         vector_P, vector_dP = legendre(self.N, self.M, 90 - self.vectorgrid[0])
@@ -875,6 +876,49 @@ class AMPS(object):
         
         return [x + y for x, y in zip(self.get_curl_free_current(      mlat = mlat, mlt = mlt, grid = grid), 
                                       self.get_divergence_free_current(mlat = mlat, mlt = mlt, grid = grid))]
+
+
+    def get_total_current_magnitude(self):
+        """ 
+        Calculate the total horizontal current density magnitude, in units of mA/m. 
+        This is calculated as the sum of the curl-free and divergence-free parts. 
+        The calculations refer to the height chosen upon initialization of the AMPS 
+        object (default 110 km). The calculations are performed on the coordinates of
+        self.scalargrid. This is useful for making contour plots of the horizontal
+        current density magnitude, and faster than calculating the magnitude 
+        from the output of get_total_current
+
+
+        Return
+        ------
+        j : numpy.ndarray, float
+            horizontal current density magnitude, evalulated at the coordinates given by the `scalargrid` attribute
+
+        See Also
+        --------
+        get_total_current : Calculate total current density vector components
+        """
+
+        # curl-free part:
+        C = -1.e-6/MU0
+
+        je_cf = C * (   np.dot(self.tor_P_scalar * self.m_T * self.tor_cosmphi_scalar, self.tor_s )
+                         - np.dot(self.tor_P_scalar * self.m_T * self.tor_sinmphi_scalar, self.tor_c )) / self.coslambda_scalar
+
+        jn_cf = C * (   np.dot(self.tor_dP_scalar * self.tor_cosmphi_scalar, self.tor_c)
+                         + np.dot(self.tor_dP_scalar * self.tor_sinmphi_scalar, self.tor_s))
+
+        # divergence-free part:
+        rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 2.) * (2.*self.n_P + 1.)/self.n_P /MU0 * 1e-6
+
+        je_df =    (  np.dot(rtor * self.pol_dP_scalar * self.pol_cosmphi_scalar, self.pol_c) 
+                    + np.dot(rtor * self.pol_dP_scalar * self.pol_sinmphi_scalar, self.pol_s) )
+
+        jn_df =  - (  np.dot(rtor * self.pol_P_scalar * self.m_P * self.pol_cosmphi_scalar, self.pol_s)
+                    - np.dot(rtor * self.pol_P_scalar * self.m_P * self.pol_sinmphi_scalar, self.pol_c) ) / self.coslambda_scalar
+
+        # return magntitude of vector sum:
+        return np.sqrt((je_cf + je_df)**2 + (jn_cf + jn_df)**2)
 
 
     def get_integrated_upward_current(self):
