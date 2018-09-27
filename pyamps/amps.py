@@ -296,6 +296,7 @@ class AMPS(object):
         self.tor_sinmphi_scalar = np.sin(self.m_T * self.scalargrid[1] * mlt2r)
 
         self.coslambda_vector = np.cos(self.vectorgrid[0] * np.pi/180)
+        self.coslambda_scalar = np.cos(self.scalargrid[0] * np.pi/180)
 
         # P and dP ( shape  NEQ, NED):
         vector_P, vector_dP = legendre(self.N, self.M, 90 - self.vectorgrid[0])
@@ -877,6 +878,49 @@ class AMPS(object):
                                       self.get_divergence_free_current(mlat = mlat, mlt = mlt, grid = grid))]
 
 
+    def get_total_current_magnitude(self):
+        """ 
+        Calculate the total horizontal current density magnitude, in units of mA/m. 
+        This is calculated as the sum of the curl-free and divergence-free parts. 
+        The calculations refer to the height chosen upon initialization of the AMPS 
+        object (default 110 km). The calculations are performed on the coordinates of
+        self.scalargrid. This is useful for making contour plots of the horizontal
+        current density magnitude, and faster than calculating the magnitude 
+        from the output of get_total_current
+
+
+        Return
+        ------
+        j : numpy.ndarray, float
+            horizontal current density magnitude, evalulated at the coordinates given by the `scalargrid` attribute
+
+        See Also
+        --------
+        get_total_current : Calculate total current density vector components
+        """
+
+        # curl-free part:
+        C = -1.e-6/MU0
+
+        je_cf = C * (   np.dot(self.tor_P_scalar * self.m_T * self.tor_cosmphi_scalar, self.tor_s )
+                         - np.dot(self.tor_P_scalar * self.m_T * self.tor_sinmphi_scalar, self.tor_c )) / self.coslambda_scalar
+
+        jn_cf = C * (   np.dot(self.tor_dP_scalar * self.tor_cosmphi_scalar, self.tor_c)
+                         + np.dot(self.tor_dP_scalar * self.tor_sinmphi_scalar, self.tor_s))
+
+        # divergence-free part:
+        rtor = (REFRE / (REFRE + self.height)) ** (self.n_P + 2.) * (2.*self.n_P + 1.)/self.n_P /MU0 * 1e-6
+
+        je_df =    (  np.dot(rtor * self.pol_dP_scalar * self.pol_cosmphi_scalar, self.pol_c) 
+                    + np.dot(rtor * self.pol_dP_scalar * self.pol_sinmphi_scalar, self.pol_s) )
+
+        jn_df =  - (  np.dot(rtor * self.pol_P_scalar * self.m_P * self.pol_cosmphi_scalar, self.pol_s)
+                    - np.dot(rtor * self.pol_P_scalar * self.m_P * self.pol_sinmphi_scalar, self.pol_c) ) / self.coslambda_scalar
+
+        # return magntitude of vector sum:
+        return np.sqrt((je_cf + je_df)**2 + (jn_cf + jn_df)**2)
+
+
     def get_integrated_upward_current(self):
         """ 
         Calculate the integrated upward and downward current, poleward of `minlat`,
@@ -917,6 +961,168 @@ class AMPS(object):
 
         #      J_up_north            J_down_north          J_up_south            J_down_south
         return np.sum(J_n[J_n > 0]), np.sum(J_n[J_n < 0]), np.sum(J_s[J_s > 0]), np.sum(J_s[J_s < 0])
+
+
+    def get_ground_Beqd(self, height = 0):
+        """ 
+        Calculate ground magnetic field perturbations in the QD east direction, in units of nT. 
+
+
+        Note
+        ----
+        These calculations are made by assuming that the divergende-free current function calculated
+        with the AMPS model correspond to the equivalent current function of an external 
+        magnetic potential, as described by Chapman & Bartels 1940 [2]_. Induced components are 
+        thus ignored. The height of the current function also becomes important when propagating
+        the model values to the ground. 
+
+        Also note that the output parameters will be QD components, and that they can be converted
+        to geographic by use of QD base vectors [3]_
+
+        This function is not optimized for calculating long time series of model ground
+        magnetic field perturbations, although it is possible to use for that.
+
+        Parameters
+        ----------
+        height : float, optional
+            height, in km, where the magnetic field is evaluated. Must be less than self.height, which 
+            is the height of the current. Default is 0 (ground).
+
+        Return
+        ------
+        dB_east : numpy.ndarray
+            Eastward component of the magnetic field disturbance on ground
+
+        References
+        ----------
+        .. [2] S. Chapman & J. Bartels "Geomagnetism Vol 2" Oxford University Press 1940
+        
+        .. [3] A. D. Richmond, "Ionospheric Electrodynamics Using Magnetic Apex Coordinates", 
+           Journal of geomagnetism and geoelectricity Vol. 47, 1995, http://doi.org/10.5636/jgg.47.191
+
+
+        See Also
+        --------
+        get_ground_Bnqd : Calculate ground perturbation in northward qd direction on scalargrid
+        get_ground_Buqd : Calculate ground perturbation in upward qd direction on scalargrid
+        get_ground_perturbation: Calculate ground perturbation in east/north qd direction
+        """
+
+        rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
+        hh   = REFRE + height
+
+        G_ce    = rr ** (2 * self.n_P + 1) * (hh / REFRE) ** self.n_P * (self.n_P + 1.) / self.n_P * self.pol_P_scalar * self.m_P / self.coslambda_scalar
+        G = np.hstack((-G_ce * self.pol_sinmphi_scalar, G_ce * self.pol_cosmphi_scalar))
+
+        return G.dot(np.vstack((self.pol_c, self.pol_s)))
+
+
+    def get_ground_Bnqd(self, height = 0):
+        """ 
+        Calculate ground magnetic field perturbations in the QD north direction, in units of nT. 
+
+
+        Note
+        ----
+        These calculations are made by assuming that the divergende-free current function calculated
+        with the AMPS model correspond to the equivalent current function of an external 
+        magnetic potential, as described by Chapman & Bartels 1940 [2]_. Induced components are 
+        thus ignored. The height of the current function also becomes important when propagating
+        the model values to the ground. 
+
+        Also note that the output parameters will be QD components, and that they can be converted
+        to geographic by use of QD base vectors [3]_
+
+        This function is not optimized for calculating long time series of model ground
+        magnetic field perturbations, although it is possible to use for that.
+
+        Parameters
+        ----------
+        height : float, optional
+            height, in km, where the magnetic field is evaluated. Must be less than self.height, which 
+            is the height of the current. Default is 0 (ground).
+
+        Return
+        ------
+        dB_north : numpy.ndarray
+            Northward component of the magnetic field disturbance on ground
+
+        References
+        ----------
+        .. [2] S. Chapman & J. Bartels "Geomagnetism Vol 2" Oxford University Press 1940
+        
+        .. [3] A. D. Richmond, "Ionospheric Electrodynamics Using Magnetic Apex Coordinates", 
+           Journal of geomagnetism and geoelectricity Vol. 47, 1995, http://doi.org/10.5636/jgg.47.191
+
+
+        See Also
+        --------
+        get_ground_Beqd : Calculate ground perturbation in easthward qd direction on scalargrid
+        get_ground_Buqd : Calculate ground perturbation in upward qd direction on scalargrid
+        get_ground_perturbation: Calculate ground perturbation in east/north qd direction
+        """
+
+        rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
+        hh   = REFRE + height
+
+        G_cn    = rr ** (2 * self.n_P + 1) * (hh / REFRE) ** self.n_P * (self.n_P + 1.) / self.n_P * self.pol_dP_scalar 
+        G = np.hstack(( G_cn * self.pol_cosmphi_scalar, G_cn * self.pol_sinmphi_scalar))
+
+        return G.dot(np.vstack((self.pol_c, self.pol_s)))
+
+
+    def get_ground_Buqd(self, height = 0.):
+        """ 
+        Calculate ground magnetic field perturbations in the QD up direction, in units of nT. 
+
+
+        Note
+        ----
+        These calculations are made by assuming that the divergende-free current function calculated
+        with the AMPS model correspond to the equivalent current function of an external 
+        magnetic potential, as described by Chapman & Bartels 1940 [2]_. Induced components are 
+        thus ignored. The height of the current function also becomes important when propagating
+        the model values to the ground. 
+
+        Also note that the output parameters will be QD components, and that they can be converted
+        to geographic by use of QD base vectors [3]_
+
+        This function is not optimized for calculating long time series of model ground
+        magnetic field perturbations, although it is possible to use for that.
+
+        Parameters
+        ----------
+        height : float, optional
+            height, in km, where the magnetic field is evaluated. Must be less than self.height, which 
+            is the height of the current. Default is 0 (ground).
+
+        Return
+        ------
+        dB_up : numpy.ndarray
+            Upward component of the magnetic field disturbance on ground
+
+        References
+        ----------
+        .. [2] S. Chapman & J. Bartels "Geomagnetism Vol 2" Oxford University Press 1940
+        
+        .. [3] A. D. Richmond, "Ionospheric Electrodynamics Using Magnetic Apex Coordinates", 
+           Journal of geomagnetism and geoelectricity Vol. 47, 1995, http://doi.org/10.5636/jgg.47.191
+
+
+        See Also
+        --------
+        get_ground_Beqd : Calculate ground perturbation in easthward qd direction on scalargrid
+        get_ground_Bnqd : Calculate ground perturbation in northward qd direction on scalargrid
+        get_ground_perturbation: Calculate ground perturbation in east/north qd direction
+        """
+
+        rr   = REFRE / (REFRE + self.height) # ratio of current radius to earth radius
+        hh   = REFRE + height
+
+        G_ce = rr ** (2 * self.n_P + 1) * (hh / REFRE) ** (self.n_P - 1) * (self.n_P + 1.) * self.pol_P_scalar 
+        G = np.hstack(( G_ce * self.pol_cosmphi_scalar, G_ce * self.pol_sinmphi_scalar))
+
+        return G.dot(np.vstack((self.pol_c, self.pol_s)))
 
 
     def get_ground_perturbation(self, mlat, mlt, height = 0):
