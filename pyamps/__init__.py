@@ -8,4 +8,4 @@ import pyamps.model_utils
 
 __all__ = ["AMPS","get_B_ground","get_B_space","mlon_to_mlt"]
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
