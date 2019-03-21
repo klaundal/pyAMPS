@@ -22,7 +22,7 @@ before_install:
 
 install: 
   - pip install -r ../requirements.txt 
-  - pip install flake8 pytest pytest-cov
+  - pip install flake8 pytest==3.0.7 pytest-cov==2.6.0
 
 before_script:
   cd ..
