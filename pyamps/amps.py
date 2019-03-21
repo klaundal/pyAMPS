@@ -1125,19 +1125,21 @@ class AMPS(object):
         return G.dot(np.vstack((self.pol_c, self.pol_s)))
 
 
-    def get_ground_perturbation(self, mlat, mlt, height = 0):
+    def get_ground_perturbation(self, mlat = DEFAULT, mlt = DEFAULT, height = 0):
         """ 
         Calculate magnetic field perturbations on ground, in units of nT, that corresponds 
         to the divergence-free current function.
 
         Parameters
         ----------
-        mlat : numpy.ndarray, float
+        mlat : numpy.ndarray, float, optional
             magnetic latitude of the output. The array shape will not be preserved, and 
-            the results will be returned as a 1-dimensional array
-        mlt : numpy.ndarray, float
+            the results will be returned as a 1-dimensional array. Default value is 
+            from self.vectorgrid
+        mlt : numpy.ndarray, float, optional
             magnetic local time of the output. The array shape will not be preserved, and 
-            the results will be returned as a 1-dimensional array
+            the results will be returned as a 1-dimensional array. Default value is 
+            from self.vectorgrid
         height: numpy.ndarray, optional
             geodetic height at which the field should be evalulated. Should be < current height
             set at initialization. Default 0 (ground)
@@ -1172,6 +1174,10 @@ class AMPS(object):
            Journal of geomagnetism and geoelectricity Vol. 47, 1995, http://doi.org/10.5636/jgg.47.191
 
         """
+
+        # if mlat and mlt are not given, call function again with vectorgrid
+        if mlat is DEFAULT or mlt is DEFAULT:
+            return self.get_ground_perturbation(self.vectorgrid[0], self.vectorgrid[1], height = height)
 
         mlt  = mlt. flatten()[:, np.newaxis]
         mlat = mlat.flatten()[:, np.newaxis]
