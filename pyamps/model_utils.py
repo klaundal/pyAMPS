@@ -5,7 +5,8 @@ from functools import reduce
 
 basepath = os.path.dirname(__file__)
 
-coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0101.txt'))
+#coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0101.txt'))
+coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','model_coefficients.txt'))
 
 # read coefficient file and store in pandas DataFrame - with column names from last row of header:
 names = ([x for x in open(coeff_fn).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 
