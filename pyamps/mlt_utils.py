@@ -358,8 +358,8 @@ def is_leapyear(year):
         return False
 
 
-def geo2mag(glat, glon, epoch, deg = True):
-    """ Convert geographic to centered dipole coordinates
+def geo2mag(glat, glon, epoch, deg = True, inverse = False):
+    """ Convert geographic (geocentric) to centered dipole coordinates
 
     The conversion uses IGRF coefficients directly, interpolated
     to the provided epoch. The construction of the rotation matrix
@@ -374,7 +374,10 @@ def geo2mag(glat, glon, epoch, deg = True):
     epoch : float
         epoch (year) for the dipole used in the conversion
     deg : bool, optional
-        true if input is in degrees, False otherwise
+        True if input is in degrees, False otherwise
+    inverse: bool, optional
+        set to True to convert from magnetic to geographic. 
+        Default is False
 
     Returns
     -------
@@ -398,6 +401,9 @@ def geo2mag(glat, glon, epoch, deg = True):
     Xcd = np.cross(Ycd, Zcd)
 
     Rgeo_to_cd = np.vstack((Xcd, Ycd, Zcd))
+
+    if inverse: # transpose rotation matrix to get inverse operation
+        Rgeo_to_cd = Rgeo_to_cd.T
 
     # convert input to ECEF:
     colat = 90 - glat.flatten() if deg else np.pi/2 - glat.flatten()
