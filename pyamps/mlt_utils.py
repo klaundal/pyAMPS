@@ -76,6 +76,10 @@ def mlon_to_mlt(mlon, times, epoch):
     .. [4] Laundal, K.M. & Richmond, A.D. Space Sci Rev (2017) 206: 27. 
            https://doi.org/10.1007/s11214-016-0275-y
 
+    See Also
+    --------
+    mlt_to_mlon: Magnetic longitude from magnetic local time and universal time
+
     """
     # flatten the input
     mlon = np.asarray(mlon).flatten() 
@@ -90,6 +94,43 @@ def mlon_to_mlt(mlon, times, epoch):
     mlt = (180. + londiff)/15. # convert to mlt with ssqlon at noon
 
     return mlt
+
+
+def mlt_to_mlon(mlt, times, epoch):
+    """ Calculate quasi-dipole magnetic longitude from magnetic local time and universal time(s). 
+
+    This is an implementation of the formula recommended in Laundal & Richmond, 2017 [4]_. 
+    It uses the subsolar point geomagnetic (centered dipole) longitude to define
+    the noon meridian. 
+
+    Parameters
+    ----------
+    mlt : array_like
+        array of magnetic local times
+    times : datetime or list of datetimes
+        datetime object, or list of datetimes with equal number of elements
+        as mlon
+    epoch : float
+        the epoch (year, ) used for geo->mag conversion
+
+    References
+    ----------
+    .. [4] Laundal, K.M. & Richmond, A.D. Space Sci Rev (2017) 206: 27. 
+           https://doi.org/10.1007/s11214-016-0275-y
+
+    See Also
+    --------
+    mlon_to_mlt: Magnetic local time from magnetic longitude and universal time
+
+    """
+    # flatten the input
+    mlt = np.asarray(mlt).flatten() 
+
+    ssglat, ssglon = map(np.array, subsol(times))
+    sqlat, ssqlon = geo2mag(ssglat, ssglon, epoch)
+
+    return (15 * mlt - 180 + ssqlon + 360) % 360
+
 
 
 def sph_to_car(sph, deg = True):
