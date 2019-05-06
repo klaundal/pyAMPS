@@ -59,7 +59,7 @@ Quick Start
     >>> mlat, mlt = np.array([75, -75]), np.array([12, 12])
     >>> Ju = m.get_upward_current(mlat, mlt)
     >>> Ju
-    array([ 0.25088252, -0.05726114])
+    array([ 0.23323377, -0.05599236])
 
 Documentation
 -------------
@@ -67,9 +67,13 @@ See `http://pyamps.readthedocs.io`
 
 References
 ----------
-Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (submitted 2018), Solar wind and seasonal influence on ionospheric currents from Swarm and CHAMP measurements, Journal of Geophysical Research - Space Physics. `doi:10.1029/2018JA025387 <https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018JA025387>`_
+Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (2018), Solar wind and seasonal influence on ionospheric currents from Swarm and CHAMP measurements, Journal of Geophysical Research - Space Physics. `doi:10.1029/2018JA025387 <https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018JA025387>`_
 
+*Since April 2019, pyAMPS uses an updated set of model coefficients compared to the model discussed in the paper. The only difference is that the updated set of model coefficients were calculated using a larger Swarm dataset.*
+
+See also:
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
+
 
 Acknowledgments
 ---------------

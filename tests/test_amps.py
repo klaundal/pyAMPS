@@ -405,9 +405,9 @@ def test_get_B_space():
         [0.5, 0.5],
         [0.3, 0.3]]))
     B_e, B_n, B_r = get_B_space(*params)
-    assert_allclose(B_e, [7.760, 7.760], atol=1e-3)
-    assert_allclose(B_n, [-16.462, -16.462], atol=1e-3)
-    assert_allclose(B_r, [10.697, 10.697], atol=1e-3)
+    assert_allclose(B_e, [7.571, 7.571], atol=1e-3)
+    assert_allclose(B_n, [-15.532, -15.532], atol=1e-3)
+    assert_allclose(B_r, [10.100, 10.100], atol=1e-3)
     pass
 
 
@@ -416,6 +416,6 @@ def test_get_B_ground():
     params = list(map(lambda x: np.array(x), [90, 0, 110, 0, 0, 1, 0.5, 0.3]))
     Bqphi, Bqlambda, Bqr = get_B_ground(*params)
     assert_allclose(Bqphi, 0, atol=1e-3)
-    assert_allclose(Bqlambda, 5.609, atol=1e-3)
-    assert_allclose(Bqr, 3.258, atol=1e-3)
+    assert_allclose(Bqlambda, 5.279, atol=1e-3)
+    assert_allclose(Bqr, 3.092, atol=1e-3)
     pass

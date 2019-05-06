@@ -19,8 +19,8 @@ header = '# Sherical harmonic coefficients for the Average Magnetic field and Po
 header = header + '# Produced ' + date
 header = header + """
 #
-# Based on magnetic field measurements from CHAMP (2001-08 to 2010-09) and Swarm (2013-12 to 2016-08) 
-# Reference: Laundal et al., "Solar wind and seasonal influence on ionospheric currents", submitted to Journal of Geophysical Research - Space Physics, 2018
+# Based on magnetic field measurements from CHAMP (2001-08 to 2010-09) and Swarm (2013-12 to 2018-09).
+# Reference: Laundal et al., "Solar wind and seasonal influence on ionospheric currents", Journal of Geophysical Research - Space Physics, doi:10.1029/2018JA025387, 2018
 #
 # Coefficient unit: nT
 # Apex reference height: 110 km

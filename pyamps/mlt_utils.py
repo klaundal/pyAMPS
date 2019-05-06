@@ -76,6 +76,10 @@ def mlon_to_mlt(mlon, times, epoch):
     .. [4] Laundal, K.M. & Richmond, A.D. Space Sci Rev (2017) 206: 27. 
            https://doi.org/10.1007/s11214-016-0275-y
 
+    See Also
+    --------
+    mlt_to_mlon: Magnetic longitude from magnetic local time and universal time
+
     """
     # flatten the input
     mlon = np.asarray(mlon).flatten() 
@@ -90,6 +94,43 @@ def mlon_to_mlt(mlon, times, epoch):
     mlt = (180. + londiff)/15. # convert to mlt with ssqlon at noon
 
     return mlt
+
+
+def mlt_to_mlon(mlt, times, epoch):
+    """ Calculate quasi-dipole magnetic longitude from magnetic local time and universal time(s). 
+
+    This is an implementation of the formula recommended in Laundal & Richmond, 2017 [4]_. 
+    It uses the subsolar point geomagnetic (centered dipole) longitude to define
+    the noon meridian. 
+
+    Parameters
+    ----------
+    mlt : array_like
+        array of magnetic local times
+    times : datetime or list of datetimes
+        datetime object, or list of datetimes with equal number of elements
+        as mlon
+    epoch : float
+        the epoch (year, ) used for geo->mag conversion
+
+    References
+    ----------
+    .. [4] Laundal, K.M. & Richmond, A.D. Space Sci Rev (2017) 206: 27. 
+           https://doi.org/10.1007/s11214-016-0275-y
+
+    See Also
+    --------
+    mlon_to_mlt: Magnetic local time from magnetic longitude and universal time
+
+    """
+    # flatten the input
+    mlt = np.asarray(mlt).flatten() 
+
+    ssglat, ssglon = map(np.array, subsol(times))
+    sqlat, ssqlon = geo2mag(ssglat, ssglon, epoch)
+
+    return (15 * mlt - 180 + ssqlon + 360) % 360
+
 
 
 def sph_to_car(sph, deg = True):
@@ -317,8 +358,8 @@ def is_leapyear(year):
         return False
 
 
-def geo2mag(glat, glon, epoch, deg = True):
-    """ Convert geographic to centered dipole coordinates
+def geo2mag(glat, glon, epoch, deg = True, inverse = False):
+    """ Convert geographic (geocentric) to centered dipole coordinates
 
     The conversion uses IGRF coefficients directly, interpolated
     to the provided epoch. The construction of the rotation matrix
@@ -333,7 +374,10 @@ def geo2mag(glat, glon, epoch, deg = True):
     epoch : float
         epoch (year) for the dipole used in the conversion
     deg : bool, optional
-        true if input is in degrees, False otherwise
+        True if input is in degrees, False otherwise
+    inverse: bool, optional
+        set to True to convert from magnetic to geographic. 
+        Default is False
 
     Returns
     -------
@@ -357,6 +401,9 @@ def geo2mag(glat, glon, epoch, deg = True):
     Xcd = np.cross(Ycd, Zcd)
 
     Rgeo_to_cd = np.vstack((Xcd, Ycd, Zcd))
+
+    if inverse: # transpose rotation matrix to get inverse operation
+        Rgeo_to_cd = Rgeo_to_cd.T
 
     # convert input to ECEF:
     colat = 90 - glat.flatten() if deg else np.pi/2 - glat.flatten()
