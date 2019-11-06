@@ -6,10 +6,9 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 import pyamps
 
+def test_model_vectors():
 
-def test_model_vectors(model_coeff):
-
-    fn = os.path.abspath(os.path.join(pyamps.model_utils.basepath, 'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0102.txt'))
+    fn = os.path.abspath(os.path.join(pyamps.model_utils.basepath, 'coefficients','test_model.txt'))
 
     model_vectors = pyamps.model_utils.get_model_vectors(v=0, By=0, Bz=1, tilt=0.5, f107=0.3, coeff_fn = fn)
     # const,cosca,tilt and f107 terms non-zero
