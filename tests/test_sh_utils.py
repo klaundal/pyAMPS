@@ -176,8 +176,8 @@ def test_getG0():
     G0 = getG0(glat, glon, height, time, epoch=2000)
 
     assert G0.shape == (3 * 2, 758)
-    assert_allclose(G0[3, :450].sum(), 2.438967, atol=1e-4)
-    assert_allclose(G0[2, :5], [-0.03689656, -0.98254578, -0.10672726, -1.63311681,  0.35280523], atol=1e-4)
+    assert_allclose(np.abs(G0[3, :]).sum(), 665.387696, atol=1e-4)
+    assert_allclose(G0[2, ::200], [-0.03689656, -1.82078773, -0.6418252 ,  1.74947096], atol=1e-4)
 
 
 def test_get_ground_field_G0():

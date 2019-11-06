@@ -381,7 +381,7 @@ def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
 
     # matrices with partial derivatives in MA coordinates:
     dT_dalon  = np.hstack(( P_cos_T * dcos_T * m_cos_T,  P_sin_T * dsin_T * m_sin_T))
-    dT_dalat  = np.hstack((dP_cos_T *  cos_T          , dP_sin_T *  sin_T * m_sin_T))
+    dT_dalat  = np.hstack((dP_cos_T *  cos_T          , dP_sin_T *  sin_T          ))
 
     # Toroidal field components
     B_T_e  =   -d1n * dT_dalon / cos_alat + d2n * dT_dalat / sinI
