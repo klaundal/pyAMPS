@@ -5,7 +5,6 @@ import sys
 import os
 
 import pandas as pd
-from pandas.compat import StringIO
 
 import pyamps
 
@@ -50,5 +49,6 @@ def model_coeff():
     true_name = pyamps.model_utils.default_coeff_fn
     fake_name = os.path.abspath(os.path.join(pyamps.model_utils.basepath,'coefficients','test_model.txt'))
 
-    yield true_name, fake_name
+    yield fake_name
+    #yield true_name, fake_name
     pyamps.model_utils.default_coeff_fn = true_name
