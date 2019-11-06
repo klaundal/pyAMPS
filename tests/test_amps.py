@@ -1,5 +1,6 @@
 from __future__ import division
 
+import os
 import pytest
 import datetime
 import numpy as np
@@ -9,6 +10,7 @@ from numpy.testing import assert_array_equal, assert_allclose
 import pyamps
 from pyamps.amps import AMPS, get_B_space, get_B_ground
 
+test_coeff_fn = os.path.abspath(os.path.join(pyamps.model_utils.basepath,'coefficients','test_model.txt'))
 
 @pytest.fixture()
 def amps_model(model_coeff):
@@ -25,7 +27,8 @@ def amps_model(model_coeff):
         height=90.1,
         dr=4,
         M0=8,
-        resolution=21
+        resolution=21,
+        coeff_fn = test_coeff_fn
     )
     try:
         model = AMPS(*model_args, **model_kwargs)
@@ -41,7 +44,7 @@ class Test_AMPS(object):
         model, m_args, m_kwargs = amps_model
 
         model = AMPS(*m_args, **m_kwargs)
-        model_vectors = pyamps.model_utils.get_model_vectors(*m_args)
+        model_vectors = pyamps.model_utils.get_model_vectors(*m_args, coeff_fn = m_kwargs['coeff_fn'])
 
         assert_allclose(model.tor_s, model_vectors[1])
         assert_allclose(model.pol_c, model_vectors[2])
