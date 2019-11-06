@@ -1,5 +1,5 @@
 from __future__ import division
-import os
+
 import pytest
 import datetime
 import numpy as np
