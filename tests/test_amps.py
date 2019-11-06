@@ -1,5 +1,5 @@
 from __future__ import division
-
+import os
 import pytest
 import datetime
 import numpy as np
@@ -9,6 +9,7 @@ from numpy.testing import assert_array_equal, assert_allclose
 import pyamps
 from pyamps.amps import AMPS, get_B_space, get_B_ground
 
+model_fn = os.path.abspath(os.path.join(pyamps.model_utils.basepath,'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0101.txt'))
 
 @pytest.fixture()
 def amps_model(model_coeff):
@@ -26,6 +27,7 @@ def amps_model(model_coeff):
         dr=4,
         M0=8,
         resolution=21
+        coeff_fn=model_fn
     )
     try:
         model = AMPS(*model_args, **model_kwargs)

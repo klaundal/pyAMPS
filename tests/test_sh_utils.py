@@ -168,7 +168,7 @@ def test_legendre(inp, out):
 
 @pytest.mark.apex_dep
 def test_getG0():
-    glat = np.array([90, 0])
+    glat = np.array([80, 10])
     glon = np.array([90, 180])
     time = np.array([datetime.datetime(2000, 1, 2, 3, 4, 5, 6),
                      datetime.datetime(2000, 1, 2, 4, 5, 6, 7)])
@@ -176,8 +176,8 @@ def test_getG0():
     G0 = getG0(glat, glon, height, time, epoch=2000)
 
     assert G0.shape == (3 * 2, 758)
-    assert_allclose(G0[5, :450].sum(), -0.0836, atol=1e-4)
-    assert_allclose(G0[3, :3], [1.7599e-01, 8.4695e-01, -2.2772e-02], atol=1e-4)
+    assert_allclose(G0[5, :450].sum(), 0.24134, atol=1e-4)
+    assert_allclose(G0[3, :3], [0.17328072, 0.84718062, 0.06691276], atol=1e-4)
 
 
 def test_get_ground_field_G0():

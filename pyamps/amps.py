@@ -45,7 +45,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from .plot_utils import equal_area_grid, Polarsubplot
 from .sh_utils import legendre, getG0, get_ground_field_G0
-from .model_utils import get_model_vectors, m_matrix, m_matrix_pol
+from .model_utils import get_model_vectors, get_m_matrix, get_m_matrix_pol, get_coeffs, default_coeff_fn
 from functools import reduce
 from builtins import range
 
@@ -88,6 +88,9 @@ class AMPS(object):
         number of grid points in the most poleward circle of equal area grid points (default 4)
     resolution: int, optional
         resolution in both directions of the scalar field grids (default 100)
+    coeff_fn: str, optional
+        file name of model coefficients - must be in format produced by model_vector_to_txt.py
+        (default is latest version)
 
 
     Examples
@@ -152,11 +155,12 @@ class AMPS(object):
 
 
 
-    def __init__(self, v, By, Bz, tilt, f107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100):
+    def __init__(self, v, By, Bz, tilt, f107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100, coeff_fn = default_coeff_fn):
         """ __init__ function for class AMPS
         """
 
-        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107)
+        self.coeff_fn = coeff_fn
+        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107, coeff_fn = self.coeff_fn)
 
         self.height = height
 
@@ -196,7 +200,7 @@ class AMPS(object):
         self.calculate_matrices()
 
 
-    def update_model(self, v, By, Bz, tilt, f107):
+    def update_model(self, v, By, Bz, tilt, f107, coeff_fn = DEFAULT):
         """
         Update the model vectors without updating all the other matrices. This leads to better
         performance than just making a new AMPS object.
@@ -233,8 +237,13 @@ class AMPS(object):
         by allowing the inputs to be arrays. That is not yet implemented.
 
         """
-        
-        self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107)
+
+        if coeff_fn is DEFAULT:
+            self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107, coeff_fn = self.coeff_fn)
+        else:
+            self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107, coeff_fn = coeff_fn)
+       
+
 
 
     def _get_vectorgrid(self, **kwargs):
@@ -1327,7 +1336,7 @@ class AMPS(object):
         plt.show()
 
 
-def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000):
+def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000, coeff_fn = DEFAULT):
     """ Calculate model magnetic field in space 
 
     This function uses dask to parallelize computations. That means that it is quite
@@ -1360,6 +1369,10 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     chunksize : int, optional
         the input arrays will be split in chunks in order to parallelize
         computations. Larger chunks consumes more memory, but might be faster. Default is 15000.
+    coeff_fn: str, optional
+        file name of model coefficients - must be in format produced by model_vector_to_txt.py
+        (default is latest version)
+
 
     Returns
     -------
@@ -1383,6 +1396,10 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
     # TODO: ADD CHECKS ON INPUT (?)
 
+    if coeff_fn is DEFAULT:
+        m_matrix = get_m_matrix()
+    else:
+        m_matrix = get_m_matrix(coeff_fn)
 
     # number of equations
     neq = m_matrix.shape[0]
@@ -1445,7 +1462,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     return np.split(B, 3)
 
 
-def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1., chunksize = 25000):
+def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1., chunksize = 25000, coeff_fn = DEFAULT):
     """ Calculate model magnetic field on ground 
     
     This function uses dask to parallelize computations. That means that it is quite
@@ -1478,6 +1495,9 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     chunksize : int
         the input arrays will be split in chunks in order to parallelize
         computations. Larger chunks consumes more memory, but might be faster. Default is 25000.
+    coeff_fn: str, optional
+        file name of model coefficients - must be in format produced by model_vector_to_txt.py
+        (default is latest version)
 
 
     Returns
@@ -1496,6 +1516,11 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
 
     Array inputs should have the same dimensions.
     """
+
+    if coeff_fn is DEFAULT:
+        m_matrix_pol = get_m_matrix_POL()
+    else:
+        m_matrix_pol = get_m_matrix_pol(coeff_fn)
 
 
     # number of equations
