@@ -26,7 +26,7 @@ def amps_model(model_coeff):
         height=90.1,
         dr=4,
         M0=8,
-        resolution=21
+        resolution=21,
         coeff_fn=model_fn
     )
     try:
