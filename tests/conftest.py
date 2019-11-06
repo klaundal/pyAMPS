@@ -48,7 +48,7 @@ def model_coeff():
     """Generate test data similar in form to AMPS model coefficients"""
 
     true_name = pyamps.model_utils.default_coeff_fn
-    fake_name = os.path.abspath(os.path.join(basepath,'coefficients','test_model.txt'))
+    fake_name = os.path.abspath(os.path.join(pyamps.model_utils.basepath,'coefficients','test_model.txt'))
 
     yield true_name, fake_name
     pyamps.model_utils.default_coeff_fn = true_name
