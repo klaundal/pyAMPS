@@ -1518,7 +1518,7 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     """
 
     if coeff_fn is DEFAULT:
-        m_matrix_pol = get_m_matrix_POL()
+        m_matrix_pol = get_m_matrix_pol()
     else:
         m_matrix_pol = get_m_matrix_pol(coeff_fn)
 
