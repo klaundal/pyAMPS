@@ -1,5 +1,5 @@
 # Sherical harmonic coefficients for the Average Magnetic field and Polar current System (AMPS) model
-# Produced Apr 2019
+# Produced Dec 2019
 #
 # Based on magnetic field measurements from CHAMP (2001-08 to 2010-09) and Swarm (2013-12 to 2018-09).
 # Reference: Laundal et al., "Solar wind and seasonal influence on ionospheric currents", Journal of Geophysical Research - Space Physics, doi:10.1029/2018JA025387, 2018
