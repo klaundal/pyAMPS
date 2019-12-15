@@ -20,6 +20,24 @@ names = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca',
          'tilt_tau_sinca', 'tilt_tau_cosca', 'f107']
 
 
+def get_truncation_levels(coeff_fn = default_coeff_fn):
+    """ read model truncation levels from coefficient file 
+        returns NT, MT, NV, MV (spherical harmonic degree (N) and order (M)
+        for toroidal (T) and poloidal (V) fields, respectively)
+    """
+
+    # read relevant line and split in words:
+    words = [l for l in open(coeff_fn).readlines() if 'Spherical harmonic degree' in l][0].split(' ')
+
+    # remove commas from each word
+    words = [w.replace(',', '') for w in words]
+
+    # pick out the truncation levels and convert to ints
+    NT, MT, NV, MV = [int(num) for num in words if num.isnumeric()]
+
+    return NT, MT, NV, MV
+
+
 def get_m_matrix(coeff_fn = default_coeff_fn):
     """ make matrix of model coefficients - used in get_B_space for fast calculations
         of model field time series along trajectory with changing input

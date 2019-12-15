@@ -45,7 +45,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 from .plot_utils import equal_area_grid, Polarsubplot
 from .sh_utils import legendre, getG0, get_ground_field_G0
-from .model_utils import get_model_vectors, get_m_matrix, get_m_matrix_pol, get_coeffs, default_coeff_fn
+from .model_utils import get_model_vectors, get_m_matrix, get_m_matrix_pol, get_coeffs, default_coeff_fn, get_truncation_levels
 from functools import reduce
 from builtins import range
 
@@ -1336,7 +1336,7 @@ class AMPS(object):
         plt.show()
 
 
-def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000, coeff_fn = DEFAULT):
+def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000, coeff_fn = default_coeff_fn):
     """ Calculate model magnetic field in space 
 
     This function uses dask to parallelize computations. That means that it is quite
@@ -1396,10 +1396,8 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
     # TODO: ADD CHECKS ON INPUT (?)
 
-    if coeff_fn is DEFAULT:
-        m_matrix = get_m_matrix()
-    else:
-        m_matrix = get_m_matrix(coeff_fn)
+    m_matrix       = get_m_matrix(coeff_fn)
+    NT, MT, NV, MV = get_truncation_levels(coeff_fn)
 
     # number of equations
     neq = m_matrix.shape[0]
@@ -1411,7 +1409,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     height = da.from_array(height, chunks = chunksize)
 
     # get G0 matrix - but first make a wrapper that only takes dask arrays as input
-    _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R)
+    _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R, NT = NT, MT = MT, NV = NV, MV = MV)
 
     # use that wrapper to calculate G0 for each block
     G0 = da.map_blocks(_getG0, glat, glon, height, time, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
@@ -1462,7 +1460,7 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     return np.split(B, 3)
 
 
-def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1., chunksize = 25000, coeff_fn = DEFAULT):
+def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110, epsilon_multiplier = 1., chunksize = 25000, coeff_fn = default_coeff_fn):
     """ Calculate model magnetic field on ground 
     
     This function uses dask to parallelize computations. That means that it is quite
@@ -1517,11 +1515,8 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     Array inputs should have the same dimensions.
     """
 
-    if coeff_fn is DEFAULT:
-        m_matrix_pol = get_m_matrix_pol()
-    else:
-        m_matrix_pol = get_m_matrix_pol(coeff_fn)
-
+    m_matrix_pol = get_m_matrix_pol(coeff_fn)
+    _, _, N, M   = get_truncation_levels(coeff_fn)
 
     # number of equations
     neq = m_matrix_pol.shape[0]
@@ -1531,7 +1526,7 @@ def get_B_ground(qdlat, mlt, height, v, By, Bz, tilt, f107, current_height = 110
     mlt   = da.from_array(mlt.flatten()  , chunks = chunksize)
 
     # get G0 matrix - but first make a wrapper that only takes dask arrays as input
-    _getG0 = lambda x, y: get_ground_field_G0(x, y, height, current_height)
+    _getG0 = lambda x, y: get_ground_field_G0(x, y, height, current_height, N = N, M = M)
 
     # use that wrapper to calculate G0 for each block
     G0 = da.map_blocks(_getG0, qdlat, mlt, chunks = (3*chunksize, neq), new_axis = 1)

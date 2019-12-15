@@ -261,7 +261,7 @@ def legendre(nmax, mmax, theta, schmidtnormalize = True, keys = None):
 
 
 
-def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
+def getG0(glat, glon, height, time, epoch = 2015., h_R = 110., NT = 65, MT = 3, NV = 45, MV = 3):
     """ calculate the G matrix for the constant term in the AMPS model. The constant term is the 
         term that depends only on the spherical harmonic coefficients that are not scaled by 
         external parameters. This G matrix can be used to produce the full matrix.
@@ -287,6 +287,8 @@ def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
             The epoch used for conversion to apex coordinates. Default 2015.
         h_R : float, optional
             Reference height used in conversion to modified apex coordinates. Default 110 km.
+        NT, MT, NV, MV: int, optional
+            Truncation level. Must match coefficient file
 
         Returns
         -------
@@ -320,11 +322,6 @@ def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
 
     # turn the coordinate arrays into column vectors:
     alat, qlat, h = map(lambda x: x.flatten()[:, np.newaxis], [alat, qlat, height])
-
-    # truncation levels:
-    NT, MT, NV, MV = 65, 3, 45, 3
-
-
 
     # generate spherical harmonic keys    
     keys = {} # dictionary of spherical harmonic keys
@@ -404,7 +401,7 @@ def getG0(glat, glon, height, time, epoch = 2015., h_R = 110.):
     return G
 
 
-def get_ground_field_G0(qdlat, mlt, height, current_height):
+def get_ground_field_G0(qdlat, mlt, height, current_height, N = 45, M = 3):
     """ calculate the G matrix for the constant term in the AMPS model needed to calculate
         corresponding ground magnetic field perturbations. The constant term is the 
         term that depends only on the spherical harmonic coefficients that are not scaled by 
@@ -421,6 +418,7 @@ def get_ground_field_G0(qdlat, mlt, height, current_height):
             Geodetic height, in km (0 <= height <= current_height)
         current_height : float
             height of the current
+        N, M: truncation level (int, optional) - must match coefficient file
 
         Returns
         -------
@@ -437,8 +435,6 @@ def get_ground_field_G0(qdlat, mlt, height, current_height):
     # convert mlt to degreees
     phi = mlt*15 # multiply by 15 to get degrees
 
-    # truncation levels:
-    N, M = 45, 3
 
     # generate spherical harmonic keys    
     keys = {} # dictionary of spherical harmonic keys

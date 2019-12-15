@@ -9,8 +9,9 @@ from numpy.testing import assert_array_equal, assert_allclose
 
 import pyamps
 from pyamps.amps import AMPS, get_B_space, get_B_ground
+from pyamps import model_utils
 
-test_coeff_fn = os.path.abspath(os.path.join(pyamps.model_utils.basepath,'coefficients','test_model.txt'))
+test_coeff_fn = os.path.abspath(os.path.join(model_utils.basepath,'coefficients','test_model.txt'))
 
 @pytest.fixture()
 def amps_model(model_coeff):
@@ -96,15 +97,15 @@ class Test_AMPS(object):
         assert model.pol_dP_vector.shape == (160, 5)
 
         assert_allclose(model.tor_sinmphi_vector[2],
-                        [0.000000, 0.471397, 0.000000, 0.471397, 0.831470],atol=1e-6)
+                        [0., 0.47139674, 0., 0.47139674, 0.83146961],atol=1e-6)
         assert_allclose(model.pol_cosmphi_vector[0],
-                        [1.000000, 0.995185, 1.000000, 0.995185, 0.980785], atol=1e-6)
+                        [1., 0.99518473, 1., 0.99518473, 0.98078528], atol=1e-6)
 
         assert_allclose(model.pol_P_scalar[1],
-                        [0.950489, 0.310759, 0.855143, 0.511601, 0.083633], atol=1e-6)
+                        [0.95048862, 0.31075938, 0.85514291, 0.51160148, 0.08363328], atol=1e-6)
 
         assert_allclose(model.tor_dP_vector[5],
-                        [0.309017, -0.951057, 0.881678, -1.401259, -0.509037], atol=1e-6)
+                        [ 0.3090169, -0.9510565,  0.8816778, -1.4012585, -0.5090369], atol=1e-6)
 
     @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
                                            (np.array([71.]), np.array([6.]))])
@@ -386,7 +387,7 @@ class Test_AMPS(object):
         model, _, m_kwargs = amps_model
 
         Bn = model.get_AE_indices()
-        assert_allclose(Bn, [-3857.7665355, -418.158728, 3274.305443, 1001.564131], atol=1e-6)
+        assert_allclose(Bn, [-3.93173, -2.55411, 4.280122, 3.508369], atol=1e-6)
 
         pass
 
@@ -401,24 +402,24 @@ def test_get_B_space():
         [90, 90],
         [0, 0],
         [110, 110],
-        [datetime.datetime(2015,1,2), datetime.datetime(2015,1,2)],
+        [datetime.datetime(2015,1,2), datetime.datetime(2015,4,2)],
         [0, 0],
         [0, 0],
         [1, 1],
         [0.5, 0.5],
         [0.3, 0.3]]))
     B_e, B_n, B_r = get_B_space(*params)
-    assert_allclose(B_e, [7.571, 7.571], atol=1e-3)
-    assert_allclose(B_n, [-15.532, -15.532], atol=1e-3)
-    assert_allclose(B_r, [10.100, 10.100], atol=1e-3)
+    assert_allclose(B_e, [6.429, 5.203], atol=1e-3)
+    assert_allclose(B_n, [-16.302, -17.881], atol=1e-3)
+    assert_allclose(B_r, [10.870, 11.428], atol=1e-3)
     pass
 
 
 def test_get_B_ground():
     # params, input for get_B_space: qdlat, mlt, height, v, By, Bz, tilt, f107
     params = list(map(lambda x: np.array(x), [90, 0, 110, 0, 0, 1, 0.5, 0.3]))
-    Bqphi, Bqlambda, Bqr = get_B_ground(*params)
+    Bqphi, Bqlambda, Bqr = get_B_ground(*params, coeff_fn = test_coeff_fn)
     assert_allclose(Bqphi, 0, atol=1e-3)
-    assert_allclose(Bqlambda, 5.279, atol=1e-3)
-    assert_allclose(Bqr, 3.092, atol=1e-3)
+    assert_allclose(Bqlambda, 1.973, atol=1e-3)
+    assert_allclose(Bqr, 1.433, atol=1e-3)
     pass
