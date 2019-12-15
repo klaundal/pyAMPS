@@ -33,7 +33,7 @@ def get_truncation_levels(coeff_fn = default_coeff_fn):
     words = [w.replace(',', '') for w in words]
 
     # pick out the truncation levels and convert to ints
-    NT, MT, NV, MV = [int(num) for num in words if num.isnumeric()]
+    NT, MT, NV, MV = [int(num) for num in words if num.isdigit()]
 
     return NT, MT, NV, MV
 
