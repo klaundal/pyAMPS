@@ -115,7 +115,7 @@ Badges
 
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/gyh9ognf7qbpsos7?svg=true
     :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/klaundal/pyamps              
+    :target: https://ci.appveyor.com/project/klaundal/pyamps
 
 .. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1182931.svg
-   :target: https://doi.org/10.5281/zenodo.1182931
+    :target: https://doi.org/10.5281/zenodo.1182931
