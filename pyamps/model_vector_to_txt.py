@@ -19,7 +19,7 @@ header = '# Sherical harmonic coefficients for the Average Magnetic field and Po
 header = header + '# Produced ' + date
 header = header + """
 #
-# Based on magnetic field measurements from CHAMP (2001-08 to 2010-09) and Swarm (2013-12 to 2018-09).
+# Based on magnetic field measurements from CHAMP (2001-08 to 2010-09) and Swarm (2013-12 to 2021-02).
 # Reference: Laundal et al., "Solar wind and seasonal influence on ionospheric currents", Journal of Geophysical Research - Space Physics, doi:10.1029/2018JA025387, 2018
 #
 # Coefficient unit: nT
@@ -82,7 +82,7 @@ for m, param in zip(dataframes, external_parameters):
 coefficients = pd.concat(dataframes, axis = 1)
 
 # write txt file
-with open(os.path.abspath(os.path.join(basepath,'coefficients/model_coefficients.txt')), 'w') as file:
+with open(os.path.abspath(os.path.join(basepath,'coefficients/SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0104.txt')), 'w') as file:
     # header:
     file.write(header)
     # data:
