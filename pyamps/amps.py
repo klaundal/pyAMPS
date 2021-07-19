@@ -51,8 +51,7 @@ from builtins import range
 
 
 
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=True)
+rc('text', usetex=False)
 
 MU0   = 4*np.pi*1e-7 # Permeability constant
 REFRE = 6371.2 # Reference radius used in geomagnetic modeling
@@ -1291,10 +1290,10 @@ class AMPS(object):
         pax_c = plt.subplot2grid((1, 150), (0, 149), colspan = 1)
         
         # labels
-        pax_n.writeMLTlabels(mlat = self.minlat, size = 16)
-        pax_s.writeMLTlabels(mlat = self.minlat, size = 16)
-        pax_n.write(self.minlat, 3,    str(self.minlat) + r'$^\circ$' , ha = 'left', va = 'top', size = 18)
-        pax_s.write(self.minlat, 3,    r'$-$' + str(self.minlat) + '$^\circ$', ha = 'left', va = 'top', size = 18)
+        pax_n.writeMLTlabels(mlat = self.minlat, size = 14)
+        pax_s.writeMLTlabels(mlat = self.minlat, size = 14)
+        pax_n.write(self.minlat, 3,    str(self.minlat) + r'$^\circ$' , ha = 'left', va = 'top', size = 14)
+        pax_s.write(self.minlat, 3,    r'$-$' + str(self.minlat) + '$^\circ$', ha = 'left', va = 'top', size = 14)
         pax_n.write(self.minlat-5, 12, r'North' , ha = 'center', va = 'center', size = 18)
         pax_s.write(self.minlat-5, 12, r'South' , ha = 'center', va = 'center', size = 18)
 
@@ -1318,7 +1317,7 @@ class AMPS(object):
                        np.vstack((faclevels, faclevels)), 
                        levels = faclevels, cmap = plt.cm.bwr)
         pax_c.set_xticks([])
-        pax_c.set_ylabel('downward    $\hspace{3cm}\mu$A/m$^2\hspace{3cm}$      upward', size = 18)
+        pax_c.set_ylabel(r'downward    $\mu$A/m$^2$      upward', size = 18)
         pax_c.yaxis.set_label_position("right")
         pax_c.yaxis.tick_right()
 
@@ -1327,12 +1326,12 @@ class AMPS(object):
         ju_n, jd_n, ju_s, jd_s = self.get_integrated_upward_current()
 
         pax_n.ax.text(pax_n.ax.get_xlim()[0], pax_n.ax.get_ylim()[0], 
-                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_{uparrow:}$:\t ${jn_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 14)
+                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_{uparrow:}$:\t ${jn_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 12)
         pax_s.ax.text(pax_s.ax.get_xlim()[0], pax_s.ax.get_ylim()[0], 
-                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_{uparrow:}$:\t ${js_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 14)
+                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_{uparrow:}$:\t ${js_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 12)
 
 
-        plt.subplots_adjust(hspace = 0, wspace = 0, left = .05, right = .95, bottom = .05, top = .95)
+        plt.subplots_adjust(hspace = 0, wspace = 0.4, left = .05, right = .935, bottom = .05, top = .945)
         plt.show()
 
 
