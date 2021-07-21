@@ -48,6 +48,7 @@ from __future__ import absolute_import, division
 import numpy as np
 from scipy.interpolate import griddata
 from builtins import range
+from matplotlib.collections import LineCollection
 
 
 class Polarsubplot(object):
@@ -208,7 +209,7 @@ class Polarsubplot(object):
             markersize: int (optional)
                 size of the markers. Default is 20.
             **kwargs : dict (optional)
-                keywords passed to `matplotlib` `plot`
+                keywords passed to `matplotlib` `add_collection`
 
         """
 
@@ -223,11 +224,12 @@ class Polarsubplot(object):
         else:
 
             if unit is not None:
-                self.ax.plot([0.9, 1], [0.95, 0.95], color = color, linestyle = '-', linewidth = 2)
-                self.ax.text(0.9, 0.95, ('{} '.format(SCALE) + unit), horizontalalignment = 'right', verticalalignment = 'center', size = size)
+                self.ax.plot([0.9, 1], [0.95, 0.95], color = colors, linestyle = '-', linewidth = 2)
+                self.ax.text(0.9, 0.95, ('%.1f ' + unit) % SCALE, horizontalalignment = 'right', verticalalignment = 'center', size = size)
 
             scale = 0.1/SCALE
 
+        segments = []
         for i in range(len(mlats)):
 
             mlt = mlts[i]
@@ -236,9 +238,13 @@ class Polarsubplot(object):
             x, y = self._mlat_mlt_to_xy(mlat, mlt)
             dx, dy = R.dot(self._north_east_to_cartesian(north[i], east[i], mlt).reshape((2, 1))).flatten()
 
-            self.ax.plot([x, x + dx*scale], [y, y + dy*scale], color = color, **kwargs)
-            if markersize != 0:
-                self.ax.scatter(x, y, marker = marker, c = markercolor, s = markersize, edgecolors = markercolor)
+            segments.append([(x, y), (x + dx*scale, y + dy*scale)])
+
+                
+        self.ax.add_collection(LineCollection(segments, colors = color, **kwargs))
+
+        if markersize != 0:
+            self.scatter(mlats, mlts, marker = marker, c = markercolor, s = markersize, edgecolors = markercolor)
 
 
     def contour(self, mlat, mlt, f, **kwargs):

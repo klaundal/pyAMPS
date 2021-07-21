@@ -11,3 +11,6 @@ __pycache__/
 .tox
 .cache
 .coverage
+
+.png
+.pdf
