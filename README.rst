@@ -109,13 +109,5 @@ Badges
     :target: https://requires.io/github/klaundal/pyAMPS/requirements/?branch=master
     :alt: Requirements Status
 
-.. |travis| image:: https://travis-ci.org/klaundal/pyAMPS.svg?branch=master
-    :alt: Travis CI Build Status
-    :target: https://travis-ci.org/klaundal/pyAMPS
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/gyh9ognf7qbpsos7?svg=true
-    :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/klaundal/pyamps
-
 .. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1182931.svg
     :target: https://doi.org/10.5281/zenodo.1182931
