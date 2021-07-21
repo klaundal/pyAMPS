@@ -89,7 +89,7 @@ Badges
     * - docs
       - |docs|
     * - tests
-      - | |travis| |appveyor| |requires| 
+      - |requires| 
     * - package
       - | |version|
 
