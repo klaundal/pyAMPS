@@ -5,7 +5,7 @@ from functools import reduce
 
 basepath = os.path.dirname(__file__)
 
-default_coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0103.txt'))
+default_coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0104.txt'))
 
 # read coefficient file and store in pandas DataFrame - with column names from last row of header:
 colnames = ([x for x in open(default_coeff_fn).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 
@@ -109,6 +109,6 @@ def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1., coeff_fn =
     tor_s = tor_s.loc[tor_c.index] # 
 
 
-    return tor_c[:, np.newaxis], tor_s[:, np.newaxis], pol_c[:, np.newaxis], pol_s[:, np.newaxis], pol_c.index.values, tor_c.index.values
+    return tor_c.values[:, np.newaxis], tor_s.values[:, np.newaxis], pol_c.values[:, np.newaxis], pol_s.values[:, np.newaxis], pol_c.index.values, tor_c.index.values
 
 

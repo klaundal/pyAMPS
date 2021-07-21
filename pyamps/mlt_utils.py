@@ -46,7 +46,7 @@ h11 = [  5922,   5909,   5898,   5875,   5845,   5817,   5808,   5812,   5821,  
 g10sv =  5.7 # secular variations
 g11sv =  7.4
 h11sv = -25.9
-g10.append(g10[-1] + g10sv * 5) # append 2020 values using secular variation
+g10.append(g10[-1] + g10sv * 5) # append 2025 values using secular variation
 g11.append(g11[-1] + g11sv * 5)
 h11.append(h11[-1] + h11sv * 5)
 igrf_dipole = pd.DataFrame({'g10':g10, 'g11':g11, 'h11':h11}, index = time)

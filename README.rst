@@ -69,7 +69,7 @@ References
 ----------
 Laundal, K. M., Finlay, C. C., Olsen, N. & Reistad, J. P. (2018), Solar wind and seasonal influence on ionospheric currents from Swarm and CHAMP measurements, Journal of Geophysical Research - Space Physics. `doi:10.1029/2018JA025387 <https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2018JA025387>`_
 
-*Since April 2019, pyAMPS uses an updated set of model coefficients compared to the model discussed in the paper. The only difference is that the updated set of model coefficients were calculated using a larger Swarm dataset.*
+*pyAMPS uses an updated set of model coefficients compared to the model discussed in the paper. You can use pyAMPS and the scripts in pyamps/climatology_plots/ to produce updated versions of Figures 5-7 and 9-11 from the paper*
 
 See also:
 Laundal, K. M., Finlay, C. C. & Olsen, N. (2016), Sunlight effects on the 3D polar current system determined from low Earth orbit measurements. Earth Planets Space. `doi:10.1186/s40623-016-0518-x <https://earth-planets-space.springeropen.com/articles/10.1186/s40623-016-0518-x>`_ 
@@ -89,7 +89,7 @@ Badges
     * - docs
       - |docs|
     * - tests
-      - | |travis| |appveyor| |requires| 
+      - |requires| 
     * - package
       - | |version|
 
@@ -108,14 +108,6 @@ Badges
 .. |requires| image:: https://requires.io/github/klaundal/pyAMPS/requirements.svg?branch=master
     :target: https://requires.io/github/klaundal/pyAMPS/requirements/?branch=master
     :alt: Requirements Status
-
-.. |travis| image:: https://travis-ci.org/klaundal/pyAMPS.svg?branch=master
-    :alt: Travis CI Build Status
-    :target: https://travis-ci.org/klaundal/pyAMPS
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/gyh9ognf7qbpsos7?svg=true
-    :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/klaundal/pyamps
 
 .. |doi| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1182931.svg
     :target: https://doi.org/10.5281/zenodo.1182931
