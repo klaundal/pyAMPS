@@ -1,10 +1,9 @@
 """
 This module contains functions which are used to calculate magnetic local time accurately and efficiently.
 
-There are two reasons for using this instead of the apexpy version:
-    1) It is faster, since it handles lists of datetimes as input
-    2) It is more in line with the definition of MLT in Laundal & Richmond (2017), 
-       although the difference should be extremely small.
+Two main reasons for using this module to calculate MLT:
+1) It is fast, since it handles lists of datetimes as input
+2) It is in line with the definition of MLT in Laundal & Richmond (2017)
 
 
 
