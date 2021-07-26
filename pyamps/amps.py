@@ -1307,8 +1307,8 @@ class AMPS(object):
         j_e, j_n = self.get_total_current()
         nn, ns = np.split(j_n, 2)
         en, es = np.split(j_e, 2)
-        pax_n.featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 10, unit = 'mA/m', linewidth = '.5', color = 'gray', markercolor = 'grey')
-        pax_s.featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 10, unit = None  , linewidth = '.5', color = 'gray', markercolor = 'grey')
+        pax_n.featherplot(mlatv, mltv, nn , en, SCALE = vector_scale, markersize = 10, unit = 'mA/m', linewidth = .5, color = 'gray', markercolor = 'grey')
+        pax_s.featherplot(mlatv, mltv, -ns, es, SCALE = vector_scale, markersize = 10, unit = None  , linewidth = .5, color = 'gray', markercolor = 'grey')
 
 
         # colorbar
