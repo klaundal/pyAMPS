@@ -44,7 +44,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from .plot_utils import equal_area_grid, Polarsubplot
-from .sh_utils import legendre, getG0, get_ground_field_G0
+from .sh_utils import legendre, getG0, getG0_dipole, get_ground_field_G0
 from .model_utils import get_model_vectors, get_m_matrix, get_m_matrix_pol, get_coeffs, default_coeff_fn, get_truncation_levels
 from functools import reduce
 from builtins import range
@@ -152,13 +152,14 @@ class AMPS(object):
 
     """
 
-
-
     def __init__(self, v, By, Bz, tilt, f107, minlat = 60, maxlat = 89.99, height = 110., dr = 2, M0 = 4, resolution = 100, coeff_fn = default_coeff_fn):
         """ __init__ function for class AMPS
         """
 
         self.coeff_fn = coeff_fn
+
+        self._update_inputs(v,By,Bz,tilt,f107,minlat,maxlat,height,dr,M0,resolution)
+
         self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107, coeff_fn = self.coeff_fn)
 
         self.height = height
@@ -237,12 +238,32 @@ class AMPS(object):
 
         """
 
+        self._update_inputs(v,By,Bz,tilt,f107,minlat,maxlat,height,dr,M0,
+                            resolution)
+
         if coeff_fn is DEFAULT:
             self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107, coeff_fn = self.coeff_fn)
         else:
             self.tor_c, self.tor_s, self.pol_c, self.pol_s, self.pol_keys, self.tor_keys = get_model_vectors(v, By, Bz, tilt, f107, coeff_fn = coeff_fn)
        
 
+    def _update_inputs(self,v,By,Bz,tilt,f107,minlat,maxlat,height,dr,M0,resolution):
+
+        self.inputs = dict(v=v,
+                           By=By,
+                           Bz=Bz,
+                           tilt=tilt,
+                           f107=f107,
+                           minlat=minlat,
+                           maxlat=maxlat,
+                           height=height,
+                           dr=dr,
+                           M0=M0,
+                           resolution=resolution)
+
+
+    def get_inputs(self):
+        return self.inputs
 
 
     def _get_vectorgrid(self, **kwargs):
@@ -254,7 +275,7 @@ class AMPS(object):
 
         grid = equal_area_grid(dr = self.dr, M0 = self.M0, **kwargs)
         mlt  = grid[1] + grid[2]/2. # shift to the center points of the bins
-        mlat = grid[0] + (grid[0][1] - grid[0][0])/2  # shift to the center points of the bins
+        mlat = grid[0] + self.dr/2  # shift to the center points of the bins
 
         mlt  = mlt[ (mlat >= self.minlat) & (mlat <= self.maxlat)]# & (mlat <=60 )]
         mlat = mlat[(mlat >= self.minlat) & (mlat <= self.maxlat)]# & (mlat <= 60)]
@@ -1335,7 +1356,158 @@ class AMPS(object):
         plt.show()
 
 
-def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000, coeff_fn = default_coeff_fn):
+    def plot_deltaB_space_dipole(self, height = 110.,
+                                 vector_scale = 100,
+                                 magnitude=False,
+                                 killpoloidal=False,
+                                 killtoroidal=False,
+                                 vmin=None,
+                                 vmax=None,
+                                 vstep=None):
+        """ 
+        Create a summary plot of the B-field perturbations assuming the earth's field is a dipole.
+
+        Parameters
+        ----------
+        height       : height (km) at which to calculate B-field perturbations. Default is 110. km
+        vector_scale : optional
+            Current vector lengths will be shown relative to a template. This parameter determines
+            the magnitude of that template, in mA/m. Default is 200 mA/m
+
+        Examples
+        --------
+        >>> # initialize by supplying a set of external conditions:
+        >>> m = AMPS(300, # solar wind velocity in km/s 
+                     -4, # IMF By in nT
+                     -3, # IMF Bz in nT
+                     20, # dipole tilt angle in degrees
+                     150) # F10.7 index in s.f.u.
+        >>> # make summary plot:
+        >>> m.plot_currents()
+
+        """
+
+        # get the grids:
+        mlats, mlts = self.scalargrid
+        mlatv, mltv = self.vectorgrid
+
+        pmlats, pmlts = self.plotgrid_scalar
+        pmlatv, pmltv = self.plotgrid_vector
+
+        pmlats, pmlts = pmlats.ravel(), pmlts.ravel()
+        pmlatv, pmltv = pmlatv.ravel(), pmltv.ravel()
+
+        mlats, mlts, mlatv, mltv = map(lambda x: x.flatten(), [mlats, mlts, mlatv, mltv])
+
+        # set up figure and polar coordinate plots:
+        plt.figure(figsize = (15, 7))
+        pax_n = Polarsubplot(plt.subplot2grid((1, 15), (0,  0), colspan = 7), minlat = self.minlat, linestyle = ':', linewidth = .3, color = 'lightgrey')
+        pax_s = Polarsubplot(plt.subplot2grid((1, 15), (0,  7), colspan = 7), minlat = self.minlat, linestyle = ':', linewidth = .3, color = 'lightgrey')
+        pax_c = plt.subplot2grid((1, 150), (0, 149), colspan = 1)
+        
+        # labels
+        pax_n.writeMLTlabels(mlat = self.minlat, size = 14)
+        pax_s.writeMLTlabels(mlat = self.minlat, size = 14)
+        pax_n.write(self.minlat, 3,    str(self.minlat) + r'$^\circ$' , ha = 'left', va = 'top', size = 14)
+        pax_s.write(self.minlat, 3,    r'$-$' + str(self.minlat) + '$^\circ$', ha = 'left', va = 'top', size = 14)
+        pax_n.write(self.minlat-5, 12, r'North' , ha = 'center', va = 'center', size = 18)
+        pax_s.write(self.minlat-5, 12, r'South' , ha = 'center', va = 'center', size = 18)
+
+        # calculate and plot FAC
+        blanks = np.ones(mlats.size)
+        heights = height * blanks
+
+        inputs = self.get_inputs()
+        vs, Bys, Bzs, tilts, f107s = inputs['v']*blanks, inputs['By']*blanks, inputs['Bz']*blanks, inputs['tilt']*blanks, inputs['f107']*blanks
+
+        blankv = np.ones(mlatv.size)
+        heightv = height * blankv
+
+        vv, Byv, Bzv, tiltv, f107v = inputs['v']*blankv, inputs['By']*blankv, inputs['Bz']*blankv, inputs['tilt']*blankv, inputs['f107']*blankv
+
+        deltaBs = get_B_space_dipole(mlats, mlts, heights, vs, Bys, Bzs, tilts, f107s,
+                                     killpoloidal=killpoloidal,
+                                     killtoroidal=killtoroidal)
+
+        deltaBv = get_B_space_dipole(mlatv, mltv, heightv, vv, Byv, Bzv, tiltv, f107v,
+                                     killpoloidal=killpoloidal,
+                                     killtoroidal=killtoroidal)
+
+        if magnitude:
+            if vmin is None:
+                vmin = 0
+            if vmax is None:
+                vmax = 155
+            if vstep is None:
+                vstep = 5
+
+            mag = np.sqrt(deltaBs[0]**2+deltaBs[1]**2+deltaBs[2]**2)
+            Jun, Jus = np.split(mag, 2)
+            # faclevels = np.r_[-.925:.926:.05]
+            faclevels = np.r_[vmin:vmax:vstep]
+            pax_n.contourf(pmlats, pmlts, Jun, levels = faclevels, cmap = plt.cm.magma, extend = 'upper')
+            pax_s.contourf(pmlats, pmlts, Jus, levels = faclevels, cmap = plt.cm.magma, extend = 'upper')
+            
+            # colorbar
+            pax_c.contourf(np.vstack((np.zeros_like(faclevels), np.ones_like(faclevels))), 
+                           np.vstack((faclevels, faclevels)), 
+                           np.vstack((faclevels, faclevels)), 
+                           levels = faclevels, cmap = plt.cm.magma)
+            pax_c.set_xticks([])
+            pax_c.set_ylabel(r'nT', size = 18)
+            pax_c.yaxis.set_label_position("right")
+            pax_c.yaxis.tick_right()
+    
+        else:
+
+            if vmin is None:
+                vmin = -100
+            if vmax is None:
+                vmax = 105
+            if vstep is None:
+                vstep = 5
+
+            Jun, Jus = np.split(deltaBs[2], 2)
+            # faclevels = np.r_[-.925:.926:.05]
+            faclevels = np.r_[vmin:vmax:vstep]
+            pax_n.contourf(pmlats, pmlts, Jun, levels = faclevels, cmap = plt.cm.bwr, extend = 'both')
+            pax_s.contourf(pmlats, pmlts, Jus, levels = faclevels, cmap = plt.cm.bwr, extend = 'both')
+
+            # colorbar
+            pax_c.contourf(np.vstack((np.zeros_like(faclevels), np.ones_like(faclevels))), 
+                           np.vstack((faclevels, faclevels)), 
+                           np.vstack((faclevels, faclevels)), 
+                           levels = faclevels, cmap = plt.cm.bwr)
+            pax_c.set_xticks([])
+            pax_c.set_ylabel(r'downward    nT      upward', size = 18)
+            pax_c.yaxis.set_label_position("right")
+            pax_c.yaxis.tick_right()
+    
+        # Total horizontal
+        j_e, j_n = deltaBv[0], deltaBv[1]
+        nn, ns = np.split(j_n, 2)
+        en, es = np.split(j_e, 2)
+        pax_n.featherplot(pmlatv, pmltv, nn , en, SCALE = vector_scale, markersize = 10, unit = 'nT', linewidth = .5, color = 'gray', markercolor = 'grey')
+        pax_s.featherplot(pmlatv, pmltv, ns, es, SCALE = vector_scale, markersize = 10, unit = None  , linewidth = .5, color = 'gray', markercolor = 'grey')
+
+        # print AL index values and integrated up/down currents
+        AL_n, AL_s, AU_n, AU_s = self.get_AE_indices()
+        ju_n, jd_n, ju_s, jd_s = self.get_integrated_upward_current()
+
+        pax_n.ax.text(pax_n.ax.get_xlim()[0], pax_n.ax.get_ylim()[0], 
+                      'AL: \t${AL_n:+}$ nT\nAU: \t${AU_n:+}$ nT\n $\int j_{uparrow:}$:\t ${jn_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${jn_down:+.1f}$ MA'.format(AL_n = int(np.round(AL_n)), AU_n = int(np.round(AU_n)), jn_up = ju_n, jn_down = jd_n, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 12)
+        pax_s.ax.text(pax_s.ax.get_xlim()[0], pax_s.ax.get_ylim()[0], 
+                      'AL: \t${AL_s:+}$ nT\nAU: \t${AU_s:+}$ nT\n $\int j_{uparrow:}$:\t ${js_up:+.1f}$ MA\n $\int j_{downarrow:}$:\t ${js_down:+.1f}$ MA'.format(AL_s = int(np.round(AL_s)), AU_s = int(np.round(AU_s)), js_up = ju_s, js_down = jd_s, uparrow = r'\uparrow',downarrow = r'\downarrow'), ha = 'left', va = 'bottom', size = 12)
+
+
+        plt.subplots_adjust(hspace = 0, wspace = 0.4, left = .05, right = .935, bottom = .05, top = .945)
+        plt.show()
+
+        return deltaBs
+
+def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., h_R = 110., chunksize = 15000, coeff_fn = default_coeff_fn,
+                killpoloidal=False,
+                killtoroidal=False):
     """ Calculate model magnetic field in space 
 
     This function uses dask to parallelize computations. That means that it is quite
@@ -1408,13 +1580,150 @@ def get_B_space(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
     height = da.from_array(height, chunks = chunksize)
 
     # get G0 matrix - but first make a wrapper that only takes dask arrays as input
-    _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R, NT = NT, MT = MT, NV = NV, MV = MV)
+    _getG0 = lambda la, lo, t, h: getG0(la, lo, t, h, epoch = epoch, h_R = h_R, NT = NT, MT = MT, NV = NV, MV = MV,
+                                        killpoloidal=killpoloidal,
+                                        killtoroidal=killtoroidal)
 
     # use that wrapper to calculate G0 for each block
     G0 = da.map_blocks(_getG0, glat, glon, height, time, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
 
     # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
     B_matrix  = G0.dot( m_matrix ).compute()
+
+    # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
+    # reorganized so that we have only three large partitions: (east, north, up). Split and recombine:
+    B_chunks = [B_matrix[i : (i + 3*chunksize)] for i in range(0, B_matrix.shape[0], 3 * chunksize)]
+    B_e = np.vstack(tuple([B[                  :     B.shape[0]//3] for B in B_chunks]))
+    B_n = np.vstack(tuple([B[    B.shape[0]//3 : 2 * B.shape[0]//3] for B in B_chunks]))
+    B_r = np.vstack(tuple([B[2 * B.shape[0]//3 :                  ] for B in B_chunks]))
+    Bs  = np.vstack((B_e, B_n, B_r)).T
+
+    # prepare the scales (external parameters)
+    By, Bz, v, tilt, f107 = map(lambda x: x.flatten(), [By, Bz, v, tilt, f107]) # flatten input
+    ca = np.arctan2(By, Bz)
+    epsilon = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 # Newell coupling           
+    tau     = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
+
+    # make a dict of the 19 external parameters (flat arrays)
+    external_params = {0  : np.ones_like(ca)           ,        # 'const'             
+                       1  : 1              * np.sin(ca),        # 'sinca'             
+                       2  : 1              * np.cos(ca),        # 'cosca'             
+                       3  : epsilon                    ,        # 'epsilon'           
+                       4  : epsilon        * np.sin(ca),        # 'epsilon_sinca'     
+                       5  : epsilon        * np.cos(ca),        # 'epsilon_cosca'     
+                       6  : tilt                       ,        # 'tilt'              
+                       7  : tilt           * np.sin(ca),        # 'tilt_sinca'        
+                       8  : tilt           * np.cos(ca),        # 'tilt_cosca'        
+                       9  : tilt * epsilon             ,        # 'tilt_epsilon'      
+                       10 : tilt * epsilon * np.sin(ca),        # 'tilt_epsilon_sinca'
+                       11 : tilt * epsilon * np.cos(ca),        # 'tilt_epsilon_cosca'
+                       12 : tau                        ,        # 'tau'               
+                       13 : tau            * np.sin(ca),        # 'tau_sinca'         
+                       14 : tau            * np.cos(ca),        # 'tau_cosca'         
+                       15 : tilt * tau                 ,        # 'tilt_tau'          
+                       16 : tilt * tau     * np.sin(ca),        # 'tilt_tau_sinca'    
+                       17 : tilt * tau     * np.cos(ca),        # 'tilt_tau_cosca'    
+                       18 : f107                        }       # 'f107'
+
+    # scale the 19 magnetic field terms, and add (the scales are tiled once for each component)
+    B = reduce(lambda x, y: x+y, [Bs[i] * np.tile(external_params[i], 3) for i in range(19)])
+
+
+    # the resulting array will be stacked Be, Bn, Bu components. Return the partions
+    return np.split(B, 3)
+
+
+def get_B_space_dipole(mlat, mlt, height, v, By, Bz, tilt, f107, h_R = 110., chunksize = 15000, coeff_fn = default_coeff_fn,
+                       killpoloidal=False,
+                       killtoroidal=False):
+    """ Calculate model magnetic field in space assuming a dipole magnetic field
+
+    This function uses dask to parallelize computations. That means that it is quite
+    fast and that the memory consumption will not explode unless `chunksize` is too large.
+
+    Parameters
+    ----------
+    mlat : array_like
+        array of Modified Apex latitudes (degrees)
+    mlt : array_like
+        array of magnetic local times (hours)
+    height : array_like
+        array of geodetic heights (km)
+    v : array_like
+        array of solar wind velocities in GSM/GSE x direction (km/s)
+    By : array_like
+        array of solar wind By values (nT)
+    Bz : array_like
+        array of solar wind Bz values (nT)
+    tilt : array_like
+        array of dipole tilt angles (degrees)
+    f107 : array_like
+        array of F10.7 index values (SFU)
+    h_R : float, optional
+        reference height (km) used when calculating modified apex coordinates. Default = 110.
+    chunksize : int, optional
+        the input arrays will be split in chunks in order to parallelize
+        computations. Larger chunks consumes more memory, but might be faster. Default is 15000.
+    coeff_fn: str, optional
+        file name of model coefficients - must be in format produced by model_vector_to_txt.py
+        (default is latest version)
+
+
+    Returns
+    -------
+    Be : array_like
+        array of model magnetic field (nT) in geodetic eastward direction 
+        (same dimension as input)
+    Bn : array_like
+        array of model magnetic field (nT) in geodetic northward direction 
+        (same dimension as input)
+    Bu : array_like
+        array of model magnetic field (nT) in geodetic upward direction 
+        (same dimension as input)
+
+
+
+    Note
+    ----
+    Array inputs should have the same dimensions.
+
+    """
+
+    # TODO: ADD CHECKS ON INPUT (?)
+
+    m_matrix       = get_m_matrix(coeff_fn)
+    NT, MT, NV, MV = get_truncation_levels(coeff_fn)
+
+    # number of equations
+    neq = m_matrix.shape[0]
+
+    nodask = False
+    if nodask:
+        print("nodask!")
+        G0 = getG0_dipole(mlat, mlt, height, h_R = h_R, NT = NT, MT = MT, NV = NV, MV = MV,
+                          killpoloidal=killpoloidal,
+                          killtoroidal=killtoroidal)
+
+        B_matrix  = G0.dot( m_matrix )
+
+    else:
+
+        # turn coordinates/times into dask arrays
+        mlat   = da.from_array(mlat  , chunks = chunksize)
+        mlt   = da.from_array(mlt  , chunks = chunksize)
+        # time   = da.from_array(time  , chunks = chunksize)
+        height = da.from_array(height, chunks = chunksize)
+    
+        # get G0 matrix - but first make a wrapper that only takes dask arrays as input
+        _getG0 = lambda mla, mlot, h: getG0_dipole(mla, mlot, h, h_R = h_R, NT = NT, MT = MT, NV = NV, MV = MV,
+                                                   killpoloidal=killpoloidal,
+                                                   killtoroidal=killtoroidal)
+    
+        # use that wrapper to calculate G0 for each block
+        G0 = da.map_blocks(_getG0, mlat, mlt, height, chunks = (3*chunksize, neq), new_axis = 1, dtype = np.float64)
+    
+        # get a matrix with columns that are 19 unscaled magnetic field terms at the given coords:
+        B_matrix  = G0.dot( m_matrix ).compute()
 
     # the rows of B_matrix now correspond to (east, north, up, east, north, up, ...) and must be
     # reorganized so that we have only three large partitions: (east, north, up). Split and recombine:
