@@ -200,7 +200,13 @@ class AMPS(object):
         self.calculate_matrices()
 
 
-    def update_model(self, v, By, Bz, tilt, f107, coeff_fn = DEFAULT):
+    def update_model(self, v, By, Bz, tilt, f107, coeff_fn = DEFAULT,
+                     minlat=None,
+                     maxlat=None,
+                     height=None,
+                     dr=None,
+                     M0=None,
+                     resolution=None):
         """
         Update the model vectors without updating all the other matrices. This leads to better
         performance than just making a new AMPS object.
@@ -237,6 +243,19 @@ class AMPS(object):
         by allowing the inputs to be arrays. That is not yet implemented.
 
         """
+
+        if minlat is None:
+            minlat = self.minlat
+        if maxlat is None:
+            maxlat = self.maxlat
+        if height is None:
+            height = self.height
+        if dr is None:
+            dr = self.dr
+        if M0 is None:
+            M0 = self.M0
+        if resolution is None:
+            resolution = self.scalar_resolution
 
         self._update_inputs(v,By,Bz,tilt,f107,minlat,maxlat,height,dr,M0,
                             resolution)

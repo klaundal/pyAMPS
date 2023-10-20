@@ -566,10 +566,10 @@ def getG0_dipole(mlat, mlt, height, h_R = 110., NT = 65, MT = 3, NV = 45, MV = 3
 
     NALAT = alat.flatten().size
 
-    f1e = np.ones (NALAT).reshape(-1,1)  # f1 points more or less eastward everywhere in a dipole field
+    f1e = np.ones (NALAT).reshape(-1,1)  # f1 points eastward everywhere in a dipole field
     f1n = np.zeros(NALAT).reshape(-1,1)
     f2e = np.zeros(NALAT).reshape(-1,1)
-    f2n = np.ones (NALAT).reshape(-1,1)  # f2 points more or less northward everywhere in a dipole field
+    f2n = np.ones (NALAT).reshape(-1,1)  # f2 points northward everywhere in a dipole field
 
     # # OLD
     # sign = np.ones_like(alat)
@@ -591,9 +591,8 @@ def getG0_dipole(mlat, mlt, height, h_R = 110., NT = 65, MT = 3, NV = 45, MV = 3
     d1n = np.zeros_like(NALAT).reshape(-1,1)
     # d1u = np.zeros_like(NALAT).reshape(-1,1)
 
-    d2coeff = (R/r)**(3/2) / np.sqrt(4-3*R/r*np.cos(qlat*d2r)**2 )
+    d2coeff = -(R/r)**(3/2) / np.sqrt(4-3*R/r*np.cos(qlat*d2r)**2 )  # d2 points downward and/or equatorward, so sign on d2coeff is always negative
     d2e = np.copy(d1n)
-    # d2n = (d2coeff * 2 * np.sin(qlat*d2r)).reshape(-1,1)
     d2n = (d2coeff * 2 * np.sin(qlat*d2r)).reshape(-1,1)
     # d2u = d2coeff     * np.cos(qlat*d2r)
 
