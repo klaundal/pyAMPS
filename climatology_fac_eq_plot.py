@@ -1,4 +1,4 @@
-from pysymmetry.visualization.polarsubplot import Polarsubplot
+from polplot import pp
 import numpy as np
 from pyamps import AMPS
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ ca = {(0, 1): 0, (0, 0):-45, (1, 0):-90,(2,0):-135,(2,1):180,(0,2):45,(1,2):90,(
 for tilt in tilts:#tilt = tilts[0]
 
     fig = plt.figure(figsize = (9, 9))
-    axes = [[Polarsubplot(plt.subplot2grid((91, 3), (j*30, i), rowspan = 30), 
+    axes = [[pp(plt.subplot2grid((91, 3), (j*30, i), rowspan = 30), 
                           linestyle = ':', color = 'grey', minlat = 60, linewidth = .9)
              for i in range(3) if (i, j) != (1, 1)] 
              for j in range(3)]
