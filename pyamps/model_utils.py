@@ -109,6 +109,6 @@ def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1., coeff_fn =
     tor_s = tor_s.loc[tor_c.index] # 
 
 
-    return tor_c.values[:, np.newaxis], tor_s.values[:, np.newaxis], pol_c.values[:, np.newaxis], pol_s.values[:, np.newaxis], pol_c.index.values, tor_c.index.values
-
+#    return tor_c.values[:, np.newaxis], tor_s.values[:, np.newaxis], pol_c.values[:, np.newaxis], pol_s.values[:, np.newaxis], pol_c.index.values, tor_c.index.values
+    return tor_c.to_numpy()[:, np.newaxis], tor_s.to_numpy()[:, np.newaxis], pol_c.to_numpy()[:, np.newaxis], pol_s.to_numpy()[:, np.newaxis], pol_c.index.values, tor_c.index.values
 
