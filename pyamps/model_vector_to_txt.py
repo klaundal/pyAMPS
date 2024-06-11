@@ -6,11 +6,11 @@
     no longer useful.
 """
 from __future__ import absolute_import
-import os.path
 import time
 import numpy as np
 import pandas as pd
 from sh_utils import SHkeys
+from .coefficients import MODEL_VECTOR_LATEST, MODEL_COEFF_LATEST
 
 # header
 t = time.ctime().split(' ')
@@ -33,10 +33,8 @@ header = header + """
 """
 
 
-basepath = os.path.dirname(__file__)
-
 # load model vector and define truncation levels and external parametrisation
-model_vector = np.load(os.path.abspath(os.path.join(basepath,'coefficients/model_vector_NT_MT_NV_MV_65_3_45_3__v1.5.npy')))
+model_vector = np.load(MODEL_VECTOR_LATEST)
 NT, MT, NV, MV = 65, 3, 45, 3
 
 external_parameters = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 'tilt', 
@@ -82,11 +80,10 @@ for m, param in zip(dataframes, external_parameters):
 coefficients = pd.concat(dataframes, axis = 1)
 
 # write txt file
-with open(os.path.abspath(os.path.join(basepath,'coefficients/SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0105.txt')), 'w') as file:
+with open(MODEL_COEFF_LATEST, 'w') as file:
     # header:
     file.write(header)
     # data:
     coefficients.to_string(buf = file, float_format = lambda x: '{:.7f}'.format(x), 
                            header = False, sparsify = False,
                            index_names = False)
-

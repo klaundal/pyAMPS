@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
-import os
 from functools import reduce
+from .coefficients import MODEL_COEFF_LATEST
 
-basepath = os.path.dirname(__file__)
-
-default_coeff_fn = os.path.abspath(os.path.join(basepath,'coefficients','SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0105.txt'))
+default_coeff_fn = MODEL_COEFF_LATEST
 
 # read coefficient file and store in pandas DataFrame - with column names from last row of header:
 colnames = ([x for x in open(default_coeff_fn).readlines() if x.startswith('#')][-1][1:]).strip().split(' ') 

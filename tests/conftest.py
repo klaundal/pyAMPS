@@ -2,11 +2,11 @@
 
 import pytest
 import sys
-import os
 
 import pandas as pd
 
 import pyamps
+from pymps.coefficients import MODEL_COEFF_TEST
 
 
 def pytest_runtest_makereport(item, call):
@@ -47,9 +47,8 @@ def model_coeff():
     """Generate test data similar in form to AMPS model coefficients"""
 
     true_name = pyamps.model_utils.default_coeff_fn
-    fake_name = os.path.abspath(os.path.join(pyamps.model_utils.basepath,'coefficients','test_model.txt'))
+    fake_name = MODEL_COEFF_TEST
     pyamps.model_utils.default_coeff_fn = fake_name
-
 
     yield fake_name
     #yield true_name, fake_name

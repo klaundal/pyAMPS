@@ -1,6 +1,5 @@
 from __future__ import division
 
-import os
 import pytest
 import datetime
 import numpy as np
@@ -10,8 +9,9 @@ from numpy.testing import assert_array_equal, assert_allclose
 import pyamps
 from pyamps.amps import AMPS, get_B_space, get_B_ground
 from pyamps import model_utils
+from pymps.coefficients import MODEL_COEFF_TEST
 
-test_coeff_fn = os.path.abspath(os.path.join(model_utils.basepath,'coefficients','test_model.txt'))
+test_coeff_fn = MODEL_COEFF_TEST
 
 @pytest.fixture()
 def amps_model(model_coeff):
