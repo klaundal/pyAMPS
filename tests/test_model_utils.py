@@ -1,14 +1,14 @@
 from __future__ import division
 
-import os
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 import pyamps
+from pymps.coefficients import MODEL_COEFF_TEST
 
 def test_model_vectors():
 
-    fn = os.path.abspath(os.path.join(pyamps.model_utils.basepath, 'coefficients','test_model.txt'))
+    fn = MODEL_COEFF_TEST
 
     model_vectors = pyamps.model_utils.get_model_vectors(v=0, By=0, Bz=1, tilt=0.5, f107=0.3, coeff_fn = fn)
     # const,cosca,tilt and f107 terms non-zero
