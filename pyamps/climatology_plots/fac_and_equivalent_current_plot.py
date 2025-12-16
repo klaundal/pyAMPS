@@ -84,8 +84,8 @@ for tilt in tilts:
     
     axinfo.text(axinfo.get_xlim()[0], axinfo.get_ylim()[0], '$|B|$ = %s nT, $v$ = %s km/s,\n F$_{10.7}$ = %s, TILT $= %s^\circ$' % (B, v, F107, tilt), ha = 'left', va = 'top', size = 9)
 
-    plt.savefig('amps_fac_and_equivalent_current_' + str(tilt) + '_deg_tilt.png', dpi = 250)
-    plt.savefig('amps_fac_and_equivalent_current_' + str(tilt) + '_deg_tilt.pdf')
-    plt.savefig('amps_fac_and_equivalent_current_' + str(tilt) + '_deg_tilt.svg')
+    plt.savefig('amps_fac_and_equivalent_current_latest_' + str(tilt) + '_deg_tilt.png', dpi = 250)
+    plt.savefig('amps_fac_and_equivalent_current_latest_' + str(tilt) + '_deg_tilt.pdf')
+    plt.savefig('amps_fac_and_equivalent_current_latest_' + str(tilt) + '_deg_tilt.svg')
     
 plt.show()
