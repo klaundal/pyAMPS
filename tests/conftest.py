@@ -6,7 +6,7 @@ import sys
 import pandas as pd
 
 import pyamps
-from pymps.coefficients import MODEL_COEFF_TEST
+from pyamps.coefficients import MODEL_COEFF_TEST
 
 
 def pytest_runtest_makereport(item, call):
