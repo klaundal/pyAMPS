@@ -182,7 +182,8 @@ class AMPS(object):
 
 
         # find highest degree and order:
-        self.N, self.M = np.max( np.hstack((np.array([c for c in self.tor_keys]).T, np.array([c for c in self.tor_keys]).T)), axis = 1)
+        keys = np.array(self.keys_T + self.keys_P)
+        self.N, self.M = map(int, np.max(keys, axis = 0))
 
         self.vectorgrid = self._get_vectorgrid()
         self.scalargrid = self._get_scalargrid(resolution = resolution)
@@ -239,8 +240,8 @@ class AMPS(object):
         >>> m2 = AMPS(new_v, new_By, new_Bz, new_tilt, new_f107)
         >>> # ... new current calculations ...
         
-        Also note that the inputs are scalars in both cases. It is possible to optimize the calculations significantly
-        by allowing the inputs to be arrays. That is not yet implemented.
+        The model inputs can also be arrays, in which case the coefficient arrays get one
+        column per input value. The model grid matrices are reused for all columns.
 
         """
 
@@ -283,6 +284,67 @@ class AMPS(object):
 
     def get_inputs(self):
         return self.inputs
+
+
+    def _model_count(self):
+        """Return the number of model states represented by the coefficient columns."""
+
+        return self.tor_c.shape[1]
+
+
+    def _reshape_model_output(self, values, shape):
+        """Return values with the requested spatial shape and optional model axis."""
+
+        values = np.asarray(values)
+        shape  = tuple(shape)
+
+        if self._model_count() == 1:
+            return values.reshape(shape)
+
+        return values.reshape(shape + (self._model_count(),))
+
+
+    def _squeeze_model_output(self, values, shape = None):
+        """Remove singleton axes for one model state; otherwise append the model axis."""
+
+        values = np.asarray(values)
+
+        if self._model_count() == 1:
+            return values.squeeze()
+
+        if shape is None:
+            return values
+
+        return values.reshape(tuple(shape) + (self._model_count(),))
+
+
+    def _flatten_model_output(self, values):
+        """Return one spatial dimension, with model states as columns when present."""
+
+        values = np.asarray(values)
+
+        if self._model_count() == 1:
+            return values.flatten()
+
+        return values.reshape((-1, self._model_count()))
+
+
+    def _scalar_or_model_vector(self, values):
+        """Return a scalar for one model state, or one value per model state."""
+
+        values = np.asarray(values)
+
+        if self._model_count() == 1:
+            return values.reshape(-1)[0]
+
+        return values
+
+
+    def _check_single_model_for_plotting(self, method_name):
+        """Plotting methods draw one model state at a time."""
+
+        if self._model_count() != 1:
+            raise ValueError(method_name + ' only supports scalar model inputs')
 
 
     def _get_vectorgrid(self, **kwargs):
@@ -392,6 +454,7 @@ class AMPS(object):
         else: # calculate at custom coordinates
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
@@ -404,7 +467,7 @@ class AMPS(object):
                 T = np.dot(P * cosmphi, self.tor_c) + \
                     np.dot(P * sinmphi, self.tor_s)
 
-                T = T.squeeze()
+                T = self._squeeze_model_output(T, shape)
 
             else:
                 shape = mlat.shape
@@ -420,7 +483,7 @@ class AMPS(object):
                 T = np.dot(P * cosmphi, self.tor_c) + \
                     np.dot(P * sinmphi, self.tor_s) 
 
-                T = T.reshape(shape)
+                T = self._reshape_model_output(T, shape)
 
 
         return T
@@ -459,6 +522,7 @@ class AMPS(object):
         else: # calculate at custom coordinates
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
@@ -472,7 +536,7 @@ class AMPS(object):
 
                 V = REFRE * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
                              + np.dot(rtor * P * sinmphi, self.pol_s ) )
-                V = V.squeeze()
+                V = self._squeeze_model_output(V, shape)
 
             else:
                 shape = mlat.shape
@@ -486,7 +550,7 @@ class AMPS(object):
                 sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
                 V = REFRE * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
                              + np.dot(rtor * P * sinmphi, self.pol_s ) )
-                V = V.reshape(shape)
+                V = self._reshape_model_output(V, shape)
 
 
         return V
@@ -546,6 +610,7 @@ class AMPS(object):
         else: # calculate at custom coordinates
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
@@ -559,7 +624,7 @@ class AMPS(object):
 
                 Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
                                        + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
-                Psi = Psi.squeeze()
+                Psi = self._squeeze_model_output(Psi, shape)
  
             else:
                 shape = mlat.shape
@@ -572,7 +637,7 @@ class AMPS(object):
                 sinmphi   = np.sin(self.m_P *  mlt * np.pi/12 )
                 Psi = - REFRE / MU0 * (  np.dot(rtor * P * cosmphi, self.pol_c ) 
                                        + np.dot(rtor * P * sinmphi, self.pol_s ) ) * 1e-9  # kA
-                Psi = Psi.reshape(shape)
+                Psi = self._reshape_model_output(Psi, shape)
 
 
         
@@ -611,6 +676,7 @@ class AMPS(object):
         else: # calculate at custom coordinates
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
@@ -622,7 +688,7 @@ class AMPS(object):
                 Ju = -1e-6/(MU0 * (REFRE + self.height) ) * ( np.dot(n_T * (n_T + 1) * P * cosmphi, self.tor_c) 
                                                           +   np.dot(n_T * (n_T + 1) * P * sinmphi, self.tor_s) )
 
-                Ju = Ju.squeeze() # (nmlat, nmlt), transpose of original  
+                Ju = self._squeeze_model_output(Ju, shape) # (nmlat, nmlt), transpose of original  
     
             else:    
                 shape = mlat.shape
@@ -635,7 +701,7 @@ class AMPS(object):
                 sinmphi   = np.sin(self.m_T *  mlt * np.pi/12 )
                 Ju = -1e-6/(MU0 * (REFRE + self.height) ) * ( np.dot(self.n_T * (self.n_T + 1) * P * cosmphi, self.tor_c) 
                                                           +   np.dot(self.n_T * (self.n_T + 1) * P * sinmphi, self.tor_s) )
-                Ju = Ju.reshape(shape)
+                Ju = self._reshape_model_output(Ju, shape)
 
         return Ju
 
@@ -675,6 +741,7 @@ class AMPS(object):
         else: # calculate at custom coordinates
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
@@ -687,7 +754,7 @@ class AMPS(object):
 
                 alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
                                                          + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
-                alpha = alpha.squeeze()
+                alpha = self._squeeze_model_output(alpha, shape)
                 
 
             else:
@@ -702,7 +769,7 @@ class AMPS(object):
 
                 alpha = -(REFRE + self.height) / MU0 * (   np.dot(P * cosmphi, self.tor_c) 
                                                          + np.dot(P * sinmphi, self.tor_s) ) * 1e-9
-                alpha = alpha.reshape(shape)
+                alpha = self._reshape_model_output(alpha, shape)
 
 
         return alpha
@@ -751,12 +818,13 @@ class AMPS(object):
             north =  - (  np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_cosmphi_vector, self.pol_s)
                         - np.dot(rtor * self.pol_P_vector * self.m_P * self.pol_sinmphi_vector, self.pol_c) ) / self.coslambda_vector
 
-            return east.flatten(), north.flatten()
+            return self._flatten_model_output(east), self._flatten_model_output(north)
 
 
         else: # calculate at custom mlat, mlt
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_P]), (1,2,0)) # (nlat, 1, 177)
@@ -776,7 +844,7 @@ class AMPS(object):
                 north = (- np.dot(rtor *  P * m_P * cosmphi, self.pol_s) \
                          + np.dot(rtor *  P * m_P * sinmphi, self.pol_c) ) / coslambda
 
-                return east.squeeze(), north.squeeze()
+                return self._squeeze_model_output(east, shape), self._squeeze_model_output(north, shape)
 
 
             else:
@@ -796,7 +864,7 @@ class AMPS(object):
                 north = (- np.dot(rtor *  P * self.m_P * cosmphi, self.pol_s) \
                          + np.dot(rtor *  P * self.m_P * sinmphi, self.pol_c) ) / coslambda
 
-                return east.reshape(shape), north.reshape(shape)
+                return self._reshape_model_output(east, shape), self._reshape_model_output(north, shape)
 
 
 
@@ -843,11 +911,12 @@ class AMPS(object):
             north = rtor * (   np.dot(self.tor_dP_vector * self.tor_cosmphi_vector, self.tor_c)
                              + np.dot(self.tor_dP_vector * self.tor_sinmphi_vector, self.tor_s))
 
-            return east.flatten(), north.flatten()
+            return self._flatten_model_output(east), self._flatten_model_output(north)
 
         else: # calculate at custom mlat, mlt
             if grid:
                 assert len(mlat.shape) == len(mlt.shape) == 1 # enforce 1D input arrays
+                shape = (mlat.size, mlt.size)
 
                 P, dP = legendre(self.N, self.M, 90 - mlat)
                 P  =  np.transpose(np.array([ P[ key] for key in self.keys_T]), (1,2,0)) # (nlat, 1, 257)
@@ -865,7 +934,7 @@ class AMPS(object):
                 north = (  np.dot(rtor * dP       * cosmphi, self.tor_c) \
                          + np.dot(rtor * dP       * sinmphi, self.tor_s) ) 
 
-                return east.squeeze(), north.squeeze()
+                return self._squeeze_model_output(east, shape), self._squeeze_model_output(north, shape)
 
             else:
                 shape = mlat.shape
@@ -883,7 +952,7 @@ class AMPS(object):
                          - np.dot(rtor *  P * self.m_T * sinmphi, self.tor_c) ) / coslambda
                 north = (  np.dot(rtor * dP            * cosmphi, self.tor_c) \
                          + np.dot(rtor * dP            * sinmphi, self.tor_s) ) 
-                return east.reshape(shape), north.reshape(shape)
+                return self._reshape_model_output(east, shape), self._reshape_model_output(north, shape)
 
 
 
@@ -1005,10 +1074,15 @@ class AMPS(object):
         dS = R**2 * np.cos(mlat * np.pi/180) * mlatres * mltres
 
 
-        J_n, J_s = np.split(dS * ju * 1e-6, 2) # convert to MA and split to north and south
+        J_n, J_s = np.split(dS * ju * 1e-6, 2, axis = 0) # convert to MA and split to north and south
 
         #      J_up_north            J_down_north          J_up_south            J_down_south
-        return np.sum(J_n[J_n > 0]), np.sum(J_n[J_n < 0]), np.sum(J_s[J_s > 0]), np.sum(J_s[J_s < 0])
+        J_up_n   = np.where(J_n > 0, J_n, 0).sum(axis = 0)
+        J_down_n = np.where(J_n < 0, J_n, 0).sum(axis = 0)
+        J_up_s   = np.where(J_s > 0, J_s, 0).sum(axis = 0)
+        J_down_s = np.where(J_s < 0, J_s, 0).sum(axis = 0)
+
+        return tuple(map(self._scalar_or_model_vector, (J_up_n, J_down_n, J_up_s, J_down_s)))
 
 
     def get_ground_Beqd(self, height = 0):
@@ -1291,9 +1365,14 @@ class AMPS(object):
         Gn     =  np.hstack(( G_cn * self.pol_cosmphi_scalar, G_cn * self.pol_sinmphi_scalar))
 
         Bn     = Gn.dot(np.vstack((self.pol_c, self.pol_s)))
-        Bn_n, Bn_s = np.split(Bn, 2)
+        Bn_n, Bn_s = np.split(Bn, 2, axis = 0)
 
-        return Bn_n.min(), Bn_s.min(), Bn_n.max(), Bn_s.max()
+        AL_n = Bn_n.min(axis = 0)
+        AL_s = Bn_s.min(axis = 0)
+        AU_n = Bn_n.max(axis = 0)
+        AU_s = Bn_s.max(axis = 0)
+
+        return tuple(map(self._scalar_or_model_vector, (AL_n, AL_s, AU_n, AU_s)))
 
 
     def plot_currents(self, vector_scale = 200):
@@ -1318,6 +1397,8 @@ class AMPS(object):
         >>> m.plot_currents()
 
         """
+
+        self._check_single_model_for_plotting('plot_currents')
 
         # get the grids:
         mlats, mlts = self.plotgrid_scalar
@@ -1405,6 +1486,8 @@ class AMPS(object):
         >>> m.plot_currents()
 
         """
+
+        self._check_single_model_for_plotting('plot_deltaB_space_dipole')
 
         # get the grids:
         mlats, mlts = self.scalargrid
@@ -2034,5 +2117,3 @@ def get_J_horiz(glat, glon, height, time, v, By, Bz, tilt, f107, epoch = 2015., 
 
     # the resulting array will be stacked Be, Bn components. Return the partitions
     return np.split(J, 2)
-
-
