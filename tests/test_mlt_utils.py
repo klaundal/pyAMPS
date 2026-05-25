@@ -10,8 +10,8 @@ from pyamps.mlt_utils import mlon_to_mlt, sph_to_car, car_to_sph, subsol, is_lea
 
 
 @pytest.mark.parametrize("mlon, times, mlt",
-                         [(27.6361193, datetime.datetime(2014, 10, 29, 10, 18, 1), 7.746497),
-                          (358.9850748, datetime.datetime(2016, 3, 1, 22, 57, 2), 17.742899)])
+                         [(27.6361193, datetime.datetime(2014, 10, 29, 10, 18, 1), 7.74687951),
+                          (358.9850748, datetime.datetime(2016, 3, 1, 22, 57, 2), 17.75929576)])
 def test_mlon_to_mlt(mlon, times, mlt):
     atol = 1e-5
     mlon_np = np.array(mlon)

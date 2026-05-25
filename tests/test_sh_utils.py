@@ -81,7 +81,6 @@ class Test_SHkeys(object):
         k = SHkeys(N, M)
         nm = np.c_[k.n[0], k.m[0]]
         k.NminusModd()
-        print(k.n[0], nm.sum(1) % 2 == (1, 0),nm)
         assert k.n.shape[1] == (nm.sum(1) % 2).sum()
         assert_array_equal(k.n[0], nm[(nm.sum(1) % 2 == 1), 0])
 
@@ -103,7 +102,7 @@ class Test_SHkeys(object):
         k = SHkeys(N, M)
 
         assert type(k.n) == np.ndarray
-        assert k.n.dtype == np.int
+        assert np.issubdtype(k.n.dtype, np.integer)
         assert k.n.shape == k.m.shape
         assert k.n.shape[1] == (N + 1) * (M + 1)
         assert_array_equal(k.n[0], [n for n, m in k.keys])
@@ -173,11 +172,12 @@ def test_getG0():
     time = np.array([datetime.datetime(2000, 1, 2, 3, 4, 5, 6),
                      datetime.datetime(2000, 1, 2, 4, 5, 6, 7)])
     height = np.array([110, 110])
-    G0 = getG0(glat, glon, height, time, epoch=2000)
+    epoch = 2000
+    G0 = getG0(glat, glon, height, time, epoch=epoch)
 
     assert G0.shape == (3 * 2, 758)
-    assert_allclose(np.abs(G0[3, :]).sum(), 665.387696, atol=1e-4)
-    assert_allclose(G0[2, ::200], [-0.03689656, -1.82078773, -0.6418252 ,  1.74947096], atol=1e-4)
+    assert_allclose(np.abs(G0[3, :]).sum(), 665.3852070965982, atol=1e-6)
+    assert_allclose(G0[2, ::200], [-0.03689650, -1.82078354, -0.64182748,  1.74946857], atol=1e-6)
 
 
 def test_get_ground_field_G0():

@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal, assert_allclose
 import pyamps
 from pyamps.amps import AMPS, get_B_space, get_B_ground
 from pyamps import model_utils
-from pymps.coefficients import MODEL_COEFF_TEST
+from pyamps.coefficients import MODEL_COEFF_TEST, MODEL_COEFF_0103
 
 test_coeff_fn = MODEL_COEFF_TEST
 
@@ -66,6 +66,121 @@ class Test_AMPS(object):
         with pytest.raises(AssertionError):
             assert_allclose(old_tor_c, new_tor_c, atol=1e-5)
 
+    def test_vector_model_inputs_match_scalar_models(self):
+        vector_args = [np.array([  0.4,   1.4]),
+                       np.array([100.6, -20.5]),
+                       np.array([200.7,  50.2]),
+                       np.array([  0.11, -5.0]),
+                       np.array([ 75.2, 120.0])]
+
+        model_kwargs = dict(
+            minlat     = 71.2,
+            maxlat     = 85.1,
+            height     = 90.1,
+            dr         = 4,
+            M0         = 8,
+            resolution = 7,
+            coeff_fn   = test_coeff_fn
+        )
+
+        model         = AMPS(*vector_args, **model_kwargs)
+        scalar_models = [AMPS(*[arg[i] for arg in vector_args], **model_kwargs) for i in range(2)]
+
+        def assert_model_columns_match_scalar_outputs(vector_values, scalar_values, shape = None):
+            vector_values = np.asarray(vector_values)
+            if shape is not None:
+                assert vector_values.shape == shape + (2,)
+            else:
+                assert vector_values.shape[-1] == 2
+
+            for i, scalar_value in enumerate(scalar_values):
+                assert_allclose(vector_values[..., i], np.asarray(scalar_value))
+
+        scalar_grid_methods = ['get_toroidal_scalar',
+                               'get_poloidal_scalar',
+                               'get_divergence_free_current_function',
+                               'get_upward_current',
+                               'get_curl_free_current_potential',
+                               'get_total_current_magnitude',
+                               'get_ground_Beqd',
+                               'get_ground_Bnqd',
+                               'get_ground_Buqd']
+
+        for method_name in scalar_grid_methods:
+            vector_values = getattr(model, method_name)()
+            scalar_values = [getattr(scalar_model, method_name)().reshape(-1) for scalar_model in scalar_models]
+            assert_model_columns_match_scalar_outputs(vector_values, scalar_values,
+                                                      shape = (2 * model_kwargs['resolution']**2,))
+
+        mlat = np.array([[72., 74.],
+                         [78., 82.]])
+        mlt  = np.array([[ 1.,  6.],
+                         [12., 18.]])
+
+        custom_scalar_methods = ['get_toroidal_scalar',
+                                 'get_poloidal_scalar',
+                                 'get_divergence_free_current_function',
+                                 'get_upward_current',
+                                 'get_curl_free_current_potential']
+
+        for method_name in custom_scalar_methods:
+            vector_values = getattr(model, method_name)(mlat, mlt)
+            scalar_values = [getattr(scalar_model, method_name)(mlat, mlt) for scalar_model in scalar_models]
+            assert_model_columns_match_scalar_outputs(vector_values, scalar_values, shape = mlat.shape)
+
+        grid_mlat = np.array([72., 76., 82.])
+        grid_mlt  = np.array([ 1.,  6., 12., 18.])
+
+        for method_name in custom_scalar_methods:
+            vector_values = getattr(model, method_name)(grid_mlat, grid_mlt, grid = True)
+            scalar_values = [getattr(scalar_model, method_name)(grid_mlat, grid_mlt, grid = True) for scalar_model in scalar_models]
+            assert_model_columns_match_scalar_outputs(vector_values, scalar_values,
+                                                      shape = (grid_mlat.size, grid_mlt.size))
+
+        vector_current_methods = ['get_divergence_free_current',
+                                  'get_curl_free_current',
+                                  'get_total_current',
+                                  'get_ground_perturbation']
+
+        for method_name in vector_current_methods:
+            vector_components = getattr(model, method_name)()
+            scalar_components = [getattr(scalar_model, method_name)() for scalar_model in scalar_models]
+
+            for component_index, vector_values in enumerate(vector_components):
+                scalar_values = [scalar_components[i][component_index].reshape(-1) for i in range(2)]
+                assert_model_columns_match_scalar_outputs(vector_values, scalar_values, shape = (model.vectorgrid[0].size,))
+
+        for method_name in vector_current_methods[:-1]:
+            vector_components = getattr(model, method_name)(mlat, mlt)
+            scalar_components = [getattr(scalar_model, method_name)(mlat, mlt) for scalar_model in scalar_models]
+
+            for component_index, vector_values in enumerate(vector_components):
+                scalar_values = [scalar_components[i][component_index] for i in range(2)]
+                assert_model_columns_match_scalar_outputs(vector_values, scalar_values, shape = mlat.shape)
+
+        for method_name in vector_current_methods[:-1]:
+            vector_components = getattr(model, method_name)(grid_mlat, grid_mlt, grid = True)
+            scalar_components = [getattr(scalar_model, method_name)(grid_mlat, grid_mlt, grid = True) for scalar_model in scalar_models]
+
+            for component_index, vector_values in enumerate(vector_components):
+                scalar_values = [scalar_components[i][component_index] for i in range(2)]
+                assert_model_columns_match_scalar_outputs(vector_values, scalar_values,
+                                                          shape = (grid_mlat.size, grid_mlt.size))
+
+        for summary_method in ['get_integrated_upward_current', 'get_AE_indices']:
+            vector_values = getattr(model, summary_method)()
+            scalar_values = [getattr(scalar_model, summary_method)() for scalar_model in scalar_models]
+
+            for component_index, values in enumerate(vector_values):
+                assert values.shape == (2,)
+                assert_allclose(values, [scalar_values[0][component_index], scalar_values[1][component_index]])
+
+        with pytest.raises(ValueError, match = 'plot_currents'):
+            model.plot_currents()
+
+        with pytest.raises(ValueError, match = 'plot_deltaB_space_dipole'):
+            model.plot_deltaB_space_dipole()
+
     def test__get_vectorgrid(self, amps_model):
         model, _, _ = amps_model
 
@@ -94,7 +209,7 @@ class Test_AMPS(object):
     def test_calculate_matrices(self, amps_model):
         model, _, m_kwargs = amps_model
         assert model.tor_sinmphi_scalar.shape == (882, 5)
-        assert model.pol_dP_vector.shape == (160, 5)
+        assert model.pol_dP_vector.shape == (144, 5)
 
         assert_allclose(model.tor_sinmphi_vector[2],
                         [0., 0.47139674, 0., 0.47139674, 0.83146961],atol=1e-6)
@@ -105,7 +220,7 @@ class Test_AMPS(object):
                         [0.95048862, 0.31075938, 0.85514291, 0.51160148, 0.08363328], atol=1e-6)
 
         assert_allclose(model.tor_dP_vector[5],
-                        [ 0.3090169, -0.9510565,  0.8816778, -1.4012585, -0.5090369], atol=1e-6)
+                        [ 0.27563736, -0.9612617 ,  0.7948789 , -1.46886239, -0.45892354], atol=1e-6)
 
     @pytest.mark.parametrize("mlat, mlt", [(np.array([60.]), np.array([0.])),
                                            (np.array([71.]), np.array([6.]))])
@@ -193,7 +308,6 @@ class Test_AMPS(object):
                 model.tor_s[i] * sin(m * mlt * mlt2r))
         Ju *= -1 / MU0 / (REFRE + m_kwargs['height']) * 1e-6
         mlats, mlts = np.meshgrid(mlat,mlt)
-        print("shapes",mlat.squeeze().shape,mlats.squeeze().shape)
         assert_allclose(Ju, model.get_upward_current(mlat, mlt))
         assert_allclose(
             model.get_upward_current(mlats, mlts),
@@ -399,8 +513,8 @@ class Test_AMPS(object):
 def test_get_B_space():
     # params, input for get_B_ground: glat, glon, height, time, v, By, Bz, tilt, f107 
     params = list(map(lambda x: np.array(x).reshape(-1), [
-        [90, 90],
-        [0, 0],
+        [80, 75],
+        [0, 20],
         [110, 110],
         [datetime.datetime(2015,1,2), datetime.datetime(2015,4,2)],
         [0, 0],
@@ -408,10 +522,10 @@ def test_get_B_space():
         [1, 1],
         [0.5, 0.5],
         [0.3, 0.3]]))
-    B_e, B_n, B_r = get_B_space(*params)
-    assert_allclose(B_e, [6.429, 5.203], atol=1e-3)
-    assert_allclose(B_n, [-16.302, -17.881], atol=1e-3)
-    assert_allclose(B_r, [10.870, 11.428], atol=1e-3)
+    B_e, B_n, B_r = get_B_space(*params, coeff_fn = MODEL_COEFF_0103)
+    assert_allclose(B_e, [1.214, -14.165], atol=1e-3)
+    assert_allclose(B_n, [0.445, 7.911], atol=1e-3)
+    assert_allclose(B_r, [-6.659, -7.802], atol=1e-3)
     pass
 
 

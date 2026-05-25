@@ -1,23 +1,26 @@
 from __future__ import division
 
 import os
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_allclose
+from numpy.testing import assert_allclose
 
 import pyamps
-from pymps.coefficients import MODEL_VECTOR_TEST, MODEL_COEFF_TEST
+from pyamps.coefficients import MODEL_VECTOR_TEST, MODEL_COEFF_0104
 
 
 def test_get_model_vectors():
-    basepath = os.path.join(os.path.dirname(__file__), "..", "pyamps")
     model_vector = np.load(MODEL_VECTOR_TEST)
 
-    path_txt = MODEL_COEFF_TEST
+    path_txt = MODEL_COEFF_0104
     assert os.path.exists(path_txt)
-    
-    coeffs = np.nan_to_num(np.genfromtxt(path_txt, skip_header=14, unpack=True))
-    model_vectors = np.split(model_vector, 19)
-    
-    assert_allclose(model_vectors[0][:len(coeffs[0])], coeffs[2], atol=1e-6)
-    assert_allclose(model_vector.sum(), coeffs[2:].sum(), atol=1e-5)
+
+    coeffs = pyamps.model_utils.get_coeffs(path_txt)
+    vector_from_txt = []
+
+    for param in pyamps.model_utils.names:
+        vector_from_txt.extend(coeffs.loc[:, 'tor_c_' + param].dropna().values)
+        vector_from_txt.extend(coeffs.loc[:, 'tor_s_' + param].dropna().values)
+        vector_from_txt.extend(coeffs.loc[:, 'pol_c_' + param].dropna().values)
+        vector_from_txt.extend(coeffs.loc[:, 'pol_s_' + param].dropna().values)
+
+    assert_allclose(model_vector, np.array(vector_from_txt), atol=1e-6)
