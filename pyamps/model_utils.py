@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from functools import reduce
 from .coefficients import MODEL_COEFF_LATEST
 
 default_coeff_fn = MODEL_COEFF_LATEST
@@ -65,20 +64,31 @@ def get_m_matrix_pol(coeff_fn = default_coeff_fn):
 def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1., coeff_fn = default_coeff_fn):
     """ tor_c, tor_s, pol_c, pol_s = get_model_vectors(v, By, Bz, tilt, F107, epsilon_multiplier = 1., coeffs = coeffs)
 
-        returns column vectors ((K,1)-shaped) corresponding to the spherical harmonic coefficients of the toroidal
-        and poloidal parts, with _c and _s denoting cos and sin terms, respectively.
+        Returns 2D arrays corresponding to the spherical harmonic coefficients of the
+        toroidal and poloidal parts, with _c and _s denoting cos and sin terms,
+        respectively. Scalar inputs produce column vectors with shape (K, 1).
+        Vector-valued inputs produce arrays with shape (K, N), where N is the
+        number of input values after broadcasting and flattening.
 
         This function is used by amps.AMPS class
     """
 
     coeffs = get_coeffs(coeff_fn)
 
+    v, By, Bz, tilt, f107, epsilon_multiplier = np.broadcast_arrays(v, By, Bz, tilt, f107, epsilon_multiplier)
+    v                  = v.flatten()
+    By                 = By.flatten()
+    Bz                 = Bz.flatten()
+    tilt               = tilt.flatten()
+    f107               = f107.flatten()
+    epsilon_multiplier = epsilon_multiplier.flatten()
+
     ca = np.arctan2(By, Bz)
     epsilon = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.sin(ca/2)**(8))**(1/3.) / 1000 * epsilon_multiplier # Newell coupling           
     tau     = np.abs(v)**(4/3.) * np.sqrt(By**2 + Bz**2)**(2/3.) * (np.cos(ca/2)**(8))**(1/3.) / 1000 # Newell coupling - inverse 
 
     # make a dict of the 19 external parameters, where the keys are postfixes in the column names of coeffs:
-    external_params = {'const'             : 1                          ,                            
+    external_params = {'const'             : np.ones_like(ca)           ,                            
                        'sinca'             : 1              * np.sin(ca),
                        'cosca'             : 1              * np.cos(ca),
                        'epsilon'           : epsilon                    ,
@@ -98,15 +108,21 @@ def get_model_vectors(v, By, Bz, tilt, f107, epsilon_multiplier = 1., coeff_fn =
                        'tilt_tau_cosca'    : tilt * tau     * np.cos(ca),
                        'f107'              : f107                        }
 
-    # The SH coefficients are the sums in the expansion in terms of external parameters, scaled by the ext. params.:
-    tor_c = reduce(lambda x, y: x+y, [coeffs.loc[:, 'tor_c_' + param] * external_params[param] for param in external_params.keys()]).dropna()
-    tor_s = reduce(lambda x, y: x+y, [coeffs.loc[:, 'tor_s_' + param] * external_params[param] for param in external_params.keys()]).fillna(0)
-    pol_c = reduce(lambda x, y: x+y, [coeffs.loc[:, 'pol_c_' + param] * external_params[param] for param in external_params.keys()]).dropna()
-    pol_s = reduce(lambda x, y: x+y, [coeffs.loc[:, 'pol_s_' + param] * external_params[param] for param in external_params.keys()]).fillna(0)
-    pol_s = pol_s.loc[pol_c.index] # equal number of sin and cos terms, but sin coeffs will be 0 where m = 0
-    tor_s = tor_s.loc[tor_c.index] # 
+    external_params = np.vstack([external_params[param] for param in names])
+
+    tor_c_index = coeffs.loc[:, 'tor_c_const'].dropna().index
+    pol_c_index = coeffs.loc[:, 'pol_c_const'].dropna().index
+
+    tor_c_coeffs = coeffs.loc[tor_c_index, ['tor_c_' + param for param in names]].to_numpy()
+    tor_s_coeffs = coeffs.loc[tor_c_index, ['tor_s_' + param for param in names]].fillna(0).to_numpy()
+    pol_c_coeffs = coeffs.loc[pol_c_index, ['pol_c_' + param for param in names]].to_numpy()
+    pol_s_coeffs = coeffs.loc[pol_c_index, ['pol_s_' + param for param in names]].fillna(0).to_numpy()
+
+    # The SH coefficients are the sums in the expansion in terms of external parameters.
+    tor_c = tor_c_coeffs.dot(external_params)
+    tor_s = tor_s_coeffs.dot(external_params)
+    pol_c = pol_c_coeffs.dot(external_params)
+    pol_s = pol_s_coeffs.dot(external_params)
 
 
-#    return tor_c.values[:, np.newaxis], tor_s.values[:, np.newaxis], pol_c.values[:, np.newaxis], pol_s.values[:, np.newaxis], pol_c.index.values, tor_c.index.values
-    return tor_c.to_numpy()[:, np.newaxis], tor_s.to_numpy()[:, np.newaxis], pol_c.to_numpy()[:, np.newaxis], pol_s.to_numpy()[:, np.newaxis], pol_c.index.values, tor_c.index.values
-
+    return tor_c, tor_s, pol_c, pol_s, pol_c_index.values, tor_c_index.values
