@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import time
 import numpy as np
 import pandas as pd
-from sh_utils import SHkeys
+from pyamps.sh_utils import SHkeys
 from .coefficients import MODEL_VECTOR_LATEST, MODEL_COEFF_LATEST
 
 # header
@@ -37,11 +37,12 @@ header = header + """
 model_vector = np.load(MODEL_VECTOR_LATEST)
 NT, MT, NV, MV = 65, 3, 45, 3
 
-external_parameters = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 'tilt', 
-                       'tilt_sinca', 'tilt_cosca', 'tilt_epsilon', 'tilt_epsilon_sinca', 'tilt_epsilon_cosca', 
+external_parameters = ['const', 'sinca', 'cosca', 'epsilon', 'epsilon_sinca', 'epsilon_cosca', 'tilt',
+                       'tilt_sinca', 'tilt_cosca', 'tilt_epsilon', 'tilt_epsilon_sinca', 'tilt_epsilon_cosca',
                        'tau', 'tau_sinca', 'tau_cosca', 'tilt_tau', 'tilt_tau_sinca', 'tilt_tau_cosca', 'f107']
 
-NTERMS = len(external_parameters) # number of terms in the expansion of each spherical harmonic coefficient
+# number of terms in the expansion of each spherical harmonic coefficient
+NTERMS = len(external_parameters)
 
 
 """ make spherical harmonic keys """
@@ -60,13 +61,17 @@ m_sin_T = keys['sin_T'].m
 def vector_to_df(m_vec):
     """ convert model vector to dataframes, one for each coefficient (cos and sin for T and V). The index is (n,m) """
 
-    tor_c = pd.Series(m_vec[                                           : m_cos_T.size                              ], index = keys['cos_T'], name = 'tor_c')
-    tor_s = pd.Series(m_vec[m_cos_T.size                               : m_cos_T.size + m_sin_T.size               ], index = keys['sin_T'], name = 'tor_s')
-    pol_c = pd.Series(m_vec[m_cos_T.size + m_sin_T.size                : m_cos_T.size + m_sin_T.size + m_cos_V.size], index = keys['cos_V'], name = 'pol_c')
-    pol_s = pd.Series(m_vec[m_cos_T.size + m_sin_T.size + m_cos_V.size :                                           ], index = keys['sin_V'], name = 'pol_s')
+    tor_c = pd.Series(m_vec[: m_cos_T.size], index=keys['cos_T'], name='tor_c')
+    tor_s = pd.Series(m_vec[m_cos_T.size: m_cos_T.size +
+                      m_sin_T.size], index=keys['sin_T'], name='tor_s')
+    pol_c = pd.Series(m_vec[m_cos_T.size + m_sin_T.size: m_cos_T.size +
+                      m_sin_T.size + m_cos_V.size], index=keys['cos_V'], name='pol_c')
+    pol_s = pd.Series(m_vec[m_cos_T.size + m_sin_T.size +
+                      m_cos_V.size:], index=keys['sin_V'], name='pol_s')
 
     # merge the series into one DataFrame, and fill in zeros where the terms are undefined
-    return pd.concat((tor_c, tor_s, pol_c, pol_s), axis = 1)
+    return pd.concat((tor_c, tor_s, pol_c, pol_s), axis=1)
+
 
 # get one set of coefficients per external parameter, and store in dataframes where columns are 'tor_c', 'tor_s', 'pol_c', and 'pol_s'
 # _c and _s refer to cos and sin terms, respectively, and tor and pol to toroidal and poloidal
@@ -77,13 +82,13 @@ for m, param in zip(dataframes, external_parameters):
     m.columns = [n + '_' + param for n in m.columns]
 
 # merge them all
-coefficients = pd.concat(dataframes, axis = 1)
+coefficients = pd.concat(dataframes, axis=1)
 
 # write txt file
 with open(MODEL_COEFF_LATEST, 'w') as file:
     # header:
     file.write(header)
     # data:
-    coefficients.to_string(buf = file, float_format = lambda x: '{:.7f}'.format(x), 
-                           header = False, sparsify = False,
-                           index_names = False)
+    coefficients.to_string(buf=file, float_format=lambda x: '{:.7f}'.format(x),
+                           header=False, sparsify=False,
+                           index_names=False)

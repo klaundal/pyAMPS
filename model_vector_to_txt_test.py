@@ -39,7 +39,7 @@ for m, param in zip(dataframes, external_parameters):
 coefficients = pd.concat(dataframes, axis=1)
 
 # write txt file
-with open('/Users/fasilkebede/Downloads/SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0106.txt', 'w') as file:
+with open('/Users/fasilkebede/Downloads/SW_OPER_MIO_SHA_2E_00000000T000000_99999999T999999_0106_internal.txt', 'w') as file:
     # header:
     file.write(header)
     # data:
