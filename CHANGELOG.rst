@@ -8,3 +8,4 @@ Version 1.5: Updated model vector + removed LaTeX dependencies + a couple of min
 Version 1.6: Updated model vector + removed deprecated Multi-dimensional indexing 
 Version 1.7: Added get_J_horiz function to calculate horizontal currents efficiently with dask
 Version 1.7.1: Now using IGRF-14 when calculating dipole position (used in mlt_utils)
+Version 1.8: Updated model vector
